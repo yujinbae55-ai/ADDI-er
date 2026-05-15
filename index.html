@@ -89,7 +89,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .icon-btn{background:none;border:none;cursor:pointer;font-size:17px;padding:5px;border-radius:8px;transition:background 0.15s;line-height:1;}
 .icon-btn:hover{background:#F0EFF6;}
 .icon-btn.danger:hover{background:var(--danger-light);}
-.type-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;}
+.type-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;display:inline-block;}
 .empty-state{text-align:center;padding:36px 20px;color:var(--text-hint);font-size:14px;font-weight:500;border:1.5px dashed #DDD8ED;border-radius:var(--radius);background:var(--surface);}
 .empty-icon{font-size:32px;margin-bottom:10px;opacity:0.5;}
 .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:rgba(255,255,255,0.98);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:10px 0 18px;z-index:100;}
@@ -98,22 +98,41 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .nav-label{font-size:10px;font-weight:700;color:var(--text-hint);letter-spacing:0.3px;}
 .nav-btn.active .nav-label{color:var(--brand);}
 .nav-btn.active .nav-icon{filter:drop-shadow(0 0 6px rgba(139,63,255,0.35));}
-.tabs,.my-tabs{display:flex;background:var(--brand-light);border-radius:var(--radius-sm);padding:4px;gap:3px;}
+.tabs{display:flex;background:var(--brand-light);border-radius:var(--radius-sm);padding:4px;gap:3px;}
 .tab-btn,.my-tab-btn{flex:1;padding:10px 6px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;}
 .tab-btn.active,.my-tab-btn.active{background:var(--brand);color:white;box-shadow:0 2px 8px rgba(139,63,255,0.3);}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .stat-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:20px 18px;}
 .stat-card .sv{font-size:36px;font-weight:800;color:var(--brand);letter-spacing:-1.5px;line-height:1;}
 .stat-card .sl{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-top:6px;}
-.member-row{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:16px 18px;display:flex;align-items:center;gap:14px;}
-.member-avatar{width:44px;height:44px;border-radius:50%;background:var(--brand-light);color:var(--brand);font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid var(--brand-mid);}
+
+/* ── 개선된 멤버 카드 ── */
+.member-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:18px;transition:box-shadow 0.15s;}
+.member-card:hover{box-shadow:0 4px 16px rgba(139,63,255,0.08);}
+.member-card-top{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+.member-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--brand-light),var(--brand-mid));color:var(--brand);font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid var(--brand-mid);}
 .member-info{flex:1;min-width:0;}
 .member-name{font-size:15px;font-weight:700;}
 .member-sub{font-size:12px;color:var(--text-muted);font-weight:500;margin-top:2px;}
-.member-status{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;flex-shrink:0;}
-.month-selector{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:12px 16px;}
-.month-selector select{border:none;background:none;font-family:'Pretendard',sans-serif;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;outline:none;flex:1;}
-.admin-toggle-row{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.member-status-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:10px 14px;}
+.member-status{font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;flex-shrink:0;}
+.member-time-detail{font-size:12px;color:var(--text-muted);font-weight:500;}
+
+/* ── 월간 멤버 카드 ── */
+.monthly-member-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:18px;cursor:pointer;transition:all 0.15s;}
+.monthly-member-card:hover{box-shadow:0 4px 16px rgba(139,63,255,0.10);border-color:var(--brand-mid);}
+.monthly-card-top{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.monthly-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.monthly-stat-item{background:var(--bg);border-radius:10px;padding:10px;text-align:center;}
+.monthly-stat-val{font-size:18px;font-weight:800;color:var(--brand);letter-spacing:-0.5px;}
+.monthly-stat-label{font-size:10px;font-weight:600;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+.monthly-bar{height:6px;background:#EAE8F0;border-radius:3px;margin-top:12px;overflow:hidden;}
+.monthly-bar-fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-mid));border-radius:3px;transition:width 0.6s ease;}
+
+/* ── 팀원 관리 카드 ── */
+.member-manage-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:16px 18px;}
+.member-manage-top{display:flex;align-items:center;gap:12px;}
+.member-manage-actions{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
 .admin-toggle-label{font-size:13px;color:var(--text-muted);font-weight:500;flex:1;}
 .toggle{position:relative;width:44px;height:25px;flex-shrink:0;}
 .toggle input{opacity:0;width:0;height:0;position:absolute;}
@@ -122,20 +141,68 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .toggle input:checked+.toggle-slider{background:var(--brand);}
 .toggle input:checked+.toggle-slider:before{transform:translateX(19px);}
 .toggle input:disabled+.toggle-slider{opacity:0.5;cursor:not-allowed;}
+
+/* ── 마이페이지 개선 ── */
+.my-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;}
+.my-summary-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:18px;}
+.my-summary-val{font-size:28px;font-weight:800;color:var(--brand);letter-spacing:-1px;line-height:1;}
+.my-summary-label{font-size:11px;font-weight:600;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* 달력 */
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .cal-nav-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
 .cal-nav-btn:hover{background:var(--brand-light);}
 .cal-title{font-size:16px;font-weight:800;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .cal-header{text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);padding:6px 0;}
-.cal-cell{min-height:56px;border-radius:10px;padding:6px 4px;cursor:pointer;transition:all 0.15s;border:1.5px solid transparent;}
+.cal-cell{min-height:52px;border-radius:10px;padding:5px 3px;cursor:pointer;transition:all 0.15s;border:1.5px solid transparent;}
 .cal-cell:hover{background:var(--brand-light);}
 .cal-cell.empty{cursor:default;min-height:16px;}
 .cal-cell.empty:hover{background:transparent;}
 .cal-cell.has-record{background:var(--brand-light);border-color:var(--brand-mid);}
 .cal-cell.today{border-color:var(--brand)!important;border-width:2px;}
-.cal-day{font-size:13px;font-weight:600;text-align:center;}
-.cal-dur{font-size:10px;font-weight:700;color:var(--brand);text-align:center;margin-top:3px;}
+.cal-day{font-size:12px;font-weight:600;text-align:center;}
+.cal-dur{font-size:10px;font-weight:700;color:var(--brand);text-align:center;margin-top:2px;}
+
+/* 근무 기록 리스트 개선 */
+.work-month-group{margin-bottom:22px;}
+.work-month-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,var(--brand-light),rgba(240,232,255,0.3));border-radius:12px;margin-bottom:10px;}
+.work-month-title{font-size:14px;font-weight:800;color:var(--brand);}
+.work-month-summary{display:flex;gap:12px;}
+.work-month-stat{font-size:12px;font-weight:600;color:var(--text-muted);}
+.work-month-stat span{color:var(--brand);font-weight:700;}
+.work-record-item{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px;}
+.work-record-main{display:flex;align-items:center;padding:14px 16px;gap:14px;}
+.work-record-date-box{width:42px;height:42px;background:var(--brand-light);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.work-record-day{font-size:18px;font-weight:800;color:var(--brand);line-height:1;}
+.work-record-dow{font-size:10px;font-weight:600;color:var(--brand-mid);}
+.work-record-info{flex:1;}
+.work-record-time{font-size:14px;font-weight:600;}
+.work-record-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.work-record-dur{font-size:13px;font-weight:800;color:var(--brand);}
+
+/* 제품 로그 개선 */
+.product-log-item{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px;}
+.product-log-header{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.product-log-type{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.product-log-type.register{background:var(--success-light);}
+.product-log-type.edit{background:var(--warning-light);}
+.product-log-name{font-size:15px;font-weight:700;flex:1;}
+.product-log-date{font-size:11px;color:var(--text-hint);font-weight:500;}
+.product-log-link{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg);}
+.product-log-link a{font-size:12px;color:var(--brand);text-decoration:none;word-break:break-all;flex:1;}
+.product-log-link a:hover{text-decoration:underline;}
+
+/* 관리자 상세 모달 */
+.detail-record{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:10px;}
+.detail-record-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--brand-light);}
+.detail-record-date{font-size:14px;font-weight:700;}
+.detail-record-dur{font-size:13px;font-weight:700;color:var(--brand);}
+.detail-record-body{padding:12px 16px;}
+.detail-record-times{font-size:13px;color:var(--text-muted);margin-bottom:8px;}
+.detail-log-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:6px;}
+
+/* 팝업/모달 */
 .product-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:150;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s;}
 .product-popup-overlay.open{opacity:1;pointer-events:all;}
 .product-popup{background:white;border-radius:28px 28px 0 0;width:100%;max-width:520px;padding:22px 22px 36px;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34,1.3,0.64,1);}
@@ -144,11 +211,11 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .popup-title{font-size:18px;font-weight:800;margin-bottom:4px;}
 .popup-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px;}
 .radio-group{display:flex;gap:10px;margin-bottom:16px;}
-.radio-label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:var(--radius-xs);border:1.5px solid #E8E6F0;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.15s;}
+.radio-label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:13px;border-radius:var(--radius-xs);border:1.5px solid #E8E6F0;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.15s;}
 .radio-label input{display:none;}
 .radio-label.selected{border-color:var(--brand);background:var(--brand-light);color:var(--brand);}
 .popup-input{width:100%;padding:13px 16px;border-radius:var(--radius-xs);border:1.5px solid #E8E6F0;font-size:15px;font-family:'Pretendard',sans-serif;outline:none;transition:border-color 0.2s;background:#FAFAF9;margin-bottom:10px;}
-.popup-input:focus{border-color:var(--brand);background:white;}
+.popup-input:focus{border-color:var(--brand);background:white;box-shadow:0 0 0 3px rgba(139,63,255,0.08);}
 .popup-btns{display:flex;gap:10px;margin-top:18px;}
 .btn-popup-skip{flex:1;padding:14px;border-radius:10px;border:1.5px solid #E8E6F0;background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;color:var(--text-muted);}
 .btn-popup-save{flex:2;padding:14px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;}
@@ -158,10 +225,13 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .fab:hover{background:var(--brand-dark);transform:scale(1.08);}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:flex-end;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity 0.2s;}
 .modal-overlay.open{opacity:1;pointer-events:all;}
-.modal{background:white;border-radius:28px 28px 0 0;width:100%;max-width:520px;max-height:82vh;overflow-y:auto;padding:22px 22px 36px;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34,1.3,0.64,1);}
+.modal{background:white;border-radius:28px 28px 0 0;width:100%;max-width:520px;max-height:85vh;overflow-y:auto;padding:22px 22px 36px;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34,1.3,0.64,1);}
 .modal-overlay.open .modal{transform:translateY(0);}
 .modal-handle{width:44px;height:4px;border-radius:2px;background:#E0DCF0;margin:0 auto 20px;}
-.modal-title{font-size:18px;font-weight:800;margin-bottom:18px;letter-spacing:-0.3px;}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:6px;letter-spacing:-0.3px;}
+.modal-sub{font-size:13px;color:var(--text-muted);margin-bottom:18px;}
+.month-selector{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:12px 16px;}
+.month-selector select{border:none;background:none;font-family:'Pretendard',sans-serif;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;outline:none;flex:1;}
 .loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,0.85);z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(4px);}
 .loading-logo{font-size:28px;font-weight:800;color:var(--brand);}
 .loading-dots{display:flex;gap:8px;}
@@ -177,13 +247,10 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 </head>
 <body>
 
-<!-- 로딩 오버레이 -->
 <div class="loading-overlay" id="loading-overlay">
   <div class="loading-logo">ADDI+er</div>
   <div class="loading-dots">
-    <div class="loading-dot"></div>
-    <div class="loading-dot"></div>
-    <div class="loading-dot"></div>
+    <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
   </div>
 </div>
 
@@ -240,6 +307,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
     <!-- 마이페이지 -->
     <div class="page" id="page-mypage">
       <div class="greeting">내 기록 <span style="font-size:20px;">📁</span></div>
+      <div id="my-summary"></div>
       <div class="tabs">
         <button class="my-tab-btn active" onclick="switchMyTab('calendar')">📅 달력</button>
         <button class="my-tab-btn" onclick="switchMyTab('list')">📋 근무내역</button>
@@ -270,16 +338,16 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
           <div class="stat-card"><div class="sv" id="stat-total">-</div><div class="sl">전체 팀원</div></div>
         </div>
         <div class="section-title" style="margin-bottom:10px;">팀원 현황</div>
-        <div id="member-list" class="record-list"><div class="empty-state">불러오는 중...</div></div>
+        <div id="member-list" class="record-list"></div>
       </div>
       <div id="admin-monthly" style="display:none;">
         <div class="month-selector"><span>📅</span><select id="month-select" onchange="loadMonthlyData()"></select></div>
-        <div id="monthly-list" class="record-list" style="margin-top:12px;"></div>
+        <div id="monthly-list" style="margin-top:14px;display:flex;flex-direction:column;gap:12px;"></div>
       </div>
       <div id="admin-members" style="display:none;">
         <div class="section-title" style="margin-bottom:6px;">관리자 권한 · 팀원 관리</div>
         <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;font-weight:500;">토글로 관리자 권한 부여 · 🗑️로 팀원 삭제</div>
-        <div id="admin-member-list" class="record-list"></div>
+        <div id="admin-member-list" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
     </div>
 
@@ -1061,6 +1129,288 @@ function switchPage(page) {
   // 백그라운드에서 관리자 계정 보장
   _getToken().then(() => ensureAdminSeed()).catch(() => {});
 })();
+
+
+
+// ══════════════════════════════════════
+//  Visual Patch v7 — 개선된 렌더링 함수
+// ══════════════════════════════════════
+
+// 관리자 오늘 현황 — 개선된 멤버 카드
+async function loadAdminToday() {
+  const [users, recs] = await Promise.all([fsQuery('users'), fsQuery('attendance',[['date','EQUAL',getToday()]])]);
+  document.getElementById('stat-total').textContent = users.length;
+  document.getElementById('stat-in').textContent = recs.filter(r=>r.status==='active'||r.status==='completed').length;
+  const ml = document.getElementById('member-list');
+  if (!users.length) { ml.innerHTML='<div class="empty-state">팀원이 없습니다</div>'; return; }
+  ml.innerHTML = users.map(u => {
+    const rec = recs.find(r=>r.userId===u.id);
+    const [st,sc] = !rec ? ['미출근','badge-none'] : rec.status==='active' ? ['근무중','badge-active'] : ['퇴근완료','badge-done'];
+    const times = rec
+      ? `출근 <b>${fmtTime(rec.checkIn)}</b>${rec.checkOut?` &nbsp;→&nbsp; 퇴근 <b>${fmtTime(rec.checkOut)}</b>`:' &nbsp;→&nbsp; <b>근무중</b>'}`
+      : '오늘 출근 기록 없음';
+    const dur = rec?.checkOut ? `· ${calcDur(rec.checkIn,rec.checkOut)}` : '';
+    return `<div class="member-card">
+      <div class="member-card-top">
+        <div class="member-avatar">${u.name[0]}</div>
+        <div class="member-info">
+          <div class="member-name">${u.name}${isAdm(u)?'<span style="font-size:10px;color:var(--brand);font-weight:700;margin-left:6px;">관리자</span>':''}</div>
+          <div class="member-sub">전화번호 끝 ****${u.phoneLast4}</div>
+        </div>
+        <div class="member-status ${sc}">${st}</div>
+      </div>
+      <div class="member-status-row">
+        <div class="member-time-detail">${times} ${dur}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 관리자 팀원 관리 — 개선된 카드
+async function loadAdminMembers() {
+  const users = await fsQuery('users');
+  const list = document.getElementById('admin-member-list');
+  if (!users.length) { list.innerHTML='<div class="empty-state">팀원이 없습니다</div>'; return; }
+  list.innerHTML = users.map(u => {
+    const isSelf = u.id === currentUser.id;
+    return `<div class="member-manage-card">
+      <div class="member-manage-top">
+        <div class="member-avatar">${u.name[0]}</div>
+        <div class="member-info">
+          <div class="member-name">${u.name}${isSelf?'<span style="font-size:11px;color:var(--text-muted);margin-left:6px;">(나)</span>':''}</div>
+          <div class="member-sub">전화번호 끝 ****${u.phoneLast4} · ${new Date(u.createdAt||Date.now()).toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'})} 가입</div>
+        </div>
+      </div>
+      <div class="member-manage-actions">
+        <span class="admin-toggle-label">관리자 권한 ${isAdm(u)?'<span style="color:var(--brand);font-weight:700;">활성화됨 ✓</span>':'<span style="color:var(--text-hint);">미부여</span>'}</span>
+        <label class="toggle">
+          <input type="checkbox" ${isAdm(u)?'checked':''} ${isSelf?'disabled':''} onchange="toggleAdminRole('${u.id}',this.checked,this)"/>
+          <span class="toggle-slider"></span>
+        </label>
+        ${!isSelf?`<button class="icon-btn danger" onclick="deleteUser('${u.id}','${u.name}')" style="margin-left:4px;" title="팀원 삭제">🗑️</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 관리자 월간 조회 — 개선된 카드 + 프로그레스바
+async function loadMonthlyData() {
+  const month = document.getElementById('month-select').value;
+  const [y,m] = month.split('-');
+  const start=`${y}-${m}-01`, end=`${y}-${m}-31`;
+  const [users,recs,logs] = await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
+  const fr = recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
+  const fl = logs.filter(l=>l.date>=start&&l.date<=end);
+  const grouped={}, logGrouped={};
+  for (const r of fr){if(!grouped[r.userId])grouped[r.userId]=[];grouped[r.userId].push(r);}
+  for (const l of fl){if(!logGrouped[l.userId])logGrouped[l.userId]=[];logGrouped[l.userId].push(l);}
+  const daysInMonth = new Date(parseInt(y),parseInt(m),0).getDate();
+  const maxDays = Math.max(...users.map(u=>(grouped[u.id]||[]).length), 1);
+  const list = document.getElementById('monthly-list');
+  list.innerHTML = users.map(u => {
+    const ur = grouped[u.id]||[];
+    const ul = logGrouped[u.id]||[];
+    const tot = ur.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+    const avgH = ur.length ? Math.round(tot/ur.length/60*10)/10 : 0;
+    const barW = ur.length ? Math.round(ur.length/daysInMonth*100) : 0;
+    if (!ur.length) return `<div class="monthly-member-card" style="opacity:0.6;">
+      <div class="monthly-card-top">
+        <div class="member-avatar">${u.name[0]}</div>
+        <div class="member-info"><div class="member-name">${u.name}</div><div class="member-sub">이번 달 기록 없음</div></div>
+      </div>
+    </div>`;
+    return `<div class="monthly-member-card" onclick="showAdminDetail('${u.id}','${u.name}','${month}')">
+      <div class="monthly-card-top">
+        <div class="member-avatar">${u.name[0]}</div>
+        <div class="member-info">
+          <div class="member-name">${u.name}</div>
+          <div class="member-sub">${parseInt(m)}월 근무 현황</div>
+        </div>
+        <button class="icon-btn" onclick="event.stopPropagation();exportExcel('${u.id}','${u.name}','${month}')" title="CSV 다운로드" style="font-size:20px;">📥</button>
+      </div>
+      <div class="monthly-stats">
+        <div class="monthly-stat-item">
+          <div class="monthly-stat-val">${ur.length}</div>
+          <div class="monthly-stat-label">출근일</div>
+        </div>
+        <div class="monthly-stat-item">
+          <div class="monthly-stat-val">${Math.floor(tot/60)}h${Math.floor(tot%60)}m</div>
+          <div class="monthly-stat-label">총 근무</div>
+        </div>
+        <div class="monthly-stat-item">
+          <div class="monthly-stat-val">${ul.length}</div>
+          <div class="monthly-stat-label">제품로그</div>
+        </div>
+      </div>
+      <div class="monthly-bar"><div class="monthly-bar-fill" style="width:${barW}%"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;">
+        <span style="font-size:11px;color:var(--text-hint);">출근율 ${barW}%</span>
+        <span style="font-size:11px;color:var(--text-hint);">일평균 ${avgH}h</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 관리자 상세 모달 — 개선
+async function showAdminDetail(uid, name, month) {
+  const [y,m] = month.split('-');
+  const [recs,logs] = await Promise.all([
+    fsQuery('attendance',[['userId','EQUAL',uid]]),
+    fsQuery('productLogs',[['userId','EQUAL',uid]])
+  ]);
+  const fr = recs.filter(r=>r.date.startsWith(`${y}-${m}`)&&r.status==='completed').sort((a,b)=>a.date.localeCompare(b.date));
+  const lbd={};
+  for (const l of logs.filter(l=>l.date&&l.date.startsWith(`${y}-${m}`))){if(!lbd[l.date])lbd[l.date]=[];lbd[l.date].push(l);}
+  const tot = fr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-title">${name}님</div>
+    <div class="modal-sub">${y}년 ${parseInt(m)}월 · ${fr.length}일 출근 · 총 ${Math.floor(tot/60)}h ${Math.floor(tot%60)}m</div>
+    ${fr.length ? fr.map(r=>`
+      <div class="detail-record">
+        <div class="detail-record-header">
+          <div class="detail-record-date">${fmtDate(r.checkIn)}</div>
+          <div class="detail-record-dur">${calcDur(r.checkIn,r.checkOut)}</div>
+        </div>
+        <div class="detail-record-body">
+          <div class="detail-record-times">출근 ${fmtTime(r.checkIn)} → 퇴근 ${fmtTime(r.checkOut)}</div>
+          ${(lbd[r.date]||[]).map(l=>`
+            <div class="detail-log-item">
+              <span style="font-size:16px;">${l.type==='register'?'✅':'✏️'}</span>
+              <span class="type-badge ${l.type==='register'?'badge-active':'badge-done'}" style="font-size:10px;">${l.type==='register'?'등록':'수정'}</span>
+              <span style="font-size:13px;font-weight:600;flex:1;">${l.productName}</span>
+              ${l.link?`<a href="${l.link}" target="_blank" style="font-size:12px;color:var(--brand);">링크 →</a>`:''}
+            </div>`).join('')}
+        </div>
+      </div>`).join('') : '<div class="empty-state">기록 없음</div>'}`;
+  document.getElementById('modal').classList.add('open');
+}
+
+// 마이페이지 달력 상세
+async function showDayDetail(date) {
+  const [recs,logs] = await Promise.all([
+    fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]]),
+    fsQuery('productLogs',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]])
+  ]);
+  const rec = recs[0];
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-title">${new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}</div>
+    ${rec ? `
+      <div style="background:linear-gradient(135deg,var(--brand-light),rgba(240,232,255,0.4));border-radius:14px;padding:18px;margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">근무 기록</div>
+        <div style="display:flex;gap:20px;">
+          <div><div style="font-size:10px;color:var(--text-muted);font-weight:600;">출근</div><div style="font-size:22px;font-weight:800;color:var(--text);">${fmtTime(rec.checkIn)}</div></div>
+          <div style="font-size:20px;color:var(--brand-mid);align-self:flex-end;padding-bottom:4px;">→</div>
+          <div><div style="font-size:10px;color:var(--text-muted);font-weight:600;">퇴근</div><div style="font-size:22px;font-weight:800;color:var(--text);">${rec.checkOut?fmtTime(rec.checkOut):'근무중'}</div></div>
+          ${rec.checkOut?`<div style="margin-left:auto;align-self:flex-end;"><div style="font-size:10px;color:var(--text-muted);font-weight:600;">근무시간</div><div style="font-size:18px;font-weight:800;color:var(--brand);">${calcDur(rec.checkIn,rec.checkOut)}</div></div>`:''}
+        </div>
+      </div>` : '<div class="empty-state" style="margin-bottom:16px;padding:20px;">출근 기록 없음</div>'}
+    ${logs.length ? `
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">제품 로그 ${logs.length}건</div>
+      ${logs.map(l=>`
+        <div class="product-log-item">
+          <div class="product-log-header">
+            <div class="product-log-type ${l.type==='register'?'register':'edit'}">${l.type==='register'?'✅':'✏️'}</div>
+            <div class="product-log-name">${l.productName}</div>
+            <div class="product-log-date">${fmtTime(l.timestamp)}</div>
+          </div>
+          ${l.link?`<div class="product-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}
+        </div>`).join('')}` : ''}`;
+  document.getElementById('modal').classList.add('open');
+}
+
+// 마이페이지 근무내역 — 개선된 레이아웃
+async function renderMyList() {
+  const recs = await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
+  const sorted = recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||''));
+  const list = document.getElementById('my-list');
+  if (!sorted.length) { list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>'; return; }
+  const groups={};
+  for (const r of sorted){const k=r.date?r.date.slice(0,7):'';if(!groups[k])groups[k]=[];groups[k].push(r);}
+  let html='';
+  for (const [ym,items] of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
+    const [y,mo]=ym.split('-');
+    const tot=items.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+    html+=`<div class="work-month-group">
+      <div class="work-month-header">
+        <div class="work-month-title">${y}년 ${parseInt(mo)}월</div>
+        <div class="work-month-summary">
+          <div class="work-month-stat"><span>${items.length}</span>일</div>
+          <div class="work-month-stat"><span>${Math.floor(tot/60)}h ${Math.floor(tot%60)}m</span></div>
+        </div>
+      </div>
+      ${items.map(r=>{
+        const d=new Date(r.checkIn);
+        const dow=['일','월','화','수','목','금','토'][d.getDay()];
+        return`<div class="work-record-item">
+          <div class="work-record-main">
+            <div class="work-record-date-box">
+              <div class="work-record-day">${d.getDate()}</div>
+              <div class="work-record-dow">${dow}</div>
+            </div>
+            <div class="work-record-info">
+              <div class="work-record-time">${fmtTime(r.checkIn)} → ${r.checkOut?fmtTime(r.checkOut):'근무중'}</div>
+              <div class="work-record-sub">${r.checkOut?'총 '+calcDur(r.checkIn,r.checkOut):'현재 근무중'}</div>
+            </div>
+            <div class="work-record-dur">${r.checkOut?calcDur(r.checkIn,r.checkOut):'🟢'}</div>
+          </div>
+        </div>`}).join('')}
+    </div>`;
+  }
+  list.innerHTML=html;
+}
+
+// 마이페이지 제품로그 — 개선된 레이아웃
+async function renderMyProducts() {
+  const logs = await fsQuery('productLogs',[['userId','EQUAL',currentUser.id]]);
+  const sorted = logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
+  const list = document.getElementById('my-products');
+  if (!sorted.length) { list.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>제품 로그가 없습니다</div>'; return; }
+  // 날짜별 그룹핑
+  const groups={};
+  for (const l of sorted){const k=l.date||l.timestamp?.slice(0,10)||'';if(!groups[k])groups[k]=[];groups[k].push(l);}
+  let html='';
+  for (const [date,items] of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
+    html+=`<div style="margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;padding:0 4px;">${date?new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):''}</div>
+      ${items.map(l=>`
+        <div class="product-log-item">
+          <div class="product-log-header">
+            <div class="product-log-type ${l.type==='register'?'register':'edit'}">${l.type==='register'?'✅':'✏️'}</div>
+            <div style="flex:1;">
+              <div class="product-log-name">${l.productName}</div>
+              <div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${l.type==='register'?'제품 등록':'제품 수정'} · ${fmtTime(l.timestamp)}</div>
+            </div>
+          </div>
+          ${l.link?`<div class="product-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}
+        </div>`).join('')}
+    </div>`;
+  }
+  list.innerHTML=html;
+}
+
+// 마이페이지 달력에 이번 달 요약 추가
+async function loadMyPage() {
+  myCalYear=new Date().getFullYear(); myCalMonth=new Date().getMonth();
+  // 이번 달 요약 로드
+  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
+  const logs=await fsQuery('productLogs',[['userId','EQUAL',currentUser.id]]);
+  const pfx=`${myCalYear}-${String(myCalMonth+1).padStart(2,'0')}`;
+  const monthRecs=recs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
+  const monthLogs=logs.filter(l=>l.date&&l.date.startsWith(pfx));
+  const tot=monthRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+  document.getElementById('my-summary').innerHTML=`
+    <div class="my-summary-grid">
+      <div class="my-summary-card">
+        <div class="my-summary-val">${monthRecs.length}<span style="font-size:14px;font-weight:600;color:var(--text-muted);">일</span></div>
+        <div class="my-summary-label">이번 달 출근</div>
+      </div>
+      <div class="my-summary-card">
+        <div class="my-summary-val">${Math.floor(tot/60)}<span style="font-size:14px;font-weight:600;color:var(--text-muted);">h</span></div>
+        <div class="my-summary-label">총 근무시간</div>
+      </div>
+    </div>`;
+  switchMyTab('calendar');
+}
 
 </script>
 </body>
