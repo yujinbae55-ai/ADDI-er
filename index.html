@@ -99,14 +99,12 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .nav-btn.active .nav-label{color:var(--brand);}
 .nav-btn.active .nav-icon{filter:drop-shadow(0 0 6px rgba(139,63,255,0.35));}
 .tabs{display:flex;background:var(--brand-light);border-radius:var(--radius-sm);padding:4px;gap:3px;}
-.tab-btn,.my-tab-btn{flex:1;padding:10px 6px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;}
+.tab-btn,.my-tab-btn{flex:1;padding:9px 4px;border-radius:10px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;white-space:nowrap;}
 .tab-btn.active,.my-tab-btn.active{background:var(--brand);color:white;box-shadow:0 2px 8px rgba(139,63,255,0.3);}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .stat-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:20px 18px;}
 .stat-card .sv{font-size:36px;font-weight:800;color:var(--brand);letter-spacing:-1.5px;line-height:1;}
 .stat-card .sl{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-top:6px;}
-
-/* ── 개선된 멤버 카드 ── */
 .member-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:18px;transition:box-shadow 0.15s;}
 .member-card:hover{box-shadow:0 4px 16px rgba(139,63,255,0.08);}
 .member-card-top{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
@@ -117,8 +115,6 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .member-status-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:10px 14px;}
 .member-status{font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;flex-shrink:0;}
 .member-time-detail{font-size:12px;color:var(--text-muted);font-weight:500;}
-
-/* ── 월간 멤버 카드 ── */
 .monthly-member-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:18px;cursor:pointer;transition:all 0.15s;}
 .monthly-member-card:hover{box-shadow:0 4px 16px rgba(139,63,255,0.10);border-color:var(--brand-mid);}
 .monthly-card-top{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
@@ -126,10 +122,6 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .monthly-stat-item{background:var(--bg);border-radius:10px;padding:10px;text-align:center;}
 .monthly-stat-val{font-size:18px;font-weight:800;color:var(--brand);letter-spacing:-0.5px;}
 .monthly-stat-label{font-size:10px;font-weight:600;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
-.monthly-bar{height:6px;background:#EAE8F0;border-radius:3px;margin-top:12px;overflow:hidden;}
-.monthly-bar-fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-mid));border-radius:3px;transition:width 0.6s ease;}
-
-/* ── 팀원 관리 카드 ── */
 .member-manage-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:16px 18px;}
 .member-manage-top{display:flex;align-items:center;gap:12px;}
 .member-manage-actions{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
@@ -141,14 +133,10 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .toggle input:checked+.toggle-slider{background:var(--brand);}
 .toggle input:checked+.toggle-slider:before{transform:translateX(19px);}
 .toggle input:disabled+.toggle-slider{opacity:0.5;cursor:not-allowed;}
-
-/* ── 마이페이지 개선 ── */
-.my-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;}
+.my-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .my-summary-card{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:18px;}
 .my-summary-val{font-size:28px;font-weight:800;color:var(--brand);letter-spacing:-1px;line-height:1;}
 .my-summary-label{font-size:11px;font-weight:600;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;}
-
-/* 달력 */
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .cal-nav-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
 .cal-nav-btn:hover{background:var(--brand-light);}
@@ -163,12 +151,10 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .cal-cell.today{border-color:var(--brand)!important;border-width:2px;}
 .cal-day{font-size:12px;font-weight:600;text-align:center;}
 .cal-dur{font-size:10px;font-weight:700;color:var(--brand);text-align:center;margin-top:2px;}
-
-/* 근무 기록 리스트 개선 */
 .work-month-group{margin-bottom:22px;}
-.work-month-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,var(--brand-light),rgba(240,232,255,0.3));border-radius:12px;margin-bottom:10px;}
+.work-month-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,var(--brand-light),rgba(240,232,255,0.3));border-radius:12px;margin-bottom:8px;}
 .work-month-title{font-size:14px;font-weight:800;color:var(--brand);}
-.work-month-summary{display:flex;gap:12px;}
+.work-month-summary{display:flex;gap:10px;}
 .work-month-stat{font-size:12px;font-weight:600;color:var(--text-muted);}
 .work-month-stat span{color:var(--brand);font-weight:700;}
 .work-record-item{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px;}
@@ -180,8 +166,6 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .work-record-time{font-size:14px;font-weight:600;}
 .work-record-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
 .work-record-dur{font-size:13px;font-weight:800;color:var(--brand);}
-
-/* 제품 로그 개선 */
 .product-log-item{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px;}
 .product-log-header{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
 .product-log-type{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
@@ -192,8 +176,6 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .product-log-link{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg);}
 .product-log-link a{font-size:12px;color:var(--brand);text-decoration:none;word-break:break-all;flex:1;}
 .product-log-link a:hover{text-decoration:underline;}
-
-/* 관리자 상세 모달 */
 .detail-record{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:10px;}
 .detail-record-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--brand-light);}
 .detail-record-date{font-size:14px;font-weight:700;}
@@ -201,8 +183,6 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .detail-record-body{padding:12px 16px;}
 .detail-record-times{font-size:13px;color:var(--text-muted);margin-bottom:8px;}
 .detail-log-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:6px;}
-
-/* 팝업/모달 */
 .product-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:150;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s;}
 .product-popup-overlay.open{opacity:1;pointer-events:all;}
 .product-popup{background:white;border-radius:28px 28px 0 0;width:100%;max-width:520px;padding:22px 22px 36px;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34,1.3,0.64,1);}
@@ -328,22 +308,47 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
     <!-- ADMIN -->
     <div class="page" id="page-admin">
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchAdminTab('today')">오늘 현황</button>
-        <button class="tab-btn" onclick="switchAdminTab('monthly')">월간 조회</button>
-        <button class="tab-btn" onclick="switchAdminTab('members')">팀원 관리</button>
+        <button class="tab-btn active" onclick="switchAdminTab('today')">오늘</button>
+        <button class="tab-btn" onclick="switchAdminTab('monthly')">월간</button>
+        <button class="tab-btn" onclick="switchAdminTab('report')">✨ 실적</button>
+        <button class="tab-btn" onclick="switchAdminTab('members')">팀원</button>
       </div>
+
+      <!-- 오늘 현황 -->
       <div id="admin-today">
         <div class="stat-grid" style="margin-bottom:16px;">
           <div class="stat-card"><div class="sv" id="stat-in">-</div><div class="sl">출근 완료</div></div>
           <div class="stat-card"><div class="sv" id="stat-total">-</div><div class="sl">전체 팀원</div></div>
         </div>
         <div class="section-title" style="margin-bottom:10px;">팀원 현황</div>
-        <div id="member-list" class="record-list"></div>
+        <div id="member-list" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
+
+      <!-- 월간 조회 -->
       <div id="admin-monthly" style="display:none;">
         <div class="month-selector"><span>📅</span><select id="month-select" onchange="loadMonthlyData()"></select></div>
         <div id="monthly-list" style="margin-top:14px;display:flex;flex-direction:column;gap:12px;"></div>
       </div>
+
+      <!-- 실적 리포트 -->
+      <div id="admin-report" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1A1A2E,#2D1F5E);border-radius:var(--radius-sm);padding:18px;margin-bottom:16px;">
+          <span style="font-size:24px;">✨</span>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:white;">AI 월별 실적 리포트</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px;">팀 데이터 기반 자동 분석</div>
+          </div>
+        </div>
+        <div class="month-selector" style="margin-bottom:4px;">
+          <span>📅</span>
+          <select id="report-month-select" onchange="loadAdminReport()"></select>
+        </div>
+        <div id="report-content">
+          <div class="empty-state"><div class="empty-icon">📊</div>월을 선택하면 리포트가 생성됩니다</div>
+        </div>
+      </div>
+
+      <!-- 팀원 관리 -->
       <div id="admin-members" style="display:none;">
         <div class="section-title" style="margin-bottom:6px;">관리자 권한 · 팀원 관리</div>
         <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;font-weight:500;">토글로 관리자 권한 부여 · 🗑️로 팀원 삭제</div>
@@ -1131,31 +1136,94 @@ function switchPage(page) {
 })();
 
 
+// ═══════════════════════════════════════════════════
+//  ADDI+er Visual Patch v8
+//  - 월 24h 목표 진행률 (마이페이지)
+//  - 관리자: 실적 리포트 탭 (AI 자동 생성)
+//  - 전월 대비 증감률
+// ═══════════════════════════════════════════════════
 
-// ══════════════════════════════════════
-//  Visual Patch v7 — 개선된 렌더링 함수
-// ══════════════════════════════════════
+const MONTHLY_TARGET_HOURS = 24; // 월 목표 근무시간
 
-// 관리자 오늘 현황 — 개선된 멤버 카드
+// ── 관리자 탭 전환 (실적 리포트 추가) ──
+function switchAdminTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>
+    b.classList.toggle('active',['today','monthly','report','members'][i]===tab));
+  ['admin-today','admin-monthly','admin-report','admin-members'].forEach((id,i)=>{
+    document.getElementById(id).style.display=
+      ['today','monthly','report','members'][i]===tab?'block':'none';
+  });
+  if(tab==='today')   loadAdminToday();
+  if(tab==='monthly') { }
+  if(tab==='report')  loadAdminReport();
+  if(tab==='members') loadAdminMembers();
+}
+
+// ── 마이페이지: 월 목표 포함 요약 ──
+async function loadMyPage() {
+  myCalYear=new Date().getFullYear(); myCalMonth=new Date().getMonth();
+  const [recs, logs] = await Promise.all([
+    fsQuery('attendance',[['userId','EQUAL',currentUser.id]]),
+    fsQuery('productLogs',[['userId','EQUAL',currentUser.id]])
+  ]);
+  const pfx=`${myCalYear}-${String(myCalMonth+1).padStart(2,'0')}`;
+  const monthRecs=recs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
+  const monthLogs=logs.filter(l=>l.date&&l.date.startsWith(pfx));
+  const tot=monthRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+  const totH=tot/60;
+  const targetH=MONTHLY_TARGET_HOURS;
+  const pct=Math.min(100,Math.round(totH/targetH*100));
+  const remainH=Math.max(0,targetH-totH);
+  const remainHInt=Math.floor(remainH);
+  const remainM=Math.round((remainH-remainHInt)*60);
+  const barColor = pct>=100?'#10B981':pct>=70?'#8B3FFF':'#F59E0B';
+
+  document.getElementById('my-summary').innerHTML=`
+    <div style="background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;">이번 달 목표</div>
+          <div style="font-size:22px;font-weight:800;margin-top:2px;">
+            ${Math.floor(totH)}h ${Math.floor((totH%1)*60)}m
+            <span style="font-size:14px;font-weight:500;color:var(--text-muted);"> / ${targetH}h</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:28px;font-weight:800;color:${barColor};">${pct}%</div>
+          <div style="font-size:12px;color:var(--text-muted);font-weight:500;">달성률</div>
+        </div>
+      </div>
+      <div style="height:10px;background:#EAE8F0;border-radius:5px;overflow:hidden;margin-bottom:10px;">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${barColor},${barColor}CC);border-radius:5px;transition:width 0.8s ease;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:13px;font-weight:600;color:${pct>=100?'#10B981':'var(--text-muted)'};">
+          ${pct>=100?'🎉 목표 달성!':'⏱ 남은 시간: <b style=\'color:var(--text);\'>'+(remainH>0?remainHInt+'h '+remainM+'m':'0m')+'</b>'}
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);">${monthRecs.length}일 출근 · ${monthLogs.length}건 로그</div>
+      </div>
+    </div>`;
+  switchMyTab('calendar');
+}
+
+// ── 관리자: 오늘 현황 ──
 async function loadAdminToday() {
-  const [users, recs] = await Promise.all([fsQuery('users'), fsQuery('attendance',[['date','EQUAL',getToday()]])]);
-  document.getElementById('stat-total').textContent = users.length;
-  document.getElementById('stat-in').textContent = recs.filter(r=>r.status==='active'||r.status==='completed').length;
-  const ml = document.getElementById('member-list');
-  if (!users.length) { ml.innerHTML='<div class="empty-state">팀원이 없습니다</div>'; return; }
-  ml.innerHTML = users.map(u => {
-    const rec = recs.find(r=>r.userId===u.id);
-    const [st,sc] = !rec ? ['미출근','badge-none'] : rec.status==='active' ? ['근무중','badge-active'] : ['퇴근완료','badge-done'];
-    const times = rec
-      ? `출근 <b>${fmtTime(rec.checkIn)}</b>${rec.checkOut?` &nbsp;→&nbsp; 퇴근 <b>${fmtTime(rec.checkOut)}</b>`:' &nbsp;→&nbsp; <b>근무중</b>'}`
-      : '오늘 출근 기록 없음';
-    const dur = rec?.checkOut ? `· ${calcDur(rec.checkIn,rec.checkOut)}` : '';
-    return `<div class="member-card">
+  const [users,recs]=await Promise.all([fsQuery('users'),fsQuery('attendance',[['date','EQUAL',getToday()]])]);
+  document.getElementById('stat-total').textContent=users.length;
+  document.getElementById('stat-in').textContent=recs.filter(r=>r.status==='active'||r.status==='completed').length;
+  const ml=document.getElementById('member-list');
+  if(!users.length){ml.innerHTML='<div class="empty-state">팀원이 없습니다</div>';return;}
+  ml.innerHTML=users.map(u=>{
+    const rec=recs.find(r=>r.userId===u.id);
+    const[st,sc]=!rec?['미출근','badge-none']:rec.status==='active'?['근무중','badge-active']:['퇴근완료','badge-done'];
+    const times=rec?`출근 <b>${fmtTime(rec.checkIn)}</b>${rec.checkOut?` → 퇴근 <b>${fmtTime(rec.checkOut)}</b>`:' → <b>근무중</b>'}`:'오늘 출근 기록 없음';
+    const dur=rec?.checkOut?`· ${calcDur(rec.checkIn,rec.checkOut)}`:'';
+    return`<div class="member-card">
       <div class="member-card-top">
         <div class="member-avatar">${u.name[0]}</div>
         <div class="member-info">
           <div class="member-name">${u.name}${isAdm(u)?'<span style="font-size:10px;color:var(--brand);font-weight:700;margin-left:6px;">관리자</span>':''}</div>
-          <div class="member-sub">전화번호 끝 ****${u.phoneLast4}</div>
+          <div class="member-sub">****${u.phoneLast4}</div>
         </div>
         <div class="member-status ${sc}">${st}</div>
       </div>
@@ -1166,67 +1234,41 @@ async function loadAdminToday() {
   }).join('');
 }
 
-// 관리자 팀원 관리 — 개선된 카드
-async function loadAdminMembers() {
-  const users = await fsQuery('users');
-  const list = document.getElementById('admin-member-list');
-  if (!users.length) { list.innerHTML='<div class="empty-state">팀원이 없습니다</div>'; return; }
-  list.innerHTML = users.map(u => {
-    const isSelf = u.id === currentUser.id;
-    return `<div class="member-manage-card">
-      <div class="member-manage-top">
-        <div class="member-avatar">${u.name[0]}</div>
-        <div class="member-info">
-          <div class="member-name">${u.name}${isSelf?'<span style="font-size:11px;color:var(--text-muted);margin-left:6px;">(나)</span>':''}</div>
-          <div class="member-sub">전화번호 끝 ****${u.phoneLast4} · ${new Date(u.createdAt||Date.now()).toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'})} 가입</div>
-        </div>
-      </div>
-      <div class="member-manage-actions">
-        <span class="admin-toggle-label">관리자 권한 ${isAdm(u)?'<span style="color:var(--brand);font-weight:700;">활성화됨 ✓</span>':'<span style="color:var(--text-hint);">미부여</span>'}</span>
-        <label class="toggle">
-          <input type="checkbox" ${isAdm(u)?'checked':''} ${isSelf?'disabled':''} onchange="toggleAdminRole('${u.id}',this.checked,this)"/>
-          <span class="toggle-slider"></span>
-        </label>
-        ${!isSelf?`<button class="icon-btn danger" onclick="deleteUser('${u.id}','${u.name}')" style="margin-left:4px;" title="팀원 삭제">🗑️</button>`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// 관리자 월간 조회 — 개선된 카드 + 프로그레스바
+// ── 관리자: 월간 조회 ──
 async function loadMonthlyData() {
-  const month = document.getElementById('month-select').value;
-  const [y,m] = month.split('-');
-  const start=`${y}-${m}-01`, end=`${y}-${m}-31`;
-  const [users,recs,logs] = await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
-  const fr = recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
-  const fl = logs.filter(l=>l.date>=start&&l.date<=end);
-  const grouped={}, logGrouped={};
-  for (const r of fr){if(!grouped[r.userId])grouped[r.userId]=[];grouped[r.userId].push(r);}
-  for (const l of fl){if(!logGrouped[l.userId])logGrouped[l.userId]=[];logGrouped[l.userId].push(l);}
-  const daysInMonth = new Date(parseInt(y),parseInt(m),0).getDate();
-  const maxDays = Math.max(...users.map(u=>(grouped[u.id]||[]).length), 1);
-  const list = document.getElementById('monthly-list');
-  list.innerHTML = users.map(u => {
-    const ur = grouped[u.id]||[];
-    const ul = logGrouped[u.id]||[];
-    const tot = ur.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
-    const avgH = ur.length ? Math.round(tot/ur.length/60*10)/10 : 0;
-    const barW = ur.length ? Math.round(ur.length/daysInMonth*100) : 0;
-    if (!ur.length) return `<div class="monthly-member-card" style="opacity:0.6;">
+  const month=document.getElementById('month-select').value;
+  const[y,m]=month.split('-');
+  const start=`${y}-${m}-01`,end=`${y}-${m}-31`;
+  const[users,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
+  const fr=recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
+  const fl=logs.filter(l=>l.date>=start&&l.date<=end);
+  const grouped={},logGrouped={};
+  for(const r of fr){if(!grouped[r.userId])grouped[r.userId]=[];grouped[r.userId].push(r);}
+  for(const l of fl){if(!logGrouped[l.userId])logGrouped[l.userId]=[];logGrouped[l.userId].push(l);}
+  const daysInMonth=new Date(parseInt(y),parseInt(m),0).getDate();
+  const list=document.getElementById('monthly-list');
+  list.innerHTML=users.map(u=>{
+    const ur=grouped[u.id]||[];
+    const ul=logGrouped[u.id]||[];
+    const tot=ur.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+    const totH=tot/60;
+    const pct=Math.min(100,Math.round(totH/MONTHLY_TARGET_HOURS*100));
+    const barColor=pct>=100?'#10B981':pct>=70?'#8B3FFF':'#F59E0B';
+    const avgH=ur.length?Math.round(totH/ur.length*10)/10:0;
+    const barW=Math.round(ur.length/daysInMonth*100);
+    if(!ur.length)return`<div class="monthly-member-card" style="opacity:0.6;">
       <div class="monthly-card-top">
         <div class="member-avatar">${u.name[0]}</div>
         <div class="member-info"><div class="member-name">${u.name}</div><div class="member-sub">이번 달 기록 없음</div></div>
-      </div>
-    </div>`;
-    return `<div class="monthly-member-card" onclick="showAdminDetail('${u.id}','${u.name}','${month}')">
+      </div></div>`;
+    return`<div class="monthly-member-card" onclick="showAdminDetail('${u.id}','${u.name}','${month}')">
       <div class="monthly-card-top">
         <div class="member-avatar">${u.name[0]}</div>
         <div class="member-info">
           <div class="member-name">${u.name}</div>
-          <div class="member-sub">${parseInt(m)}월 근무 현황</div>
+          <div class="member-sub">${parseInt(m)}월 근무현황</div>
         </div>
-        <button class="icon-btn" onclick="event.stopPropagation();exportExcel('${u.id}','${u.name}','${month}')" title="CSV 다운로드" style="font-size:20px;">📥</button>
+        <button class="icon-btn" onclick="event.stopPropagation();exportExcel('${u.id}','${u.name}','${month}')" style="font-size:20px;" title="CSV">📥</button>
       </div>
       <div class="monthly-stats">
         <div class="monthly-stat-item">
@@ -1234,7 +1276,7 @@ async function loadMonthlyData() {
           <div class="monthly-stat-label">출근일</div>
         </div>
         <div class="monthly-stat-item">
-          <div class="monthly-stat-val">${Math.floor(tot/60)}h${Math.floor(tot%60)}m</div>
+          <div class="monthly-stat-val">${Math.floor(totH)}h${Math.floor((totH%1)*60)}m</div>
           <div class="monthly-stat-label">총 근무</div>
         </div>
         <div class="monthly-stat-item">
@@ -1242,30 +1284,257 @@ async function loadMonthlyData() {
           <div class="monthly-stat-label">제품로그</div>
         </div>
       </div>
-      <div class="monthly-bar"><div class="monthly-bar-fill" style="width:${barW}%"></div></div>
-      <div style="display:flex;justify-content:space-between;margin-top:6px;">
-        <span style="font-size:11px;color:var(--text-hint);">출근율 ${barW}%</span>
-        <span style="font-size:11px;color:var(--text-hint);">일평균 ${avgH}h</span>
+      <!-- 월 목표 진행률 -->
+      <div style="margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:10px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:11px;font-weight:700;color:var(--text-muted);">월 목표 ${MONTHLY_TARGET_HOURS}h</span>
+          <span style="font-size:11px;font-weight:800;color:${barColor};">${pct}% 달성</span>
+        </div>
+        <div style="height:7px;background:#EAE8F0;border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${barColor},${barColor}BB);border-radius:4px;"></div>
+        </div>
+        ${totH<MONTHLY_TARGET_HOURS?`<div style="font-size:11px;color:var(--text-muted);margin-top:5px;">남은 시간: <b style="color:var(--text);">${Math.floor(MONTHLY_TARGET_HOURS-totH)}h ${Math.round(((MONTHLY_TARGET_HOURS-totH)%1)*60)}m</b></div>`:`<div style="font-size:11px;color:#10B981;margin-top:5px;font-weight:700;">🎉 목표 달성!</div>`}
       </div>
     </div>`;
   }).join('');
 }
 
-// 관리자 상세 모달 — 개선
-async function showAdminDetail(uid, name, month) {
+// ── 관리자: 실적 리포트 탭 ──
+let reportCache = {};
+
+async function loadAdminReport() {
+  const sel = document.getElementById('report-month-select');
+  const month = sel.value;
+  if (!month) return;
+  document.getElementById('report-content').innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div>데이터 불러오는 중...</div>';
+  await generateReport(month);
+}
+
+async function generateReport(month) {
   const [y,m] = month.split('-');
-  const [recs,logs] = await Promise.all([
+  const start=`${y}-${m}-01`, end=`${y}-${m}-31`;
+
+  // 이번 달 데이터
+  const [users,recs,logs] = await Promise.all([
+    fsQuery('users'), fsQuery('attendance'), fsQuery('productLogs')
+  ]);
+  const fr = recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
+  const fl = logs.filter(l=>l.date&&l.date>=start&&l.date<=end);
+
+  // 저번 달 데이터
+  const prevDate = new Date(parseInt(y), parseInt(m)-2, 1);
+  const py = prevDate.getFullYear();
+  const pm = String(prevDate.getMonth()+1).padStart(2,'0');
+  const pStart=`${py}-${pm}-01`, pEnd=`${py}-${pm}-31`;
+  const pfr = recs.filter(r=>r.date>=pStart&&r.date<=pEnd&&r.status==='completed');
+  const pfl = logs.filter(l=>l.date&&l.date>=pStart&&l.date<=pEnd);
+
+  // 통계 계산
+  const totalMin = fr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+  const totalH = (totalMin/60).toFixed(1);
+  const registerCount = fl.filter(l=>l.type==='register').length;
+  const editCount = fl.filter(l=>l.type==='edit').length;
+  const totalLogs = fl.length;
+  const avgHPerPerson = users.length ? (totalMin/60/users.length).toFixed(1) : 0;
+
+  const prevTotalMin = pfr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+  const prevTotalLogs = pfl.length;
+  const prevRegister = pfl.filter(l=>l.type==='register').length;
+  const prevEdit = pfl.filter(l=>l.type==='edit').length;
+
+  const logsDiff = prevTotalLogs>0 ? Math.round((totalLogs-prevTotalLogs)/prevTotalLogs*100) : null;
+  const hoursDiff = prevTotalMin>0 ? Math.round((totalMin-prevTotalMin)/prevTotalMin*100) : null;
+
+  // 팀원별 로그
+  const memberStats = users.map(u=>{
+    const ur=fr.filter(r=>r.userId===u.id);
+    const ul=fl.filter(l=>l.userId===u.id);
+    return {name:u.name, days:ur.length, hours:(ur.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0)/60).toFixed(1), logs:ul.length, register:ul.filter(l=>l.type==='register').length, edit:ul.filter(l=>l.type==='edit').length};
+  });
+
+  // 데이터를 AI에 전달
+  const dataContext = `
+팀 이름: ADDI+er 에디터 팀
+분석 기간: ${y}년 ${parseInt(m)}월
+팀원 수: ${users.length}명 (${users.map(u=>u.name).join(', ')})
+
+[이번 달 데이터]
+- 총 근무시간: ${totalH}시간
+- 월 목표: ${MONTHLY_TARGET_HOURS * users.length}시간 (1인당 ${MONTHLY_TARGET_HOURS}h)
+- 인당 평균 근무: ${avgHPerPerson}시간
+- 제품 등록: ${registerCount}건
+- 제품 수정: ${editCount}건
+- 총 제품 로그: ${totalLogs}건
+
+[팀원별 현황]
+${memberStats.map(m=>`- ${m.name}: ${m.days}일 출근, ${m.hours}h 근무, 등록 ${m.register}건, 수정 ${m.edit}건`).join('\n')}
+
+[전월(${py}년 ${parseInt(pm)}월) 대비]
+- 근무시간: ${hoursDiff!==null?(hoursDiff>0?'+':'')+hoursDiff+'%':'비교 데이터 없음'}
+- 제품 로그: ${logsDiff!==null?(logsDiff>0?'+':'')+logsDiff+'%':'비교 데이터 없음'}
+- 전월 등록: ${prevRegister}건, 수정: ${prevEdit}건
+`;
+
+  // 통계 카드 먼저 렌더링
+  const diffBadge = (diff) => {
+    if (diff===null) return '<span style="font-size:11px;color:var(--text-hint);">전월 데이터 없음</span>';
+    const color = diff>0?'#10B981':diff<0?'#EF4444':'#7A7A9A';
+    const arrow = diff>0?'↑':diff<0?'↓':'→';
+    return `<span style="font-size:12px;font-weight:700;color:${color};">${arrow} ${Math.abs(diff)}%</span>`;
+  };
+
+  document.getElementById('report-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div class="stat-card">
+        <div class="sv">${totalH}<span style="font-size:16px;font-weight:600;">h</span></div>
+        <div class="sl">총 근무시간</div>
+        <div style="margin-top:6px;">${diffBadge(hoursDiff)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="sv">${totalLogs}</div>
+        <div class="sl">총 제품 로그</div>
+        <div style="margin-top:6px;">${diffBadge(logsDiff)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="sv">${registerCount}</div>
+        <div class="sl">신규 등록</div>
+      </div>
+      <div class="stat-card">
+        <div class="sv">${editCount}</div>
+        <div class="sl">수정 작업</div>
+      </div>
+    </div>
+
+    <!-- 팀원별 기여도 -->
+    <div style="background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:18px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">팀원별 기여도</div>
+      ${memberStats.map(ms=>{
+        const pct=Math.min(100,Math.round(parseFloat(ms.hours)/MONTHLY_TARGET_HOURS*100));
+        const color=pct>=100?'#10B981':pct>=70?'var(--brand)':'#F59E0B';
+        return`<div style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:28px;height:28px;border-radius:50%;background:var(--brand-light);color:var(--brand);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;">${ms.name[0]}</div>
+              <span style="font-size:14px;font-weight:700;">${ms.name}</span>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:13px;font-weight:700;color:${color};">${ms.hours}h</span>
+              <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">로그 ${ms.logs}건</span>
+            </div>
+          </div>
+          <div style="height:6px;background:#EAE8F0;border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- AI 실적 요약 -->
+    <div style="background:linear-gradient(135deg,#1A1A2E,#2D1F5E);border-radius:var(--radius-sm);padding:18px;margin-bottom:4px;" id="ai-report-box">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <span style="font-size:20px;">✨</span>
+        <span style="font-size:14px;font-weight:700;color:white;">AI 실적 요약</span>
+        <span style="font-size:11px;color:rgba(255,255,255,0.5);margin-left:auto;">${y}년 ${parseInt(m)}월</span>
+      </div>
+      <div id="ai-report-text" style="font-size:14px;color:rgba(255,255,255,0.85);line-height:1.8;white-space:pre-wrap;">
+        <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.5);">
+          <span class="spinner" style="border-color:rgba(255,255,255,0.2);border-top-color:white;width:14px;height:14px;border-width:2px;"></span>
+          AI가 실적을 분석하고 있습니다...
+        </div>
+      </div>
+    </div>`;
+
+  // AI 호출
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `당신은 팀 실적 보고서를 작성하는 전문 어시스턴트입니다.
+주어진 데이터를 바탕으로 자연스럽고 전문적인 한국어 실적 보고서를 작성해주세요.
+다음 형식을 따라주세요:
+📊 업무 주요 실적 사항
+
+• [간략한 이번 달 팀 활동 요약 1-2문장]
+• [제품 등록/수정 실적 총괄]
+   - 새롭게 등록된 제품 수: N개
+   - 수정된 제품 수: N개
+• [전월 대비 증감 분석 (데이터 있을 경우)]
+• [팀원별 특이사항이나 칭찬 1-2문장]
+
+마크다운 없이 텍스트만 출력하세요. 이모지는 적절히 사용하세요.`,
+        messages: [{
+          role: 'user',
+          content: `다음 데이터를 기반으로 실적 보고서를 작성해주세요:\n${dataContext}`
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || '요약을 생성할 수 없습니다.';
+    document.getElementById('ai-report-text').textContent = text;
+  } catch(e) {
+    document.getElementById('ai-report-text').textContent = '⚠️ AI 요약 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+  }
+}
+
+function populateReportMonthSelect() {
+  const sel = document.getElementById('report-month-select');
+  if (sel.options.length > 0) return;
+  const now = new Date();
+  for (let i=0; i<12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const opt = document.createElement('option');
+    opt.value=val; opt.textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월`;
+    if (i===0) opt.selected=true;
+    sel.appendChild(opt);
+  }
+}
+
+// ── 관리자: 팀원 관리 ──
+async function loadAdminMembers() {
+  const users=await fsQuery('users');
+  const list=document.getElementById('admin-member-list');
+  if(!users.length){list.innerHTML='<div class="empty-state">팀원이 없습니다</div>';return;}
+  list.innerHTML=users.map(u=>{
+    const isSelf=u.id===currentUser.id;
+    return`<div class="member-manage-card">
+      <div class="member-manage-top">
+        <div class="member-avatar">${u.name[0]}</div>
+        <div class="member-info">
+          <div class="member-name">${u.name}${isSelf?'<span style="font-size:11px;color:var(--text-muted);margin-left:6px;">(나)</span>':''}</div>
+          <div class="member-sub">****${u.phoneLast4}</div>
+        </div>
+      </div>
+      <div class="member-manage-actions">
+        <span class="admin-toggle-label">관리자 권한 ${isAdm(u)?'<span style="color:var(--brand);font-weight:700;">활성화 ✓</span>':'<span style="color:var(--text-hint);">미부여</span>'}</span>
+        <label class="toggle">
+          <input type="checkbox" ${isAdm(u)?'checked':''} ${isSelf?'disabled':''} onchange="toggleAdminRole('${u.id}',this.checked,this)"/>
+          <span class="toggle-slider"></span>
+        </label>
+        ${!isSelf?`<button class="icon-btn danger" onclick="deleteUser('${u.id}','${u.name}')" title="삭제">🗑️</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── 관리자 상세 모달 ──
+async function showAdminDetail(uid, name, month) {
+  const [y,m]=month.split('-');
+  const [recs,logs]=await Promise.all([
     fsQuery('attendance',[['userId','EQUAL',uid]]),
     fsQuery('productLogs',[['userId','EQUAL',uid]])
   ]);
-  const fr = recs.filter(r=>r.date.startsWith(`${y}-${m}`)&&r.status==='completed').sort((a,b)=>a.date.localeCompare(b.date));
+  const fr=recs.filter(r=>r.date.startsWith(`${y}-${m}`)&&r.status==='completed').sort((a,b)=>a.date.localeCompare(b.date));
   const lbd={};
-  for (const l of logs.filter(l=>l.date&&l.date.startsWith(`${y}-${m}`))){if(!lbd[l.date])lbd[l.date]=[];lbd[l.date].push(l);}
-  const tot = fr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
-  document.getElementById('modal-content').innerHTML = `
+  for(const l of logs.filter(l=>l.date&&l.date.startsWith(`${y}-${m}`))){if(!lbd[l.date])lbd[l.date]=[];lbd[l.date].push(l);}
+  const tot=fr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+  document.getElementById('modal-content').innerHTML=`
     <div class="modal-title">${name}님</div>
-    <div class="modal-sub">${y}년 ${parseInt(m)}월 · ${fr.length}일 출근 · 총 ${Math.floor(tot/60)}h ${Math.floor(tot%60)}m</div>
-    ${fr.length ? fr.map(r=>`
+    <div class="modal-sub">${y}년 ${parseInt(m)}월 · ${fr.length}일 출근 · 총 ${Math.floor(tot/60)}h ${Math.floor((tot/60%1)*60)}m</div>
+    ${fr.length?fr.map(r=>`
       <div class="detail-record">
         <div class="detail-record-header">
           <div class="detail-record-date">${fmtDate(r.checkIn)}</div>
@@ -1275,68 +1544,109 @@ async function showAdminDetail(uid, name, month) {
           <div class="detail-record-times">출근 ${fmtTime(r.checkIn)} → 퇴근 ${fmtTime(r.checkOut)}</div>
           ${(lbd[r.date]||[]).map(l=>`
             <div class="detail-log-item">
-              <span style="font-size:16px;">${l.type==='register'?'✅':'✏️'}</span>
+              <span>${l.type==='register'?'✅':'✏️'}</span>
               <span class="type-badge ${l.type==='register'?'badge-active':'badge-done'}" style="font-size:10px;">${l.type==='register'?'등록':'수정'}</span>
               <span style="font-size:13px;font-weight:600;flex:1;">${l.productName}</span>
-              ${l.link?`<a href="${l.link}" target="_blank" style="font-size:12px;color:var(--brand);">링크 →</a>`:''}
+              ${l.link?`<a href="${l.link}" target="_blank" style="font-size:12px;color:var(--brand);">링크→</a>`:''}
             </div>`).join('')}
         </div>
-      </div>`).join('') : '<div class="empty-state">기록 없음</div>'}`;
+      </div>`).join(''):'<div class="empty-state">기록 없음</div>'}`;
   document.getElementById('modal').classList.add('open');
 }
 
-// 마이페이지 달력 상세
+// ── 마이페이지 탭 ──
+function switchMyTab(tab) {
+  document.querySelectorAll('.my-tab-btn').forEach((b,i)=>b.classList.toggle('active',['calendar','list','products'][i]===tab));
+  document.getElementById('my-calendar').style.display=tab==='calendar'?'block':'none';
+  document.getElementById('my-list').style.display=tab==='list'?'block':'none';
+  document.getElementById('my-products').style.display=tab==='products'?'block':'none';
+  if(tab==='calendar')renderMyCalendar();
+  if(tab==='list')renderMyList();
+  if(tab==='products')renderMyProducts();
+}
+
+async function renderMyCalendar() {
+  const y=myCalYear,m=myCalMonth;
+  document.getElementById('cal-title').textContent=`${y}년 ${m+1}월`;
+  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
+  const pfx=`${y}-${String(m+1).padStart(2,'0')}`;
+  const byDate={};
+  recs.filter(r=>r.date&&r.date.startsWith(pfx)).forEach(r=>byDate[r.date]=r);
+  const firstDay=new Date(y,m,1).getDay();
+  const days=new Date(y,m+1,0).getDate();
+  let html='<div class="cal-grid"><div class="cal-header" style="color:#EF4444;">일</div><div class="cal-header">월</div><div class="cal-header">화</div><div class="cal-header">수</div><div class="cal-header">목</div><div class="cal-header">금</div><div class="cal-header" style="color:#3B82F6;">토</div>';
+  for(let i=0;i<firstDay;i++)html+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=days;d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const rec=byDate[ds];
+    const dur=rec?calcDurMin(rec.checkIn,rec.checkOut):0;
+    const isToday=ds===getToday();
+    const dow=new Date(ds+'T00:00:00').getDay();
+    const dc=dow===0?'color:#EF4444':dow===6?'color:#3B82F6':'';
+    html+=`<div class="cal-cell${rec?' has-record':''}${isToday?' today':''}" onclick="showDayDetail('${ds}')">
+      <div class="cal-day" style="${dc}">${d}</div>
+      ${rec?`<div class="cal-dur">${dur?Math.floor(dur/60)+'h':'출근'}</div>`:''}
+    </div>`;
+  }
+  html+='</div>';
+  document.getElementById('cal-body').innerHTML=html;
+}
+function prevMonth(){myCalMonth--;if(myCalMonth<0){myCalMonth=11;myCalYear--;}renderMyCalendar();}
+function nextMonth(){myCalMonth++;if(myCalMonth>11){myCalMonth=0;myCalYear++;}renderMyCalendar();}
+
 async function showDayDetail(date) {
-  const [recs,logs] = await Promise.all([
+  const [recs,logs]=await Promise.all([
     fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]]),
     fsQuery('productLogs',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]])
   ]);
-  const rec = recs[0];
-  document.getElementById('modal-content').innerHTML = `
+  const rec=recs[0];
+  document.getElementById('modal-content').innerHTML=`
     <div class="modal-title">${new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}</div>
-    ${rec ? `
-      <div style="background:linear-gradient(135deg,var(--brand-light),rgba(240,232,255,0.4));border-radius:14px;padding:18px;margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">근무 기록</div>
-        <div style="display:flex;gap:20px;">
-          <div><div style="font-size:10px;color:var(--text-muted);font-weight:600;">출근</div><div style="font-size:22px;font-weight:800;color:var(--text);">${fmtTime(rec.checkIn)}</div></div>
-          <div style="font-size:20px;color:var(--brand-mid);align-self:flex-end;padding-bottom:4px;">→</div>
-          <div><div style="font-size:10px;color:var(--text-muted);font-weight:600;">퇴근</div><div style="font-size:22px;font-weight:800;color:var(--text);">${rec.checkOut?fmtTime(rec.checkOut):'근무중'}</div></div>
-          ${rec.checkOut?`<div style="margin-left:auto;align-self:flex-end;"><div style="font-size:10px;color:var(--text-muted);font-weight:600;">근무시간</div><div style="font-size:18px;font-weight:800;color:var(--brand);">${calcDur(rec.checkIn,rec.checkOut)}</div></div>`:''}
-        </div>
-      </div>` : '<div class="empty-state" style="margin-bottom:16px;padding:20px;">출근 기록 없음</div>'}
-    ${logs.length ? `
-      <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">제품 로그 ${logs.length}건</div>
-      ${logs.map(l=>`
-        <div class="product-log-item">
-          <div class="product-log-header">
-            <div class="product-log-type ${l.type==='register'?'register':'edit'}">${l.type==='register'?'✅':'✏️'}</div>
-            <div class="product-log-name">${l.productName}</div>
-            <div class="product-log-date">${fmtTime(l.timestamp)}</div>
-          </div>
-          ${l.link?`<div class="product-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}
-        </div>`).join('')}` : ''}`;
+    ${rec?`<div style="background:linear-gradient(135deg,var(--brand-light),rgba(240,232,255,0.4));border-radius:14px;padding:18px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">근무 기록</div>
+      <div style="display:flex;gap:20px;">
+        <div><div style="font-size:10px;color:var(--text-muted);font-weight:600;">출근</div><div style="font-size:22px;font-weight:800;">${fmtTime(rec.checkIn)}</div></div>
+        <div style="font-size:20px;color:var(--brand-mid);align-self:flex-end;padding-bottom:4px;">→</div>
+        <div><div style="font-size:10px;color:var(--text-muted);font-weight:600;">퇴근</div><div style="font-size:22px;font-weight:800;">${rec.checkOut?fmtTime(rec.checkOut):'근무중'}</div></div>
+        ${rec.checkOut?`<div style="margin-left:auto;align-self:flex-end;"><div style="font-size:10px;color:var(--text-muted);font-weight:600;">근무시간</div><div style="font-size:18px;font-weight:800;color:var(--brand);">${calcDur(rec.checkIn,rec.checkOut)}</div></div>`:''}
+      </div>
+    </div>`:'<div class="empty-state" style="margin-bottom:16px;padding:20px;">출근 기록 없음</div>'}
+    ${logs.length?`<div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">제품 로그 ${logs.length}건</div>
+    ${logs.map(l=>`<div class="product-log-item">
+      <div class="product-log-header">
+        <div class="product-log-type ${l.type==='register'?'register':'edit'}">${l.type==='register'?'✅':'✏️'}</div>
+        <div style="flex:1;"><div class="product-log-name">${l.productName}</div><div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${l.type==='register'?'제품 등록':'제품 수정'}</div></div>
+      </div>
+      ${l.link?`<div class="product-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}
+    </div>`).join('')}`:''}`;
   document.getElementById('modal').classList.add('open');
 }
 
-// 마이페이지 근무내역 — 개선된 레이아웃
 async function renderMyList() {
-  const recs = await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
-  const sorted = recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||''));
-  const list = document.getElementById('my-list');
-  if (!sorted.length) { list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>'; return; }
+  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
+  const sorted=recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||''));
+  const list=document.getElementById('my-list');
+  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>';return;}
   const groups={};
-  for (const r of sorted){const k=r.date?r.date.slice(0,7):'';if(!groups[k])groups[k]=[];groups[k].push(r);}
+  for(const r of sorted){const k=r.date?r.date.slice(0,7):'';if(!groups[k])groups[k]=[];groups[k].push(r);}
   let html='';
-  for (const [ym,items] of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
-    const [y,mo]=ym.split('-');
+  for(const[ym,items]of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
+    const[y,mo]=ym.split('-');
     const tot=items.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+    const totH=tot/60;
+    const pct=Math.min(100,Math.round(totH/MONTHLY_TARGET_HOURS*100));
+    const color=pct>=100?'#10B981':pct>=70?'var(--brand)':'#F59E0B';
     html+=`<div class="work-month-group">
       <div class="work-month-header">
         <div class="work-month-title">${y}년 ${parseInt(mo)}월</div>
         <div class="work-month-summary">
           <div class="work-month-stat"><span>${items.length}</span>일</div>
-          <div class="work-month-stat"><span>${Math.floor(tot/60)}h ${Math.floor(tot%60)}m</span></div>
+          <div class="work-month-stat"><span>${Math.floor(totH)}h ${Math.floor((totH%1)*60)}m</span></div>
+          <div class="work-month-stat" style="color:${color};font-weight:700;">${pct}%</div>
         </div>
+      </div>
+      <div style="height:5px;background:#EAE8F0;border-radius:3px;overflow:hidden;margin:-6px 0 10px;">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;"></div>
       </div>
       ${items.map(r=>{
         const d=new Date(r.checkIn);
@@ -1353,63 +1663,48 @@ async function renderMyList() {
             </div>
             <div class="work-record-dur">${r.checkOut?calcDur(r.checkIn,r.checkOut):'🟢'}</div>
           </div>
-        </div>`}).join('')}
+        </div>`;
+      }).join('')}
     </div>`;
   }
   list.innerHTML=html;
 }
 
-// 마이페이지 제품로그 — 개선된 레이아웃
 async function renderMyProducts() {
-  const logs = await fsQuery('productLogs',[['userId','EQUAL',currentUser.id]]);
-  const sorted = logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
-  const list = document.getElementById('my-products');
-  if (!sorted.length) { list.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>제품 로그가 없습니다</div>'; return; }
-  // 날짜별 그룹핑
+  const logs=await fsQuery('productLogs',[['userId','EQUAL',currentUser.id]]);
+  const sorted=logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
+  const list=document.getElementById('my-products');
+  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>제품 로그가 없습니다</div>';return;}
   const groups={};
-  for (const l of sorted){const k=l.date||l.timestamp?.slice(0,10)||'';if(!groups[k])groups[k]=[];groups[k].push(l);}
+  for(const l of sorted){const k=l.date||l.timestamp?.slice(0,10)||'';if(!groups[k])groups[k]=[];groups[k].push(l);}
   let html='';
-  for (const [date,items] of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
+  for(const[date,items]of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
     html+=`<div style="margin-bottom:16px;">
       <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;padding:0 4px;">${date?new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):''}</div>
-      ${items.map(l=>`
-        <div class="product-log-item">
-          <div class="product-log-header">
-            <div class="product-log-type ${l.type==='register'?'register':'edit'}">${l.type==='register'?'✅':'✏️'}</div>
-            <div style="flex:1;">
-              <div class="product-log-name">${l.productName}</div>
-              <div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${l.type==='register'?'제품 등록':'제품 수정'} · ${fmtTime(l.timestamp)}</div>
-            </div>
+      ${items.map(l=>`<div class="product-log-item">
+        <div class="product-log-header">
+          <div class="product-log-type ${l.type==='register'?'register':'edit'}">${l.type==='register'?'✅':'✏️'}</div>
+          <div style="flex:1;">
+            <div class="product-log-name">${l.productName}</div>
+            <div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${l.type==='register'?'제품 등록':'제품 수정'} · ${fmtTime(l.timestamp)}</div>
           </div>
-          ${l.link?`<div class="product-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}
-        </div>`).join('')}
+        </div>
+        ${l.link?`<div class="product-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}
+      </div>`).join('')}
     </div>`;
   }
   list.innerHTML=html;
 }
 
-// 마이페이지 달력에 이번 달 요약 추가
-async function loadMyPage() {
-  myCalYear=new Date().getFullYear(); myCalMonth=new Date().getMonth();
-  // 이번 달 요약 로드
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
-  const logs=await fsQuery('productLogs',[['userId','EQUAL',currentUser.id]]);
-  const pfx=`${myCalYear}-${String(myCalMonth+1).padStart(2,'0')}`;
-  const monthRecs=recs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
-  const monthLogs=logs.filter(l=>l.date&&l.date.startsWith(pfx));
-  const tot=monthRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
-  document.getElementById('my-summary').innerHTML=`
-    <div class="my-summary-grid">
-      <div class="my-summary-card">
-        <div class="my-summary-val">${monthRecs.length}<span style="font-size:14px;font-weight:600;color:var(--text-muted);">일</span></div>
-        <div class="my-summary-label">이번 달 출근</div>
-      </div>
-      <div class="my-summary-card">
-        <div class="my-summary-val">${Math.floor(tot/60)}<span style="font-size:14px;font-weight:600;color:var(--text-muted);">h</span></div>
-        <div class="my-summary-label">총 근무시간</div>
-      </div>
-    </div>`;
-  switchMyTab('calendar');
+// switchPage override
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.getElementById(`nav-${page}`).classList.add('active');
+  document.getElementById('fab-product').style.display=page==='home'?'flex':'none';
+  if(page==='admin'){loadAdminToday();populateMonthSelect();populateReportMonthSelect();}
+  if(page==='mypage')loadMyPage();
 }
 
 </script>
