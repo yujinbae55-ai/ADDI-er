@@ -98,7 +98,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .nav-label{font-size:10px;font-weight:700;color:var(--text-hint);letter-spacing:0.3px;}
 .nav-btn.active .nav-label{color:var(--brand);}
 .nav-btn.active .nav-icon{filter:drop-shadow(0 0 6px rgba(139,63,255,0.35));}
-.tabs{display:flex;background:var(--brand-light);border-radius:var(--radius-sm);padding:4px;gap:3px;}
+.tabs,.my-tabs{display:flex;background:var(--brand-light);border-radius:var(--radius-sm);padding:4px;gap:3px;}
 .tab-btn,.my-tab-btn{flex:1;padding:10px 6px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;}
 .tab-btn.active,.my-tab-btn.active{background:var(--brand);color:white;box-shadow:0 2px 8px rgba(139,63,255,0.3);}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -130,7 +130,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .cal-header{text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);padding:6px 0;}
 .cal-cell{min-height:56px;border-radius:10px;padding:6px 4px;cursor:pointer;transition:all 0.15s;border:1.5px solid transparent;}
 .cal-cell:hover{background:var(--brand-light);}
-.cal-cell.empty{cursor:default;min-height:20px;}
+.cal-cell.empty{cursor:default;min-height:16px;}
 .cal-cell.empty:hover{background:transparent;}
 .cal-cell.has-record{background:var(--brand-light);border-color:var(--brand-mid);}
 .cal-cell.today{border-color:var(--brand)!important;border-width:2px;}
@@ -162,6 +162,13 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .modal-overlay.open .modal{transform:translateY(0);}
 .modal-handle{width:44px;height:4px;border-radius:2px;background:#E0DCF0;margin:0 auto 20px;}
 .modal-title{font-size:18px;font-weight:800;margin-bottom:18px;letter-spacing:-0.3px;}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,0.85);z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(4px);}
+.loading-logo{font-size:28px;font-weight:800;color:var(--brand);}
+.loading-dots{display:flex;gap:8px;}
+.loading-dot{width:10px;height:10px;border-radius:50%;background:var(--brand);animation:ldot 1s ease-in-out infinite;}
+.loading-dot:nth-child(2){animation-delay:0.2s;}
+.loading-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes ldot{0%,100%{transform:scale(0.5);opacity:0.4;}50%{transform:scale(1);opacity:1;}}
 .spinner{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.35);border-top-color:white;border-radius:50%;animation:spin 0.6s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(16px);background:#1A1A2E;color:white;font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;padding:12px 22px;border-radius:24px;z-index:300;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;}
@@ -169,6 +176,17 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 </style>
 </head>
 <body>
+
+<!-- 로딩 오버레이 -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-logo">ADDI+er</div>
+  <div class="loading-dots">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+  </div>
+</div>
+
 <div id="app">
   <!-- LOGIN -->
   <div id="login-page" class="login-wrap">
@@ -260,12 +278,11 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
       </div>
       <div id="admin-members" style="display:none;">
         <div class="section-title" style="margin-bottom:6px;">관리자 권한 · 팀원 관리</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;font-weight:500;">토글로 관리자 권한 부여, 🗑️로 팀원 삭제</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;font-weight:500;">토글로 관리자 권한 부여 · 🗑️로 팀원 삭제</div>
         <div id="admin-member-list" class="record-list"></div>
       </div>
     </div>
 
-    <!-- Bottom Nav -->
     <div class="bottom-nav">
       <button class="nav-btn active" id="nav-home" onclick="switchPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></button>
       <button class="nav-btn" id="nav-mypage" onclick="switchPage('mypage')"><span class="nav-icon">👤</span><span class="nav-label">마이페이지</span></button>
@@ -297,7 +314,6 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
   </div>
 </div>
 
-<!-- FAB -->
 <button class="fab" id="fab-product" onclick="showProductPopup()" title="제품 로그 추가">📦</button>
 
 <div class="toast" id="toast"></div>
@@ -306,425 +322,556 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 </div>
 
 <script>
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDbwqFUW5SIoKkDewyuxmV_e13r2zOOU7k",
-  authDomain: "additer-fef59.firebaseapp.com",
-  projectId: "additer-fef59",
-  storageBucket: "additer-fef59.firebasestorage.app",
-  messagingSenderId: "1000746758293",
-  appId: "1:1000746758293:web:6dbc36232353219b902b9c"
-};
-const PROJECT_ID = "additer-fef59";
-const DB_ID = "(default)";
-const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/${DB_ID}/documents`;
-const SEED_ADMIN = {name:"배유진", phoneLast4:"1734"};
+// ═══════════════════════════════════════════
+//  ADDI+er — Core (v6)
+//  Firebase Anonymous Auth + Firestore REST
+//  토큰 자동 갱신 / 재시도 / 에러 핸들링
+// ═══════════════════════════════════════════
 
-let authToken = null;
+const API_KEY   = "AIzaSyDbwqFUW5SIoKkDewyuxmV_e13r2zOOU7k";
+const PROJECT   = "additer-fef59";
+const DB        = "(default)";
+const FS_BASE   = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/${DB}/documents`;
+const AUTH_URL  = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`;
+const REFRESH_URL = `https://securetoken.googleapis.com/v1/token?key=${API_KEY}`;
+const SEED_ADMIN = { name: "배유진", phoneLast4: "1734" };
 
-async function signInAnon() {
-  try {
-    const r = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_CONFIG.apiKey}`,
-      {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({returnSecureToken:true})}
-    );
-    const d = await r.json();
-    if (d.idToken) { authToken = d.idToken; return true; }
-    return false;
-  } catch(e) { return false; }
+// ── Auth 상태 ──
+let _token     = null;
+let _refreshToken = null;
+let _tokenExpiry  = 0;   // epoch ms
+
+async function _getToken() {
+  const now = Date.now();
+  // 토큰 유효 (만료 5분 전까지 재사용)
+  if (_token && now < _tokenExpiry - 300_000) return _token;
+  // refresh token으로 갱신
+  if (_refreshToken) {
+    try {
+      const r = await fetch(REFRESH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `grant_type=refresh_token&refresh_token=${_refreshToken}`
+      });
+      const d = await r.json();
+      if (d.id_token) {
+        _token       = d.id_token;
+        _refreshToken = d.refresh_token;
+        _tokenExpiry  = now + parseInt(d.expires_in) * 1000;
+        return _token;
+      }
+    } catch(e) {}
+  }
+  // 새 익명 로그인
+  const r = await fetch(AUTH_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ returnSecureToken: true })
+  });
+  const d = await r.json();
+  if (!d.idToken) throw new Error('Auth failed: ' + JSON.stringify(d));
+  _token        = d.idToken;
+  _refreshToken = d.refreshToken;
+  _tokenExpiry  = now + parseInt(d.expiresIn) * 1000;
+  return _token;
 }
 
-function ah() {
-  return authToken
-    ? {'Content-Type':'application/json','Authorization':`Bearer ${authToken}`}
-    : {'Content-Type':'application/json'};
+function _clearAuth() {
+  _token = null;
+  _refreshToken = null;
+  _tokenExpiry  = 0;
 }
 
-async function fsQuery(col, filters=[]) {
-  if (!authToken) await signInAnon();
+// ── Firestore 헬퍼 ──
+async function _req(url, opts = {}, retry = 2) {
+  for (let i = 0; i <= retry; i++) {
+    try {
+      const tok = await _getToken();
+      const r = await fetch(url, {
+        ...opts,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tok}`,
+          ...(opts.headers || {})
+        }
+      });
+      // 401 → 토큰 만료 → 재발급 후 재시도
+      if (r.status === 401) {
+        _token = null;
+        if (i < retry) continue;
+      }
+      return r;
+    } catch(e) {
+      if (i === retry) throw e;
+      await new Promise(res => setTimeout(res, 500 * (i + 1)));
+    }
+  }
+}
+
+function _fsVal(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === 'boolean') return { booleanValue: v };
+  if (typeof v === 'number')  return { integerValue: String(v) };
+  return { stringValue: String(v) };
+}
+function _fsEnc(obj) {
+  const o = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v == null) continue;
+    if (typeof v === 'boolean') o[k] = { booleanValue: v };
+    else if (typeof v === 'number') o[k] = { integerValue: String(v) };
+    else o[k] = { stringValue: String(v) };
+  }
+  return o;
+}
+function _fsParse(doc) {
+  const o = { id: doc.name.split('/').pop() };
+  for (const [k, v] of Object.entries(doc.fields || {}))
+    o[k] = v.booleanValue ?? v.stringValue ?? v.integerValue ?? v.timestampValue ?? null;
+  return o;
+}
+
+async function fsQuery(col, filters = []) {
   const where =
-    filters.length===0 ? undefined :
-    filters.length===1 ? {fieldFilter:{field:{fieldPath:filters[0][0]},op:filters[0][1],value:fsVal(filters[0][2])}} :
-    {compositeFilter:{op:"AND",filters:filters.map(f=>({fieldFilter:{field:{fieldPath:f[0]},op:f[1],value:fsVal(f[2])}}))}};
-  const body = {structuredQuery:{from:[{collectionId:col}],limit:200}};
+    filters.length === 0 ? undefined :
+    filters.length === 1 ? {
+      fieldFilter: { field: { fieldPath: filters[0][0] }, op: filters[0][1], value: _fsVal(filters[0][2]) }
+    } : {
+      compositeFilter: { op: "AND", filters: filters.map(f => ({
+        fieldFilter: { field: { fieldPath: f[0] }, op: f[1], value: _fsVal(f[2]) }
+      }))}
+    };
+  const body = { structuredQuery: { from: [{ collectionId: col }], limit: 200 } };
   if (where) body.structuredQuery.where = where;
-  const r = await fetch(`${BASE}:runQuery`, {method:'POST', headers:ah(), body:JSON.stringify(body)});
-  if (!r.ok) return [];
-  return (await r.json()).filter(d=>d.document).map(d=>({id:d.document.name.split('/').pop(),...fsParse(d.document)}));
-}
-async function fsSet(col,id,data){if(!authToken)await signInAnon();const r=await fetch(`${BASE}/${col}/${id}`,{method:'PATCH',headers:ah(),body:JSON.stringify({fields:fsEnc(data)})});return r.ok?r.json():null;}
-async function fsAdd(col,data){if(!authToken)await signInAnon();const r=await fetch(`${BASE}/${col}`,{method:'POST',headers:ah(),body:JSON.stringify({fields:fsEnc(data)})});if(!r.ok)return null;return(await r.json()).name.split('/').pop();}
-async function fsUpdate(col,id,data){if(!authToken)await signInAnon();const mask=Object.keys(data).map(k=>`updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');const r=await fetch(`${BASE}/${col}/${id}?${mask}`,{method:'PATCH',headers:ah(),body:JSON.stringify({fields:fsEnc(data)})});return r.ok;}
-async function fsDelete(col,id){if(!authToken)await signInAnon();const r=await fetch(`${BASE}/${col}/${id}`,{method:'DELETE',headers:ah()});return r.ok;}
-
-function fsVal(v){if(typeof v==='boolean')return{booleanValue:v};if(typeof v==='number')return{integerValue:String(v)};return{stringValue:String(v)};}
-function fsEnc(obj){const o={};for(const[k,v]of Object.entries(obj)){if(v==null)continue;if(typeof v==='boolean')o[k]={booleanValue:v};else if(typeof v==='number')o[k]={integerValue:String(v)};else o[k]={stringValue:String(v)};}return o;}
-function fsParse(doc){const o={};for(const[k,v]of Object.entries(doc.fields||{}))o[k]=v.booleanValue??v.stringValue??v.integerValue??v.timestampValue??null;return o;}
-
-let currentUser=null, todayAttendance=null, isRegisterMode=false;
-function getToday(){return new Date().toISOString().slice(0,10);}
-function fmtTime(iso){if(!iso)return'--:--';return new Date(iso).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false});}
-function fmtDate(iso){return new Date(iso).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});}
-function fmtDateShort(iso){const d=new Date(iso);return`${d.getMonth()+1}/${d.getDate()}`;}
-function calcDur(ci,co){if(!ci||!co)return null;const m=(new Date(co)-new Date(ci))/60000;return`${Math.floor(m/60)}h ${Math.floor(m%60)}m`;}
-function calcDurMin(ci,co){if(!ci||!co)return 0;return Math.round((new Date(co)-new Date(ci))/60000);}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
-function isAdm(u){return u&&(u.isAdmin===true||u.isAdmin==='true');}
-
-async function ensureAdminSeed(){
-  const found=await fsQuery('users',[['name','EQUAL',SEED_ADMIN.name],['phoneLast4','EQUAL',SEED_ADMIN.phoneLast4]]);
-  if(found.length>0){if(!isAdm(found[0])){await fsUpdate('users',found[0].id,{isAdmin:true});found[0].isAdmin=true;}return found[0];}
-  await fsSet('users','baeyujin_1734',{name:SEED_ADMIN.name,phoneLast4:SEED_ADMIN.phoneLast4,createdAt:new Date().toISOString(),isAdmin:true});
-  return{id:'baeyujin_1734',...SEED_ADMIN,isAdmin:true};
+  const r = await _req(`${FS_BASE}:runQuery`, { method: 'POST', body: JSON.stringify(body) });
+  if (!r || !r.ok) return [];
+  const rows = await r.json();
+  return rows.filter(d => d.document).map(d => _fsParse(d.document));
 }
 
-// ── Auth ──
-function toggleRegister(){
-  isRegisterMode=!isRegisterMode;
-  document.getElementById('login-title').textContent=isRegisterMode?'회원가입':'로그인';
-  document.getElementById('login-btn').textContent=isRegisterMode?'가입하기':'로그인';
-  document.querySelector('.register-hint').innerHTML=isRegisterMode
-    ?'이미 계정이 있나요? <button class="link-btn" onclick="toggleRegister()">로그인</button>'
-    :'처음이신가요? <button class="link-btn" onclick="toggleRegister()">회원가입</button>';
+async function fsSet(col, id, data) {
+  const r = await _req(`${FS_BASE}/${col}/${id}`, { method: 'PATCH', body: JSON.stringify({ fields: _fsEnc(data) }) });
+  return r?.ok ? r.json() : null;
 }
 
-async function handleLogin(){
-  const name=document.getElementById('login-name').value.trim();
-  const phone=document.getElementById('login-phone').value.trim();
-  const err=document.getElementById('login-error');
-  err.style.display='none';
-  if(!name||!/^\d{4}$/.test(phone)){err.textContent='이름과 전화번호 뒷 4자리를 입력해주세요.';err.style.display='block';return;}
-  const btn=document.getElementById('login-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
-  try{
-    authToken=null;
-    const ok=await signInAnon();
-    if(!ok)throw new Error('auth');
-    let user=null;
-    if(name===SEED_ADMIN.name&&phone===SEED_ADMIN.phoneLast4){
-      user=await ensureAdminSeed();
-    }else{
-      const found=await fsQuery('users',[['name','EQUAL',name],['phoneLast4','EQUAL',phone]]);
-      if(isRegisterMode){
-        if(found.length>0){err.textContent='이미 등록된 계정입니다.';err.style.display='block';btn.disabled=false;btn.textContent='가입하기';return;}
-        const id=`${name}_${phone}_${Date.now()}`;
-        await fsSet('users',id,{name,phoneLast4:phone,createdAt:new Date().toISOString(),isAdmin:false});
-        user={id,name,phoneLast4:phone,isAdmin:false};
-      }else{
-        if(found.length===0){err.textContent='등록되지 않은 계정입니다. 회원가입해주세요.';err.style.display='block';btn.disabled=false;btn.textContent='로그인';return;}
-        user=found[0];
+async function fsAdd(col, data) {
+  const r = await _req(`${FS_BASE}/${col}`, { method: 'POST', body: JSON.stringify({ fields: _fsEnc(data) }) });
+  if (!r?.ok) return null;
+  const d = await r.json();
+  return d.name.split('/').pop();
+}
+
+async function fsUpdate(col, id, data) {
+  const mask = Object.keys(data).map(k => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');
+  const r = await _req(`${FS_BASE}/${col}/${id}?${mask}`, { method: 'PATCH', body: JSON.stringify({ fields: _fsEnc(data) }) });
+  return r?.ok ?? false;
+}
+
+async function fsDelete(col, id) {
+  const r = await _req(`${FS_BASE}/${col}/${id}`, { method: 'DELETE' });
+  return r?.ok ?? false;
+}
+
+// ── App State ──
+let currentUser = null, todayAttendance = null, isRegisterMode = false;
+
+function getToday()  { return new Date().toISOString().slice(0, 10); }
+function fmtTime(iso){ if (!iso) return '--:--'; return new Date(iso).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }); }
+function fmtDate(iso){ return new Date(iso).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }); }
+function fmtDateShort(iso){ const d = new Date(iso); return `${d.getMonth()+1}/${d.getDate()}`; }
+function calcDur(ci, co){ if (!ci||!co) return null; const m = (new Date(co)-new Date(ci))/60000; return `${Math.floor(m/60)}h ${Math.floor(m%60)}m`; }
+function calcDurMin(ci, co){ if (!ci||!co) return 0; return Math.round((new Date(co)-new Date(ci))/60000); }
+function isAdm(u){ return u && (u.isAdmin === true || u.isAdmin === 'true'); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function showLoading(show) {
+  document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+}
+
+async function ensureAdminSeed() {
+  const found = await fsQuery('users', [['name','EQUAL',SEED_ADMIN.name],['phoneLast4','EQUAL',SEED_ADMIN.phoneLast4]]);
+  if (found.length > 0) {
+    if (!isAdm(found[0])) { await fsUpdate('users', found[0].id, { isAdmin: true }); found[0].isAdmin = true; }
+    return found[0];
+  }
+  await fsSet('users', 'baeyujin_1734', { name: SEED_ADMIN.name, phoneLast4: SEED_ADMIN.phoneLast4, createdAt: new Date().toISOString(), isAdmin: true });
+  return { id: 'baeyujin_1734', ...SEED_ADMIN, isAdmin: true };
+}
+
+// ── Auth UI ──
+function toggleRegister() {
+  isRegisterMode = !isRegisterMode;
+  document.getElementById('login-title').textContent = isRegisterMode ? '회원가입' : '로그인';
+  document.getElementById('login-btn').textContent   = isRegisterMode ? '가입하기' : '로그인';
+  document.querySelector('.register-hint').innerHTML = isRegisterMode
+    ? '이미 계정이 있나요? <button class="link-btn" onclick="toggleRegister()">로그인</button>'
+    : '처음이신가요? <button class="link-btn" onclick="toggleRegister()">회원가입</button>';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+async function handleLogin() {
+  const name  = document.getElementById('login-name').value.trim();
+  const phone = document.getElementById('login-phone').value.trim();
+  const err   = document.getElementById('login-error');
+  err.style.display = 'none';
+  if (!name || !/^\d{4}$/.test(phone)) {
+    err.textContent = '이름과 전화번호 뒷 4자리를 입력해주세요.';
+    err.style.display = 'block'; return;
+  }
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  showLoading(true);
+  try {
+    // 항상 새 토큰 발급
+    _clearAuth();
+    await _getToken();
+
+    let user = null;
+    if (name === SEED_ADMIN.name && phone === SEED_ADMIN.phoneLast4) {
+      user = await ensureAdminSeed();
+    } else {
+      const found = await fsQuery('users', [['name','EQUAL',name],['phoneLast4','EQUAL',phone]]);
+      if (isRegisterMode) {
+        if (found.length > 0) {
+          err.textContent = '이미 등록된 계정입니다.';
+          err.style.display = 'block';
+          btn.disabled = false; btn.textContent = '가입하기';
+          showLoading(false); return;
+        }
+        const id = `${name}_${phone}_${Date.now()}`;
+        await fsSet('users', id, { name, phoneLast4: phone, createdAt: new Date().toISOString(), isAdmin: false });
+        user = { id, name, phoneLast4: phone, isAdmin: false };
+        toast('가입이 완료되었습니다 🎉');
+      } else {
+        if (found.length === 0) {
+          err.textContent = '등록되지 않은 계정입니다. 회원가입해주세요.';
+          err.style.display = 'block';
+          btn.disabled = false; btn.textContent = '로그인';
+          showLoading(false); return;
+        }
+        user = found[0];
       }
     }
-    currentUser=user;localStorage.setItem('addi_user',JSON.stringify(user));enterApp();
-  }catch(e){
-    err.textContent='오류가 발생했습니다.';err.style.display='block';
-    btn.disabled=false;btn.textContent=isRegisterMode?'가입하기':'로그인';
+    currentUser = user;
+    localStorage.setItem('addi_user', JSON.stringify(user));
+    enterApp();
+  } catch(e) {
+    console.error('Login error:', e);
+    err.textContent = '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = isRegisterMode ? '가입하기' : '로그인';
+  } finally {
+    showLoading(false);
   }
 }
 
-function logout(){
-  if(!confirm('로그아웃 하시겠습니까?'))return;
-  localStorage.removeItem('addi_user');currentUser=null;todayAttendance=null;
-  document.getElementById('main-app').style.display='none';
-  document.getElementById('login-page').style.display='flex';
-  document.getElementById('login-name').value='';document.getElementById('login-phone').value='';
-  document.getElementById('login-error').style.display='none';
+function logout() {
+  if (!confirm('로그아웃 하시겠습니까?')) return;
+  localStorage.removeItem('addi_user');
+  currentUser = null; todayAttendance = null;
+  _clearAuth();
+  // UI 완전 초기화
+  document.getElementById('main-app').style.display  = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('login-name').value  = '';
+  document.getElementById('login-phone').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-btn').disabled   = false;
+  document.getElementById('login-btn').textContent = '로그인';
+  document.getElementById('login-title').textContent = '로그인';
+  document.getElementById('admin-badge').style.display = 'none';
+  document.getElementById('nav-admin').style.display   = 'none';
+  document.getElementById('fab-product').style.display = 'none';
+  isRegisterMode = false;
+  document.querySelector('.register-hint').innerHTML = '처음이신가요? <button class="link-btn" onclick="toggleRegister()">회원가입</button>';
 }
 
-function enterApp(){
-  document.getElementById('login-page').style.display='none';
-  document.getElementById('main-app').style.display='flex';
-  document.getElementById('user-name-display').textContent=currentUser.name;
-  document.getElementById('user-avatar').textContent=currentUser.name[0];
-  document.getElementById('today-date').textContent=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
-  if(isAdm(currentUser)){
-    document.getElementById('admin-badge').style.display='inline-flex';
-    document.getElementById('nav-admin').style.display='flex';
+function enterApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('main-app').style.display   = 'flex';
+  document.getElementById('user-name-display').textContent = currentUser.name;
+  document.getElementById('user-avatar').textContent  = currentUser.name[0];
+  document.getElementById('today-date').textContent   = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+  if (isAdm(currentUser)) {
+    document.getElementById('admin-badge').style.display = 'inline-flex';
+    document.getElementById('nav-admin').style.display   = 'flex';
   }
+  switchPage('home');
   loadTodayAttendance();
   loadRecentRecords();
 }
 
 // ── Attendance ──
-async function loadTodayAttendance(){
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',getToday()]]);
-  todayAttendance=recs.find(r=>r.status==='active'||r.status==='completed')||null;
+async function loadTodayAttendance() {
+  const recs = await fsQuery('attendance', [['userId','EQUAL',currentUser.id],['date','EQUAL',getToday()]]);
+  todayAttendance = recs.find(r => r.status==='active' || r.status==='completed') || null;
   renderStatus();
 }
 
-function renderStatus(){
-  const badge=document.getElementById('status-badge');
-  const ciBtn=document.getElementById('checkin-btn'),coBtn=document.getElementById('checkout-btn');
-  const ciDisp=document.getElementById('checkin-display'),coDisp=document.getElementById('checkout-display');
-  const durChip=document.getElementById('duration-chip'),durText=document.getElementById('duration-display');
-  ciBtn.className='btn-action';coBtn.className='btn-action';
-  if(!todayAttendance){
-    badge.className='status-badge badge-none';badge.textContent='미출근';
-    ciDisp.textContent='--:--';ciDisp.className='tv empty';
-    coDisp.textContent='--:--';coDisp.className='tv empty';
-    durChip.style.display='none';
-    ciBtn.classList.add('btn-checkin-active');ciBtn.textContent='출근하기';ciBtn.disabled=false;
-    coBtn.classList.add('btn-checkout-inactive');coBtn.textContent='퇴근하기';coBtn.disabled=true;
-  }else if(todayAttendance.status==='active'){
-    badge.className='status-badge badge-active';badge.textContent='근무중';
-    ciDisp.textContent=fmtTime(todayAttendance.checkIn);ciDisp.className='tv brand';
-    coDisp.textContent='--:--';coDisp.className='tv empty';
-    durChip.style.display='none';
-    ciBtn.classList.add('btn-checkin-done');ciBtn.textContent='✓ 출근완료';ciBtn.disabled=true;
-    coBtn.classList.add('btn-checkout-active');coBtn.textContent='퇴근하기';coBtn.disabled=false;
-  }else{
-    badge.className='status-badge badge-done';badge.textContent='퇴근완료';
-    ciDisp.textContent=fmtTime(todayAttendance.checkIn);ciDisp.className='tv brand';
-    coDisp.textContent=fmtTime(todayAttendance.checkOut);coDisp.className='tv brand';
-    const dur=calcDur(todayAttendance.checkIn,todayAttendance.checkOut);
-    if(dur){durChip.style.display='inline-flex';durText.textContent=dur;}
-    ciBtn.classList.add('btn-checkin-done');ciBtn.textContent='✓ 출근완료';ciBtn.disabled=true;
-    coBtn.classList.add('btn-checkout-done');coBtn.textContent='✓ 퇴근완료';coBtn.disabled=true;
+function renderStatus() {
+  const badge  = document.getElementById('status-badge');
+  const ciBtn  = document.getElementById('checkin-btn');
+  const coBtn  = document.getElementById('checkout-btn');
+  const ciDisp = document.getElementById('checkin-display');
+  const coDisp = document.getElementById('checkout-display');
+  const durChip= document.getElementById('duration-chip');
+  const durText= document.getElementById('duration-display');
+  ciBtn.className = 'btn-action'; coBtn.className = 'btn-action';
+  if (!todayAttendance) {
+    badge.className = 'status-badge badge-none'; badge.textContent = '미출근';
+    ciDisp.textContent = '--:--'; ciDisp.className = 'tv empty';
+    coDisp.textContent = '--:--'; coDisp.className = 'tv empty';
+    durChip.style.display = 'none';
+    ciBtn.classList.add('btn-checkin-active'); ciBtn.textContent = '출근하기'; ciBtn.disabled = false;
+    coBtn.classList.add('btn-checkout-inactive'); coBtn.textContent = '퇴근하기'; coBtn.disabled = true;
+  } else if (todayAttendance.status === 'active') {
+    badge.className = 'status-badge badge-active'; badge.textContent = '근무중';
+    ciDisp.textContent = fmtTime(todayAttendance.checkIn); ciDisp.className = 'tv brand';
+    coDisp.textContent = '--:--'; coDisp.className = 'tv empty';
+    durChip.style.display = 'none';
+    ciBtn.classList.add('btn-checkin-done'); ciBtn.textContent = '✓ 출근완료'; ciBtn.disabled = true;
+    coBtn.classList.add('btn-checkout-active'); coBtn.textContent = '퇴근하기'; coBtn.disabled = false;
+  } else {
+    badge.className = 'status-badge badge-done'; badge.textContent = '퇴근완료';
+    ciDisp.textContent = fmtTime(todayAttendance.checkIn); ciDisp.className = 'tv brand';
+    coDisp.textContent = fmtTime(todayAttendance.checkOut); coDisp.className = 'tv brand';
+    const dur = calcDur(todayAttendance.checkIn, todayAttendance.checkOut);
+    if (dur) { durChip.style.display = 'inline-flex'; durText.textContent = dur; }
+    ciBtn.classList.add('btn-checkin-done'); ciBtn.textContent = '✓ 출근완료'; ciBtn.disabled = true;
+    coBtn.classList.add('btn-checkout-done'); coBtn.textContent = '✓ 퇴근완료'; coBtn.disabled = true;
   }
 }
 
-async function handleCheckIn(){
-  if(todayAttendance)return;
-  const now=new Date().toISOString();
-  const btn=document.getElementById('checkin-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
-  const id=await fsAdd('attendance',{userId:currentUser.id,date:getToday(),checkIn:now,status:'active'});
-  if(id){
-    todayAttendance={id,userId:currentUser.id,date:getToday(),checkIn:now,status:'active'};
-    renderStatus();toast('출근이 기록되었습니다 🟢');loadRecentRecords();
-    // 출근 후 제품 등록 팝업
+async function handleCheckIn() {
+  if (todayAttendance) return;
+  const now = new Date().toISOString();
+  const btn = document.getElementById('checkin-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const id = await fsAdd('attendance', { userId: currentUser.id, date: getToday(), checkIn: now, status: 'active' });
+  if (id) {
+    todayAttendance = { id, userId: currentUser.id, date: getToday(), checkIn: now, status: 'active' };
+    renderStatus(); toast('출근이 기록되었습니다 🟢'); loadRecentRecords();
     showProductPopup();
-  }else{
-    toast('오류가 발생했습니다');btn.disabled=false;
-    btn.className='btn-action btn-checkin-active';btn.textContent='출근하기';
+  } else {
+    toast('오류가 발생했습니다. 다시 시도해주세요.');
+    btn.disabled = false; btn.className = 'btn-action btn-checkin-active'; btn.textContent = '출근하기';
   }
 }
 
-async function handleCheckOut(){
-  if(!todayAttendance||todayAttendance.status!=='active')return;
-  const now=new Date().toISOString();
-  const btn=document.getElementById('checkout-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner" style="border-color:rgba(255,255,255,0.3);border-top-color:white;"></span>';
-  const ok=await fsUpdate('attendance',todayAttendance.id,{checkOut:now,status:'completed'});
-  if(ok){
-    todayAttendance.checkOut=now;todayAttendance.status='completed';
-    renderStatus();toast('퇴근이 기록되었습니다 👋');loadRecentRecords();
-  }else{
-    toast('오류가 발생했습니다');btn.disabled=false;
-    btn.className='btn-action btn-checkout-active';btn.textContent='퇴근하기';
+async function handleCheckOut() {
+  if (!todayAttendance || todayAttendance.status !== 'active') return;
+  const now = new Date().toISOString();
+  const btn = document.getElementById('checkout-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner" style="border-color:rgba(255,255,255,0.3);border-top-color:white;"></span>';
+  const ok = await fsUpdate('attendance', todayAttendance.id, { checkOut: now, status: 'completed' });
+  if (ok) {
+    todayAttendance.checkOut = now; todayAttendance.status = 'completed';
+    renderStatus(); toast('퇴근이 기록되었습니다 👋'); loadRecentRecords();
+  } else {
+    toast('오류가 발생했습니다. 다시 시도해주세요.');
+    btn.disabled = false; btn.className = 'btn-action btn-checkout-active'; btn.textContent = '퇴근하기';
   }
 }
 
-async function loadRecentRecords(){
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
-  const list=document.getElementById('record-list');
-  const sorted=recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||'')).slice(0,7);
-  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>';return;}
-  list.innerHTML=sorted.map(r=>`
+async function loadRecentRecords() {
+  const recs = await fsQuery('attendance', [['userId','EQUAL',currentUser.id]]);
+  const list = document.getElementById('record-list');
+  const sorted = recs.sort((a,b) => (b.checkIn||'').localeCompare(a.checkIn||'')).slice(0, 7);
+  if (!sorted.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>'; return; }
+  list.innerHTML = sorted.map(r => `
     <div class="record-item">
       <div>
         <div class="record-date">${fmtDate(r.checkIn)}</div>
-        <div class="record-times">출근 ${fmtTime(r.checkIn)} · 퇴근 ${r.checkOut?fmtTime(r.checkOut):'근무중'}</div>
+        <div class="record-times">출근 ${fmtTime(r.checkIn)} · 퇴근 ${r.checkOut ? fmtTime(r.checkOut) : '근무중'}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
-        <div class="record-dur${!r.checkOut?' active':''}">${r.checkOut?calcDur(r.checkIn,r.checkOut):'근무중'}</div>
-        <button class="icon-btn" onclick="openEditModal('${r.id}','${r.checkIn}','${r.checkOut||''}','${r.date}')" title="수정">✏️</button>
-        <button class="icon-btn danger" onclick="deleteRecord('${r.id}')" title="삭제">🗑️</button>
+        <div class="record-dur${!r.checkOut?' active':''}">${r.checkOut ? calcDur(r.checkIn,r.checkOut) : '근무중'}</div>
+        <button class="icon-btn" onclick="openEditModal('${r.id}','${r.checkIn}','${r.checkOut||''}','${r.date}')">✏️</button>
+        <button class="icon-btn danger" onclick="deleteRecord('${r.id}')">🗑️</button>
       </div>
     </div>`).join('');
 }
 
 // ── ProductLog ──
-function showProductPopup(){
-  document.getElementById('product-popup').classList.add('open');
-}
+function showProductPopup(){ document.getElementById('product-popup').classList.add('open'); }
 function hideProductPopup(){
   document.getElementById('product-popup').classList.remove('open');
-  document.getElementById('pl-name').value='';
-  document.getElementById('pl-link').value='';
-  document.getElementById('pl-type-register').checked=true;
+  document.getElementById('pl-name').value = '';
+  document.getElementById('pl-link').value = '';
+  selectType('register');
+}
+function selectType(type) {
+  document.getElementById('pl-type-register').checked = type === 'register';
+  document.getElementById('pl-type-edit').checked     = type === 'edit';
+  document.getElementById('label-register').classList.toggle('selected', type === 'register');
+  document.getElementById('label-edit').classList.toggle('selected',     type === 'edit');
+}
+async function saveProductLog() {
+  const type        = document.getElementById('pl-type-register').checked ? 'register' : 'edit';
+  const productName = document.getElementById('pl-name').value.trim();
+  const link        = document.getElementById('pl-link').value.trim();
+  if (!productName) { toast('제품명을 입력해주세요'); return; }
+  if (!todayAttendance) { toast('출근 기록이 없습니다'); return; }
+  const btn = document.getElementById('pl-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const id = await fsAdd('productLogs', { userId: currentUser.id, attendanceId: todayAttendance.id, type, productName, link: link||'', timestamp: new Date().toISOString(), date: getToday() });
+  if (id) { toast('제품 로그 저장 ✅'); hideProductPopup(); }
+  else toast('저장 실패, 다시 시도해주세요');
+  btn.disabled = false; btn.textContent = '저장';
 }
 
-async function saveProductLog(){
-  const type=document.getElementById('pl-type-register').checked?'register':'edit';
-  const productName=document.getElementById('pl-name').value.trim();
-  const link=document.getElementById('pl-link').value.trim();
-  if(!productName){toast('제품명을 입력해주세요');return;}
-  if(!todayAttendance){toast('출근 기록이 없습니다');return;}
-  const btn=document.getElementById('pl-save-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
-  const id=await fsAdd('productLogs',{
-    userId:currentUser.id,
-    attendanceId:todayAttendance.id,
-    type,productName,
-    link:link||'',
-    timestamp:new Date().toISOString(),
-    date:getToday()
-  });
-  if(id){toast('제품 로그가 저장되었습니다 ✅');hideProductPopup();}
-  else{toast('저장에 실패했습니다');}
-  btn.disabled=false;btn.textContent='저장';
+// ── 기록 수정/삭제 ──
+function toLocalInput(iso) {
+  const d = new Date(iso), pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-
-// ── 수정 모달 ──
-function toLocalInput(iso){
-  const d=new Date(iso);const pad=n=>String(n).padStart(2,'0');
-  return`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function openEditModal(id,checkIn,checkOut,date){
-  document.getElementById('modal-content').innerHTML=`
+function openEditModal(id, checkIn, checkOut, date) {
+  document.getElementById('modal-content').innerHTML = `
     <div class="modal-title">기록 수정</div>
     <div class="field"><label>출근 시간</label>
-      <input type="datetime-local" id="edit-checkin" value="${checkIn?toLocalInput(checkIn):''}" style="padding:12px;border-radius:8px;border:1.5px solid #E8E6F0;font-size:15px;font-family:inherit;outline:none;width:100%;" /></div>
+      <input type="datetime-local" id="edit-checkin" value="${checkIn?toLocalInput(checkIn):''}" style="padding:13px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:15px;font-family:inherit;outline:none;width:100%;"/></div>
     <div class="field" style="margin-top:12px;"><label>퇴근 시간</label>
-      <input type="datetime-local" id="edit-checkout" value="${checkOut?toLocalInput(checkOut):''}" style="padding:12px;border-radius:8px;border:1.5px solid #E8E6F0;font-size:15px;font-family:inherit;outline:none;width:100%;" /></div>
-    <div style="display:flex;gap:10px;margin-top:20px;">
-      <button onclick="closeModal()" style="flex:1;padding:13px;border-radius:8px;border:1.5px solid #E8E6F0;background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">취소</button>
-      <button onclick="saveEdit('${id}','${date}')" style="flex:1;padding:13px;border-radius:8px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
+      <input type="datetime-local" id="edit-checkout" value="${checkOut?toLocalInput(checkOut):''}" style="padding:13px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:15px;font-family:inherit;outline:none;width:100%;"/></div>
+    <div style="display:flex;gap:10px;margin-top:22px;">
+      <button onclick="closeModal()" style="flex:1;padding:14px;border-radius:10px;border:1.5px solid #E8E6F0;background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">취소</button>
+      <button onclick="saveEdit('${id}','${date}')" style="flex:2;padding:14px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
     </div>`;
   document.getElementById('modal').classList.add('open');
 }
-
-async function saveEdit(id,date){
-  const ciVal=document.getElementById('edit-checkin').value;
-  const coVal=document.getElementById('edit-checkout').value;
-  if(!ciVal){toast('출근 시간을 입력해주세요');return;}
-  const checkIn=new Date(ciVal).toISOString();
-  const checkOut=coVal?new Date(coVal).toISOString():null;
-  if(checkOut&&new Date(checkOut)<=new Date(checkIn)){toast('퇴근 시간은 출근 이후여야 합니다');return;}
-  const data={checkIn,status:checkOut?'completed':'active'};
-  if(checkOut)data.checkOut=checkOut;
-  const ok=await fsUpdate('attendance',id,data);
-  if(ok){toast('수정되었습니다 ✅');closeModal();loadTodayAttendance();loadRecentRecords();}
-  else toast('수정에 실패했습니다');
+async function saveEdit(id, date) {
+  const ciVal = document.getElementById('edit-checkin').value;
+  const coVal = document.getElementById('edit-checkout').value;
+  if (!ciVal) { toast('출근 시간을 입력해주세요'); return; }
+  const checkIn  = new Date(ciVal).toISOString();
+  const checkOut = coVal ? new Date(coVal).toISOString() : null;
+  if (checkOut && new Date(checkOut) <= new Date(checkIn)) { toast('퇴근 시간은 출근 이후여야 합니다'); return; }
+  const data = { checkIn, status: checkOut ? 'completed' : 'active' };
+  if (checkOut) data.checkOut = checkOut;
+  const ok = await fsUpdate('attendance', id, data);
+  if (ok) { toast('수정되었습니다 ✅'); closeModal(); loadTodayAttendance(); loadRecentRecords(); }
+  else toast('수정 실패');
 }
-
-async function deleteRecord(id){
-  if(!confirm('이 출퇴근 기록을 삭제할까요?'))return;
-  const ok=await fsDelete('attendance',id);
-  if(ok){
-    toast('삭제되었습니다 🗑️');
-    if(todayAttendance&&todayAttendance.id===id){todayAttendance=null;renderStatus();}
-    loadRecentRecords();
-  }else toast('삭제에 실패했습니다');
+async function deleteRecord(id) {
+  if (!confirm('이 기록을 삭제할까요?')) return;
+  const ok = await fsDelete('attendance', id);
+  if (ok) { toast('삭제되었습니다 🗑️'); if (todayAttendance?.id === id) { todayAttendance = null; renderStatus(); } loadRecentRecords(); }
+  else toast('삭제 실패');
 }
-
-function closeModal(){document.getElementById('modal').classList.remove('open');}
-function closeModalOverlay(e){if(e.target===document.getElementById('modal'))closeModal();}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+function closeModalOverlay(e){ if(e.target===document.getElementById('modal')) closeModal(); }
 
 // ── 마이페이지 ──
-let myPageTab='calendar';
-let myCalYear=new Date().getFullYear(), myCalMonth=new Date().getMonth();
+let myCalYear = new Date().getFullYear(), myCalMonth = new Date().getMonth();
 
-function switchMyTab(tab){
-  myPageTab=tab;
-  document.querySelectorAll('.my-tab-btn').forEach((b,i)=>b.classList.toggle('active',['calendar','list','products'][i]===tab));
-  document.getElementById('my-calendar').style.display=tab==='calendar'?'block':'none';
-  document.getElementById('my-list').style.display=tab==='list'?'block':'none';
-  document.getElementById('my-products').style.display=tab==='products'?'block':'none';
-  if(tab==='calendar')renderMyCalendar();
-  if(tab==='list')renderMyList();
-  if(tab==='products')renderMyProducts();
+function switchMyTab(tab) {
+  document.querySelectorAll('.my-tab-btn').forEach((b,i) => b.classList.toggle('active', ['calendar','list','products'][i]===tab));
+  document.getElementById('my-calendar').style.display  = tab==='calendar'  ? 'block' : 'none';
+  document.getElementById('my-list').style.display      = tab==='list'       ? 'block' : 'none';
+  document.getElementById('my-products').style.display  = tab==='products'   ? 'block' : 'none';
+  if (tab==='calendar') renderMyCalendar();
+  if (tab==='list')     renderMyList();
+  if (tab==='products') renderMyProducts();
 }
-
-async function loadMyPage(){
-  myCalYear=new Date().getFullYear();myCalMonth=new Date().getMonth();
-  renderMyCalendar();
+async function loadMyPage() {
+  myCalYear = new Date().getFullYear(); myCalMonth = new Date().getMonth();
+  switchMyTab('calendar');
 }
-
-async function renderMyCalendar(){
-  const y=myCalYear,m=myCalMonth;
-  document.getElementById('cal-title').textContent=`${y}년 ${m+1}월`;
-  const start=`${y}-${String(m+1).padStart(2,'0')}-01`;
-  const end=`${y}-${String(m+1).padStart(2,'0')}-31`;
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
-  const filtered=recs.filter(r=>r.date>=start&&r.date<=end);
-  const byDate={};
-  for(const r of filtered)byDate[r.date]=r;
-  const firstDay=new Date(y,m,1).getDay();
-  const daysInMonth=new Date(y,m+1,0).getDate();
-  let html='<div class="cal-grid"><div class="cal-header">일</div><div class="cal-header">월</div><div class="cal-header">화</div><div class="cal-header">수</div><div class="cal-header">목</div><div class="cal-header">금</div><div class="cal-header">토</div>';
-  for(let i=0;i<firstDay;i++)html+='<div class="cal-cell empty"></div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const rec=byDate[dateStr];
-    const dur=rec?calcDurMin(rec.checkIn,rec.checkOut):0;
-    const isToday=dateStr===getToday();
-    html+=`<div class="cal-cell${rec?' has-record':''}${isToday?' today':''}" onclick="showDayDetail('${dateStr}')">
-      <div class="cal-day">${d}</div>
-      ${rec?`<div class="cal-dur">${dur?Math.floor(dur/60)+'h':'출근'}</div>`:''}
+async function renderMyCalendar() {
+  const y=myCalYear, m=myCalMonth;
+  document.getElementById('cal-title').textContent = `${y}년 ${m+1}월`;
+  const recs = await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
+  const pfx  = `${y}-${String(m+1).padStart(2,'0')}`;
+  const byDate = {};
+  recs.filter(r=>r.date&&r.date.startsWith(pfx)).forEach(r=>byDate[r.date]=r);
+  const firstDay = new Date(y,m,1).getDay();
+  const days     = new Date(y,m+1,0).getDate();
+  let html = '<div class="cal-grid"><div class="cal-header" style="color:#EF4444;">일</div><div class="cal-header">월</div><div class="cal-header">화</div><div class="cal-header">수</div><div class="cal-header">목</div><div class="cal-header">금</div><div class="cal-header" style="color:#3B82F6;">토</div>';
+  for (let i=0;i<firstDay;i++) html += '<div class="cal-cell empty"></div>';
+  for (let d=1;d<=days;d++) {
+    const ds  = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const rec = byDate[ds];
+    const dur = rec ? calcDurMin(rec.checkIn, rec.checkOut) : 0;
+    const isToday = ds === getToday();
+    const dow  = new Date(ds+'T00:00:00').getDay();
+    const dc   = dow===0?'color:#EF4444':dow===6?'color:#3B82F6':'';
+    html += `<div class="cal-cell${rec?' has-record':''}${isToday?' today':''}" onclick="showDayDetail('${ds}')">
+      <div class="cal-day" style="${dc}">${d}</div>
+      ${rec ? `<div class="cal-dur">${dur?Math.floor(dur/60)+'h':'출근'}</div>` : ''}
     </div>`;
   }
-  html+='</div>';
-  document.getElementById('cal-body').innerHTML=html;
+  html += '</div>';
+  document.getElementById('cal-body').innerHTML = html;
 }
+function prevMonth(){ myCalMonth--; if(myCalMonth<0){myCalMonth=11;myCalYear--;} renderMyCalendar(); }
+function nextMonth(){ myCalMonth++; if(myCalMonth>11){myCalMonth=0;myCalYear++;} renderMyCalendar(); }
 
-function prevMonth(){myCalMonth--;if(myCalMonth<0){myCalMonth=11;myCalYear--;}renderMyCalendar();}
-function nextMonth(){myCalMonth++;if(myCalMonth>11){myCalMonth=0;myCalYear++;}renderMyCalendar();}
-
-async function showDayDetail(date){
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]]);
-  const logs=await fsQuery('productLogs',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]]);
-  const rec=recs[0];
-  document.getElementById('modal-content').innerHTML=`
+async function showDayDetail(date) {
+  const [recs, logs] = await Promise.all([
+    fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]]),
+    fsQuery('productLogs',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]])
+  ]);
+  const rec = recs[0];
+  document.getElementById('modal-content').innerHTML = `
     <div class="modal-title">${new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}</div>
-    ${rec?`<div style="background:var(--brand-light);border-radius:10px;padding:14px;margin-bottom:14px;">
-      <div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">근무 기록</div>
-      <div style="font-size:15px;font-weight:700;">출근 ${fmtTime(rec.checkIn)} · 퇴근 ${rec.checkOut?fmtTime(rec.checkOut):'근무중'}</div>
-      ${rec.checkOut?`<div style="font-size:13px;color:var(--brand);font-weight:600;margin-top:4px;">총 ${calcDur(rec.checkIn,rec.checkOut)}</div>`:''}
-    </div>`:'<div class="empty-state" style="margin-bottom:14px;">출근 기록 없음</div>'}
-    ${logs.length?`<div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:8px;">제품 로그 (${logs.length}건)</div>
-    <div class="record-list">${logs.map(l=>`<div class="record-item" style="flex-direction:column;align-items:flex-start;gap:4px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="type-badge ${l.type==='register'?'badge-active':'badge-done'}">${l.type==='register'?'등록':'수정'}</span>
-        <span style="font-size:14px;font-weight:600;">${l.productName}</span>
-      </div>
-      ${l.link?`<a href="${l.link}" target="_blank" style="font-size:12px;color:var(--brand);word-break:break-all;">${l.link}</a>`:''}
-    </div>`).join('')}</div>`:''}`;
+    ${rec
+      ? `<div style="background:var(--brand-light);border-radius:12px;padding:16px;margin-bottom:14px;">
+           <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:6px;">근무 기록</div>
+           <div style="font-size:16px;font-weight:800;">출근 ${fmtTime(rec.checkIn)} · 퇴근 ${rec.checkOut?fmtTime(rec.checkOut):'근무중'}</div>
+           ${rec.checkOut?`<div style="font-size:13px;color:var(--brand);font-weight:600;margin-top:4px;">총 ${calcDur(rec.checkIn,rec.checkOut)}</div>`:''}
+         </div>`
+      : '<div class="empty-state" style="margin-bottom:14px;padding:20px;">출근 기록 없음</div>'}
+    ${logs.length
+      ? `<div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:8px;">제품 로그 (${logs.length}건)</div>
+         <div class="record-list">${logs.map(l=>`
+           <div class="record-item" style="flex-direction:column;align-items:flex-start;gap:6px;">
+             <div style="display:flex;align-items:center;gap:8px;">
+               <span class="type-badge ${l.type==='register'?'badge-active':'badge-done'}">${l.type==='register'?'등록':'수정'}</span>
+               <span style="font-size:14px;font-weight:700;">${l.productName}</span>
+             </div>
+             ${l.link?`<a href="${l.link}" target="_blank" style="font-size:12px;color:var(--brand);word-break:break-all;">${l.link}</a>`:''}
+           </div>`).join('')}</div>`
+      : ''}`;
   document.getElementById('modal').classList.add('open');
 }
-
-async function renderMyList(){
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
-  const sorted=recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||''));
-  const list=document.getElementById('my-list');
-  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>';return;}
-  // 월별 그룹핑
-  const groups={};
-  for(const r of sorted){
-    const key=r.date?r.date.slice(0,7):'';
-    if(!groups[key])groups[key]=[];
-    groups[key].push(r);
-  }
-  let html='';
-  for(const [ym,items] of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
-    const [y,m]=ym.split('-');
-    const totalMin=items.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
-    html+=`<div style="margin-bottom:20px;">
-      <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:8px;display:flex;justify-content:space-between;">
+async function renderMyList() {
+  const recs   = await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
+  const sorted = recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||''));
+  const list   = document.getElementById('my-list');
+  if (!sorted.length) { list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>'; return; }
+  const groups = {};
+  for (const r of sorted) { const k=r.date?r.date.slice(0,7):''; if(!groups[k])groups[k]=[]; groups[k].push(r); }
+  let html = '';
+  for (const [ym, items] of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))) {
+    const [y,m] = ym.split('-');
+    const tot   = items.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+    html += `<div style="margin-bottom:20px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:10px;display:flex;justify-content:space-between;">
         <span>${y}년 ${parseInt(m)}월</span>
-        <span style="color:var(--brand);">${items.length}일 · 총 ${Math.floor(totalMin/60)}h ${Math.floor(totalMin%60)}m</span>
+        <span style="color:var(--brand);">${items.length}일 · 총 ${Math.floor(tot/60)}h ${Math.floor(tot%60)}m</span>
       </div>
       <div class="record-list">${items.map(r=>`
         <div class="record-item">
-          <div>
-            <div class="record-date">${fmtDate(r.checkIn)}</div>
-            <div class="record-times">출근 ${fmtTime(r.checkIn)} · 퇴근 ${r.checkOut?fmtTime(r.checkOut):'근무중'}</div>
-          </div>
+          <div><div class="record-date">${fmtDate(r.checkIn)}</div>
+          <div class="record-times">출근 ${fmtTime(r.checkIn)} · 퇴근 ${r.checkOut?fmtTime(r.checkOut):'근무중'}</div></div>
           <div class="record-dur${!r.checkOut?' active':''}">${r.checkOut?calcDur(r.checkIn,r.checkOut):'근무중'}</div>
-        </div>`).join('')}
-      </div>
+        </div>`).join('')}</div>
     </div>`;
   }
-  list.innerHTML=html;
+  list.innerHTML = html;
 }
-
-async function renderMyProducts(){
-  const logs=await fsQuery('productLogs',[['userId','EQUAL',currentUser.id]]);
-  const sorted=logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
-  const list=document.getElementById('my-products');
-  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>제품 로그가 없습니다</div>';return;}
-  list.innerHTML=sorted.map(l=>`
+async function renderMyProducts() {
+  const logs   = await fsQuery('productLogs',[['userId','EQUAL',currentUser.id]]);
+  const sorted = logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
+  const list   = document.getElementById('my-products');
+  if (!sorted.length) { list.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>제품 로그가 없습니다</div>'; return; }
+  list.innerHTML = sorted.map(l=>`
     <div class="record-item" style="flex-direction:column;align-items:flex-start;gap:6px;">
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
         <div style="display:flex;align-items:center;gap:8px;">
@@ -738,26 +885,25 @@ async function renderMyProducts(){
 }
 
 // ── Admin ──
-function switchAdminTab(tab){
+function switchAdminTab(tab) {
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['today','monthly','members'][i]===tab));
   ['admin-today','admin-monthly','admin-members'].forEach((id,i)=>{
-    document.getElementById(id).style.display=['today','monthly','members'][i]===tab?'block':'none';
+    document.getElementById(id).style.display = ['today','monthly','members'][i]===tab ? 'block' : 'none';
   });
-  if(tab==='today')loadAdminToday();
-  if(tab==='members')loadAdminMembers();
+  if (tab==='today')   loadAdminToday();
+  if (tab==='members') loadAdminMembers();
 }
-
-async function loadAdminToday(){
-  const[users,recs]=await Promise.all([fsQuery('users'),fsQuery('attendance',[['date','EQUAL',getToday()]])]);
-  document.getElementById('stat-total').textContent=users.length;
-  document.getElementById('stat-in').textContent=recs.filter(r=>r.status==='active'||r.status==='completed').length;
-  const ml=document.getElementById('member-list');
-  if(!users.length){ml.innerHTML='<div class="empty-state">팀원이 없습니다</div>';return;}
-  ml.innerHTML=users.map(u=>{
-    const rec=recs.find(r=>r.userId===u.id);
-    const[st,sc]=!rec?['미출근','badge-none']:rec.status==='active'?['근무중','badge-active']:['퇴근완료','badge-done'];
-    const times=rec?`출근 ${fmtTime(rec.checkIn)}${rec.checkOut?' · 퇴근 '+fmtTime(rec.checkOut):''}` :'출근 기록 없음';
-    return`<div class="member-row">
+async function loadAdminToday() {
+  const [users, recs] = await Promise.all([fsQuery('users'), fsQuery('attendance',[['date','EQUAL',getToday()]])]);
+  document.getElementById('stat-total').textContent = users.length;
+  document.getElementById('stat-in').textContent    = recs.filter(r=>r.status==='active'||r.status==='completed').length;
+  const ml = document.getElementById('member-list');
+  if (!users.length) { ml.innerHTML='<div class="empty-state">팀원이 없습니다</div>'; return; }
+  ml.innerHTML = users.map(u => {
+    const rec  = recs.find(r=>r.userId===u.id);
+    const [st,sc] = !rec ? ['미출근','badge-none'] : rec.status==='active' ? ['근무중','badge-active'] : ['퇴근완료','badge-done'];
+    const times = rec ? `출근 ${fmtTime(rec.checkIn)}${rec.checkOut?' · 퇴근 '+fmtTime(rec.checkOut):''}` : '출근 기록 없음';
+    return `<div class="member-row">
       <div class="member-avatar">${u.name[0]}</div>
       <div class="member-info">
         <div class="member-name">${u.name}${isAdm(u)?' <span style="font-size:10px;color:var(--brand);font-weight:700;">관리자</span>':''}</div>
@@ -767,380 +913,153 @@ async function loadAdminToday(){
     </div>`;
   }).join('');
 }
-
-async function loadAdminMembers(){
-  const users=await fsQuery('users');
-  const list=document.getElementById('admin-member-list');
-  if(!users.length){list.innerHTML='<div class="empty-state">팀원이 없습니다</div>';return;}
-  list.innerHTML=users.map(u=>{
-    const isSelf=u.id===currentUser.id;
-    return`<div class="member-row" style="flex-direction:column;align-items:flex-start;gap:0;">
+async function loadAdminMembers() {
+  const users = await fsQuery('users');
+  const list  = document.getElementById('admin-member-list');
+  if (!users.length) { list.innerHTML='<div class="empty-state">팀원이 없습니다</div>'; return; }
+  list.innerHTML = users.map(u => {
+    const isSelf = u.id === currentUser.id;
+    return `<div class="member-row" style="flex-direction:column;align-items:flex-start;gap:0;">
       <div style="display:flex;align-items:center;gap:12px;width:100%;">
         <div class="member-avatar">${u.name[0]}</div>
         <div class="member-info">
           <div class="member-name">${u.name}${isSelf?' <span style="font-size:10px;color:var(--text-muted);">(나)</span>':''}</div>
           <div class="member-sub">****${u.phoneLast4}</div>
         </div>
-        ${!isSelf?`<button class="icon-btn danger" onclick="deleteUser('${u.id}','${u.name}')" title="삭제">🗑️</button>`:''}
+        ${!isSelf?`<button class="icon-btn danger" onclick="deleteUser('${u.id}','${u.name}')">🗑️</button>`:''}
       </div>
       <div class="admin-toggle-row">
         <span class="admin-toggle-label">관리자 권한 ${isAdm(u)?'<strong style="color:var(--brand);">부여됨</strong>':'미부여'}</span>
         <label class="toggle">
-          <input type="checkbox" ${isAdm(u)?'checked':''} ${isSelf?'disabled':''} onchange="toggleAdminRole('${u.id}',this.checked,this)" />
+          <input type="checkbox" ${isAdm(u)?'checked':''} ${isSelf?'disabled':''} onchange="toggleAdminRole('${u.id}',this.checked,this)"/>
           <span class="toggle-slider"></span>
         </label>
       </div>
     </div>`;
   }).join('');
 }
-
-async function deleteUser(uid,name){
-  if(!confirm(`'${name}'님을 삭제할까요?\n출퇴근 기록도 함께 삭제됩니다.`))return;
-  const recs=await fsQuery('attendance',[['userId','EQUAL',uid]]);
-  const logs=await fsQuery('productLogs',[['userId','EQUAL',uid]]);
-  await Promise.all([
-    ...recs.map(r=>fsDelete('attendance',r.id)),
-    ...logs.map(l=>fsDelete('productLogs',l.id)),
-    fsDelete('users',uid)
+async function deleteUser(uid, name) {
+  if (!confirm(`'${name}'님을 삭제할까요?\n출퇴근/제품 기록도 함께 삭제됩니다.`)) return;
+  const [recs, logs] = await Promise.all([
+    fsQuery('attendance',[['userId','EQUAL',uid]]),
+    fsQuery('productLogs',[['userId','EQUAL',uid]])
   ]);
+  await Promise.all([...recs.map(r=>fsDelete('attendance',r.id)), ...logs.map(l=>fsDelete('productLogs',l.id)), fsDelete('users',uid)]);
   toast(`${name}님이 삭제되었습니다`);
   loadAdminMembers();
 }
-
-async function toggleAdminRole(uid,val,cb){
-  cb.disabled=true;
-  const ok=await fsUpdate('users',uid,{isAdmin:val});
-  if(ok){toast(val?'관리자 권한 부여 ✅':'관리자 권한 해제');loadAdminMembers();}
-  else{toast('변경 실패');cb.checked=!val;cb.disabled=false;}
+async function toggleAdminRole(uid, val, cb) {
+  cb.disabled = true;
+  const ok = await fsUpdate('users', uid, { isAdmin: val });
+  if (ok) { toast(val?'관리자 권한 부여 ✅':'관리자 권한 해제'); loadAdminMembers(); }
+  else    { toast('변경 실패'); cb.checked = !val; cb.disabled = false; }
 }
-
-function populateMonthSelect(){
-  const sel=document.getElementById('month-select');
-  if(sel.options.length>0)return;
-  const now=new Date();
-  for(let i=0;i<6;i++){
-    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    const val=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    const opt=document.createElement('option');
-    opt.value=val;opt.textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월`;
-    if(i===0)opt.selected=true;sel.appendChild(opt);
+function populateMonthSelect() {
+  const sel = document.getElementById('month-select');
+  if (sel.options.length > 0) return;
+  const now = new Date();
+  for (let i=0;i<6;i++) {
+    const d   = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const opt = document.createElement('option');
+    opt.value = val; opt.textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월`;
+    if (i===0) opt.selected = true;
+    sel.appendChild(opt);
   }
   loadMonthlyData();
 }
-
-async function loadMonthlyData(){
-  const month=document.getElementById('month-select').value;
-  const[y,m]=month.split('-');
-  const start=`${y}-${m}-01`,end=`${y}-${m}-31`;
-  const[users,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
-  const filteredRecs=recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
-  const filteredLogs=logs.filter(l=>l.date>=start&&l.date<=end);
-  const grouped={};
-  for(const r of filteredRecs){if(!grouped[r.userId])grouped[r.userId]=[];grouped[r.userId].push(r);}
-  const list=document.getElementById('monthly-list');
-  list.innerHTML=users.map(u=>{
-    const ur=grouped[u.id]||[];
-    if(!ur.length)return`<div class="member-row"><div class="member-avatar">${u.name[0]}</div><div class="member-info"><div class="member-name">${u.name}</div><div class="member-sub">기록 없음</div></div><div class="record-dur" style="background:#F0EFF6;color:#8884A3;border:none;">0일</div></div>`;
-    const tot=ur.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
-    return`<div class="member-row" style="cursor:pointer;" onclick="showAdminDetail('${u.id}','${u.name}','${month}')">
+async function loadMonthlyData() {
+  const month = document.getElementById('month-select').value;
+  const [y,m] = month.split('-');
+  const [users, recs, logs] = await Promise.all([fsQuery('users'), fsQuery('attendance'), fsQuery('productLogs')]);
+  const start=`${y}-${m}-01`, end=`${y}-${m}-31`;
+  const fr = recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
+  const grouped = {};
+  for (const r of fr) { if(!grouped[r.userId])grouped[r.userId]=[]; grouped[r.userId].push(r); }
+  const list = document.getElementById('monthly-list');
+  list.innerHTML = users.map(u => {
+    const ur = grouped[u.id]||[];
+    if (!ur.length) return `<div class="member-row"><div class="member-avatar">${u.name[0]}</div><div class="member-info"><div class="member-name">${u.name}</div><div class="member-sub">기록 없음</div></div><div class="record-dur" style="background:#F0EFF6;color:#8884A3;border:none;">0일</div></div>`;
+    const tot = ur.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+    return `<div class="member-row" style="cursor:pointer;" onclick="showAdminDetail('${u.id}','${u.name}','${month}')">
       <div class="member-avatar">${u.name[0]}</div>
       <div class="member-info"><div class="member-name">${u.name}</div><div class="member-sub">${ur.length}일 · 총 ${Math.floor(tot/60)}h ${Math.floor(tot%60)}m</div></div>
       <div style="display:flex;gap:6px;align-items:center;">
         <div class="record-dur">${ur.length}일</div>
-        <button class="icon-btn" onclick="event.stopPropagation();exportExcel('${u.id}','${u.name}','${month}')" title="엑셀 다운로드">📥</button>
+        <button class="icon-btn" onclick="event.stopPropagation();exportExcel('${u.id}','${u.name}','${month}')">📥</button>
       </div>
     </div>`;
   }).join('');
 }
-
-async function showAdminDetail(uid,name,month){
-  const[y,m]=month.split('-');
-  const[recs,logs]=await Promise.all([
-    fsQuery('attendance',[['userId','EQUAL',uid]]),
-    fsQuery('productLogs',[['userId','EQUAL',uid]])
-  ]);
-  const filteredRecs=recs.filter(r=>r.date.startsWith(`${y}-${m}`)&&r.status==='completed').sort((a,b)=>a.date.localeCompare(b.date));
-  const filteredLogs=logs.filter(l=>l.date&&l.date.startsWith(`${y}-${m}`));
-  const logsByDate={};
-  for(const l of filteredLogs){if(!logsByDate[l.date])logsByDate[l.date]=[];logsByDate[l.date].push(l);}
-  document.getElementById('modal-content').innerHTML=`
+async function showAdminDetail(uid, name, month) {
+  const [y,m] = month.split('-');
+  const [recs, logs] = await Promise.all([fsQuery('attendance',[['userId','EQUAL',uid]]), fsQuery('productLogs',[['userId','EQUAL',uid]])]);
+  const fr = recs.filter(r=>r.date.startsWith(`${y}-${m}`)&&r.status==='completed').sort((a,b)=>a.date.localeCompare(b.date));
+  const lbd = {};
+  for (const l of logs.filter(l=>l.date&&l.date.startsWith(`${y}-${m}`))) { if(!lbd[l.date])lbd[l.date]=[]; lbd[l.date].push(l); }
+  document.getElementById('modal-content').innerHTML = `
     <div class="modal-title">${name}님 · ${y}년 ${parseInt(m)}월</div>
-    <div class="record-list">${filteredRecs.length?filteredRecs.map(r=>`
+    <div class="record-list">${fr.length ? fr.map(r=>`
       <div class="record-item" style="flex-direction:column;align-items:flex-start;gap:6px;">
         <div style="display:flex;justify-content:space-between;width:100%;">
           <div class="record-date">${fmtDate(r.checkIn)}</div>
           <div class="record-dur">${calcDur(r.checkIn,r.checkOut)}</div>
         </div>
         <div class="record-times">출근 ${fmtTime(r.checkIn)} · 퇴근 ${fmtTime(r.checkOut)}</div>
-        ${(logsByDate[r.date]||[]).map(l=>`<div style="font-size:12px;background:var(--brand-light);padding:4px 8px;border-radius:6px;">
+        ${(lbd[r.date]||[]).map(l=>`<div style="font-size:12px;background:var(--brand-light);padding:5px 10px;border-radius:8px;">
           <span class="type-badge ${l.type==='register'?'badge-active':'badge-done'}" style="font-size:10px;">${l.type==='register'?'등록':'수정'}</span>
           ${l.productName}${l.link?` · <a href="${l.link}" target="_blank" style="color:var(--brand);">링크</a>`:''}
         </div>`).join('')}
-      </div>`).join(''):'<div class="empty-state">기록 없음</div>'}</div>`;
+      </div>`).join('') : '<div class="empty-state">기록 없음</div>'}</div>`;
   document.getElementById('modal').classList.add('open');
 }
-
-// ── 엑셀 내보내기 ──
-async function exportExcel(uid,name,month){
-  const[y,m]=month.split('-');
-  const[recs,logs]=await Promise.all([
-    fsQuery('attendance',[['userId','EQUAL',uid]]),
-    fsQuery('productLogs',[['userId','EQUAL',uid]])
-  ]);
-  const filteredRecs=recs.filter(r=>r.date.startsWith(`${y}-${m}`)&&r.status==='completed').sort((a,b)=>a.date.localeCompare(b.date));
-  const filteredLogs=logs.filter(l=>l.date&&l.date.startsWith(`${y}-${m}`));
-  const logsByDate={};
-  for(const l of filteredLogs){if(!logsByDate[l.date])logsByDate[l.date]=[];logsByDate[l.date].push(l);}
-
-  let csv='\uFEFF일자,출근시간,퇴근시간,근무시간,제품구분,제품명,등록링크\n';
-  for(const r of filteredRecs){
-    const dayLogs=logsByDate[r.date]||[{}];
-    for(const l of dayLogs){
-      csv+=`${r.date},${fmtTime(r.checkIn)},${fmtTime(r.checkOut)},${calcDur(r.checkIn,r.checkOut)||''},${l.type==='register'?'제품등록':l.type==='edit'?'제품수정':''},${l.productName||''},${l.link||''}\n`;
-    }
+async function exportExcel(uid, name, month) {
+  const [y,m] = month.split('-');
+  const [recs, logs] = await Promise.all([fsQuery('attendance',[['userId','EQUAL',uid]]), fsQuery('productLogs',[['userId','EQUAL',uid]])]);
+  const fr  = recs.filter(r=>r.date.startsWith(`${y}-${m}`)&&r.status==='completed').sort((a,b)=>a.date.localeCompare(b.date));
+  const lbd = {};
+  for (const l of logs.filter(l=>l.date&&l.date.startsWith(`${y}-${m}`))) { if(!lbd[l.date])lbd[l.date]=[]; lbd[l.date].push(l); }
+  let csv = '\uFEFF일자,출근시간,퇴근시간,근무시간,제품구분,제품명,등록링크\n';
+  for (const r of fr) {
+    const dl = lbd[r.date]||[{}];
+    for (const l of dl) csv += `${r.date},${fmtTime(r.checkIn)},${fmtTime(r.checkOut)},${calcDur(r.checkIn,r.checkOut)||''},${l.type==='register'?'제품등록':l.type==='edit'?'제품수정':''},${l.productName||''},${l.link||''}\n`;
   }
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=`${name}_${y}년${parseInt(m)}월_근무기록.csv`;
-  a.click();URL.revokeObjectURL(url);
-  toast('다운로드 완료 📥');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = `${name}_${y}년${parseInt(m)}월_근무기록.csv`;
+  a.click(); toast('다운로드 완료 📥');
 }
 
-function switchPage(page){
+// ── Nav ──
+function switchPage(page) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(`page-${page}`).classList.add('active');
   document.getElementById(`nav-${page}`).classList.add('active');
-  if(page==='admin'){loadAdminToday();populateMonthSelect();}
-  if(page==='mypage'){loadMyPage();}
+  document.getElementById('fab-product').style.display = page==='home' ? 'flex' : 'none';
+  if (page==='admin')  { loadAdminToday(); populateMonthSelect(); }
+  if (page==='mypage') loadMyPage();
 }
 
-(async()=>{
-  const saved=localStorage.getItem('addi_user');
-  if(saved){
-    try{currentUser=JSON.parse(saved);await signInAnon();enterApp();return;}
-    catch(e){localStorage.removeItem('addi_user');}
+// ── Init ──
+(async () => {
+  const saved = localStorage.getItem('addi_user');
+  if (saved) {
+    try {
+      currentUser = JSON.parse(saved);
+      showLoading(true);
+      _clearAuth();
+      const ok = await _getToken();
+      if (ok) { enterApp(); return; }
+      localStorage.removeItem('addi_user');
+    } catch(e) {
+      localStorage.removeItem('addi_user');
+    } finally {
+      showLoading(false);
+    }
   }
-  ensureAdminSeed().catch(()=>{});
-})();
-
-
-function switchPage(page){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  document.getElementById('nav-'+page).classList.add('active');
-  const fab=document.getElementById('fab-product');
-  fab.style.display=page==='home'?'flex':'none';
-  if(page==='admin'){loadAdminToday();populateMonthSelect();}
-  if(page==='mypage'){loadMyPage();}
-}
-
-let myCalYear=new Date().getFullYear(),myCalMonth=new Date().getMonth();
-
-function switchMyTab(tab){
-  document.querySelectorAll('.my-tab-btn').forEach((b,i)=>b.classList.toggle('active',['calendar','list','products'][i]===tab));
-  document.getElementById('my-calendar').style.display=tab==='calendar'?'block':'none';
-  document.getElementById('my-list').style.display=tab==='list'?'block':'none';
-  document.getElementById('my-products').style.display=tab==='products'?'block':'none';
-  if(tab==='calendar')renderMyCalendar();
-  if(tab==='list')renderMyList();
-  if(tab==='products')renderMyProducts();
-}
-
-async function loadMyPage(){
-  myCalYear=new Date().getFullYear();myCalMonth=new Date().getMonth();
-  switchMyTab('calendar');
-}
-
-async function renderMyCalendar(){
-  const y=myCalYear,m=myCalMonth;
-  document.getElementById('cal-title').textContent=y+'년 '+(m+1)+'월';
-  const start=y+'-'+String(m+1).padStart(2,'0')+'-01';
-  const end=y+'-'+String(m+1).padStart(2,'0')+'-31';
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
-  const filtered=recs.filter(r=>r.date>=start&&r.date<=end);
-  const byDate={};for(const r of filtered)byDate[r.date]=r;
-  const firstDay=new Date(y,m,1).getDay();
-  const daysInMonth=new Date(y,m+1,0).getDate();
-  let html='<div class="cal-grid"><div class="cal-header" style="color:#EF4444;">일</div><div class="cal-header">월</div><div class="cal-header">화</div><div class="cal-header">수</div><div class="cal-header">목</div><div class="cal-header">금</div><div class="cal-header" style="color:#3B82F6;">토</div>';
-  for(let i=0;i<firstDay;i++)html+='<div class="cal-cell empty"></div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const rec=byDate[ds];
-    const dur=rec?calcDurMin(rec.checkIn,rec.checkOut):0;
-    const isToday=ds===getToday();
-    const dow=new Date(ds+'T00:00:00').getDay();
-    const dc=dow===0?'color:#EF4444':dow===6?'color:#3B82F6':'';
-    html+='<div class="cal-cell'+(rec?' has-record':'')+(isToday?' today':'')+'" onclick="showDayDetail(''+ds+'')"><div class="cal-day" style="'+dc+'">'+d+'</div>'+(rec?'<div class="cal-dur">'+(dur?Math.floor(dur/60)+'h':'출근')+'</div>':'')+'</div>';
-  }
-  html+='</div>';
-  document.getElementById('cal-body').innerHTML=html;
-}
-
-function prevMonth(){myCalMonth--;if(myCalMonth<0){myCalMonth=11;myCalYear--;}renderMyCalendar();}
-function nextMonth(){myCalMonth++;if(myCalMonth>11){myCalMonth=0;myCalYear++;}renderMyCalendar();}
-
-async function showDayDetail(date){
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]]);
-  const logs=await fsQuery('productLogs',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]]);
-  const rec=recs[0];
-  document.getElementById('modal-content').innerHTML=
-    '<div class="modal-title">'+new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})+'</div>'+
-    (rec?'<div style="background:var(--brand-light);border-radius:12px;padding:16px;margin-bottom:14px;"><div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:6px;">근무 기록</div><div style="font-size:16px;font-weight:800;">출근 '+fmtTime(rec.checkIn)+' · 퇴근 '+(rec.checkOut?fmtTime(rec.checkOut):'근무중')+'</div>'+(rec.checkOut?'<div style="font-size:13px;color:var(--brand);font-weight:600;margin-top:4px;">총 '+calcDur(rec.checkIn,rec.checkOut)+'</div>':'')+'</div>':'<div class="empty-state" style="margin-bottom:14px;padding:20px;">출근 기록 없음</div>')+
-    (logs.length?'<div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:8px;">제품 로그 ('+logs.length+'건)</div><div class="record-list">'+logs.map(l=>'<div class="record-item" style="flex-direction:column;align-items:flex-start;gap:6px;"><div style="display:flex;align-items:center;gap:8px;"><span class="type-badge '+(l.type==='register'?'badge-active':'badge-done')+'">'+(l.type==='register'?'등록':'수정')+'</span><span style="font-size:14px;font-weight:700;">'+l.productName+'</span></div>'+(l.link?'<a href="'+l.link+'" target="_blank" style="font-size:12px;color:var(--brand);word-break:break-all;">'+l.link+'</a>':'')+'</div>').join('')+'</div>':'');
-  document.getElementById('modal').classList.add('open');
-}
-
-async function renderMyList(){
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
-  const sorted=recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||''));
-  const list=document.getElementById('my-list');
-  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>';return;}
-  const groups={};
-  for(const r of sorted){const k=r.date?r.date.slice(0,7):'';if(!groups[k])groups[k]=[];groups[k].push(r);}
-  let html='';
-  for(const[ym,items]of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
-    const[y,m]=ym.split('-');
-    const tot=items.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
-    html+='<div style="margin-bottom:20px;"><div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:10px;display:flex;justify-content:space-between;"><span>'+y+'년 '+parseInt(m)+'월</span><span style="color:var(--brand);">'+items.length+'일 · 총 '+Math.floor(tot/60)+'h '+Math.floor(tot%60)+'m</span></div><div class="record-list">'+items.map(r=>'<div class="record-item"><div><div class="record-date">'+fmtDate(r.checkIn)+'</div><div class="record-times">출근 '+fmtTime(r.checkIn)+' · 퇴근 '+(r.checkOut?fmtTime(r.checkOut):'근무중')+'</div></div><div class="record-dur'+((!r.checkOut)?' active':'')+'">'+(r.checkOut?calcDur(r.checkIn,r.checkOut):'근무중')+'</div></div>').join('')+'</div></div>';
-  }
-  list.innerHTML=html;
-}
-
-async function renderMyProducts(){
-  const logs=await fsQuery('productLogs',[['userId','EQUAL',currentUser.id]]);
-  const sorted=logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
-  const list=document.getElementById('my-products');
-  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>제품 로그가 없습니다</div>';return;}
-  list.innerHTML=sorted.map(l=>'<div class="record-item" style="flex-direction:column;align-items:flex-start;gap:6px;"><div style="display:flex;align-items:center;justify-content:space-between;width:100%;"><div style="display:flex;align-items:center;gap:8px;"><span class="type-badge '+(l.type==='register'?'badge-active':'badge-done')+'">'+(l.type==='register'?'제품등록':'제품수정')+'</span><span style="font-size:14px;font-weight:700;">'+l.productName+'</span></div><span style="font-size:11px;color:var(--text-hint);">'+fmtDateShort(l.timestamp)+'</span></div>'+(l.link?'<a href="'+l.link+'" target="_blank" style="font-size:12px;color:var(--brand);word-break:break-all;text-decoration:none;">🔗 '+l.link+'</a>':'')+'</div>').join('');
-}
-
-async function loadAdminToday(){
-  const[users,recs]=await Promise.all([fsQuery('users'),fsQuery('attendance',[['date','EQUAL',getToday()]])]);
-  document.getElementById('stat-total').textContent=users.length;
-  document.getElementById('stat-in').textContent=recs.filter(r=>r.status==='active'||r.status==='completed').length;
-  const ml=document.getElementById('member-list');
-  if(!users.length){ml.innerHTML='<div class="empty-state">팀원이 없습니다</div>';return;}
-  ml.innerHTML=users.map(u=>{
-    const rec=recs.find(r=>r.userId===u.id);
-    const[st,sc]=!rec?['미출근','badge-none']:rec.status==='active'?['근무중','badge-active']:['퇴근완료','badge-done'];
-    const times=rec?'출근 '+fmtTime(rec.checkIn)+(rec.checkOut?' · 퇴근 '+fmtTime(rec.checkOut):''):'출근 기록 없음';
-    return'<div class="member-row"><div class="member-avatar">'+u.name[0]+'</div><div class="member-info"><div class="member-name">'+u.name+(isAdm(u)?' <span style="font-size:10px;color:var(--brand);font-weight:700;">관리자</span>':'')+'</div><div class="member-sub">'+times+'</div></div><div class="member-status '+sc+'">'+st+'</div></div>';
-  }).join('');
-}
-
-async function loadAdminMembers(){
-  const users=await fsQuery('users');
-  const list=document.getElementById('admin-member-list');
-  if(!users.length){list.innerHTML='<div class="empty-state">팀원이 없습니다</div>';return;}
-  list.innerHTML=users.map(u=>{
-    const isSelf=u.id===currentUser.id;
-    return'<div class="member-row" style="flex-direction:column;align-items:flex-start;gap:0;"><div style="display:flex;align-items:center;gap:12px;width:100%;"><div class="member-avatar">'+u.name[0]+'</div><div class="member-info"><div class="member-name">'+u.name+(isSelf?' <span style="font-size:10px;color:var(--text-muted);">(나)</span>':'')+'</div><div class="member-sub">****'+u.phoneLast4+'</div></div>'+(isSelf?'':'<button class="icon-btn danger" onclick="deleteUser(''+u.id+'',''+u.name+'')" title="삭제">🗑️</button>')+'</div><div class="admin-toggle-row"><span class="admin-toggle-label">관리자 권한 '+(isAdm(u)?'<strong style="color:var(--brand);">부여됨</strong>':'미부여')+'</span><label class="toggle"><input type="checkbox" '+(isAdm(u)?'checked':'')+(isSelf?' disabled':'')+' onchange="toggleAdminRole(''+u.id+'',this.checked,this)" /><span class="toggle-slider"></span></label></div></div>';
-  }).join('');
-}
-
-async function deleteUser(uid,name){
-  if(!confirm(name+'님을 삭제할까요? 출퇴근 기록도 함께 삭제됩니다.'))return;
-  const[recs,logs]=await Promise.all([fsQuery('attendance',[['userId','EQUAL',uid]]),fsQuery('productLogs',[['userId','EQUAL',uid]])]);
-  await Promise.all([...recs.map(r=>fsDelete('attendance',r.id)),...logs.map(l=>fsDelete('productLogs',l.id)),fsDelete('users',uid)]);
-  toast(name+'님이 삭제되었습니다');loadAdminMembers();
-}
-
-async function toggleAdminRole(uid,val,cb){
-  cb.disabled=true;
-  const ok=await fsUpdate('users',uid,{isAdmin:val});
-  if(ok){toast(val?'관리자 권한 부여 ✅':'관리자 권한 해제');loadAdminMembers();}
-  else{toast('변경 실패');cb.checked=!val;cb.disabled=false;}
-}
-
-function populateMonthSelect(){
-  const sel=document.getElementById('month-select');
-  if(sel.options.length>0)return;
-  const now=new Date();
-  for(let i=0;i<6;i++){
-    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    const val=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    const opt=document.createElement('option');
-    opt.value=val;opt.textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월';
-    if(i===0)opt.selected=true;sel.appendChild(opt);
-  }
-  loadMonthlyData();
-}
-
-async function loadMonthlyData(){
-  const month=document.getElementById('month-select').value;
-  const[y,m]=month.split('-');
-  const start=y+'-'+m+'-01',end=y+'-'+m+'-31';
-  const[users,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
-  const filtered=recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
-  const grouped={};
-  for(const r of filtered){if(!grouped[r.userId])grouped[r.userId]=[];grouped[r.userId].push(r);}
-  const list=document.getElementById('monthly-list');
-  list.innerHTML=users.map(u=>{
-    const ur=grouped[u.id]||[];
-    if(!ur.length)return'<div class="member-row"><div class="member-avatar">'+u.name[0]+'</div><div class="member-info"><div class="member-name">'+u.name+'</div><div class="member-sub">기록 없음</div></div><div class="record-dur" style="background:#F0EFF6;color:#8884A3;border:none;">0일</div></div>';
-    const tot=ur.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
-    return'<div class="member-row" style="cursor:pointer;" onclick="showAdminDetail(''+u.id+'',''+u.name+'',''+month+'')"><div class="member-avatar">'+u.name[0]+'</div><div class="member-info"><div class="member-name">'+u.name+'</div><div class="member-sub">'+ur.length+'일 · 총 '+Math.floor(tot/60)+'h '+Math.floor(tot%60)+'m</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="record-dur">'+ur.length+'일</div><button class="icon-btn" onclick="event.stopPropagation();exportExcel(''+u.id+'',''+u.name+'',''+month+'')" title="엑셀 다운로드">📥</button></div></div>';
-  }).join('');
-}
-
-async function showAdminDetail(uid,name,month){
-  const[y,m]=month.split('-');
-  const[recs,logs]=await Promise.all([fsQuery('attendance',[['userId','EQUAL',uid]]),fsQuery('productLogs',[['userId','EQUAL',uid]])]);
-  const fr=recs.filter(r=>r.date.startsWith(y+'-'+m)&&r.status==='completed').sort((a,b)=>a.date.localeCompare(b.date));
-  const fl=logs.filter(l=>l.date&&l.date.startsWith(y+'-'+m));
-  const lbd={};for(const l of fl){if(!lbd[l.date])lbd[l.date]=[];lbd[l.date].push(l);}
-  document.getElementById('modal-content').innerHTML='<div class="modal-title">'+name+'님 · '+y+'년 '+parseInt(m)+'월</div><div class="record-list">'+(fr.length?fr.map(r=>'<div class="record-item" style="flex-direction:column;align-items:flex-start;gap:6px;"><div style="display:flex;justify-content:space-between;width:100%;"><div class="record-date">'+fmtDate(r.checkIn)+'</div><div class="record-dur">'+calcDur(r.checkIn,r.checkOut)+'</div></div><div class="record-times">출근 '+fmtTime(r.checkIn)+' · 퇴근 '+fmtTime(r.checkOut)+'</div>'+(lbd[r.date]||[]).map(l=>'<div style="font-size:12px;background:var(--brand-light);padding:5px 10px;border-radius:8px;"><span class="type-badge '+(l.type==='register'?'badge-active':'badge-done')+'" style="font-size:10px;">'+(l.type==='register'?'등록':'수정')+'</span> '+l.productName+(l.link?' · <a href="'+l.link+'" target="_blank" style="color:var(--brand);">링크</a>':'')+'</div>').join('')+'</div>').join(''):'<div class="empty-state">기록 없음</div>')+'</div>';
-  document.getElementById('modal').classList.add('open');
-}
-
-async function exportExcel(uid,name,month){
-  const[y,m]=month.split('-');
-  const[recs,logs]=await Promise.all([fsQuery('attendance',[['userId','EQUAL',uid]]),fsQuery('productLogs',[['userId','EQUAL',uid]])]);
-  const fr=recs.filter(r=>r.date.startsWith(y+'-'+m)&&r.status==='completed').sort((a,b)=>a.date.localeCompare(b.date));
-  const fl=logs.filter(l=>l.date&&l.date.startsWith(y+'-'+m));
-  const lbd={};for(const l of fl){if(!lbd[l.date])lbd[l.date]=[];lbd[l.date].push(l);}
-  let csv='﻿일자,출근시간,퇴근시간,근무시간,제품구분,제품명,등록링크
-';
-  for(const r of fr){
-    const dl=lbd[r.date]||[{}];
-    for(const l of dl){csv+=r.date+','+fmtTime(r.checkIn)+','+fmtTime(r.checkOut)+','+(calcDur(r.checkIn,r.checkOut)||'')+','+(l.type==='register'?'제품등록':l.type==='edit'?'제품수정':'')+','+(l.productName||'')+','+(l.link||'')+'
-';}
-  }
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=name+'_'+y+'년'+parseInt(m)+'월_근무기록.csv';a.click();
-  toast('다운로드 완료 📥');
-}
-
-function switchAdminTab(tab){
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['today','monthly','members'][i]===tab));
-  ['admin-today','admin-monthly','admin-members'].forEach((id,i)=>{document.getElementById(id).style.display=['today','monthly','members'][i]===tab?'block':'none';});
-  if(tab==='today')loadAdminToday();
-  if(tab==='members')loadAdminMembers();
-}
-
-function selectType(type){
-  document.getElementById('pl-type-register').checked=type==='register';
-  document.getElementById('pl-type-edit').checked=type==='edit';
-  document.getElementById('label-register').classList.toggle('selected',type==='register');
-  document.getElementById('label-edit').classList.toggle('selected',type==='edit');
-}
-
-(async()=>{
-  const saved=localStorage.getItem('addi_user');
-  if(saved){
-    try{
-      currentUser=JSON.parse(saved);
-      authToken=null;
-      const ok=await signInAnon();
-      if(ok){enterApp();return;}
-      else{localStorage.removeItem('addi_user');}
-    }catch(e){localStorage.removeItem('addi_user');}
-  }
-  ensureAdminSeed().catch(()=>{});
+  // 백그라운드에서 관리자 계정 보장
+  _getToken().then(() => ensureAdminSeed()).catch(() => {});
 })();
 
 </script>
