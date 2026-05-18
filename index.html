@@ -390,7 +390,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
     <div class="sidebar-nav">
       <button class="sidebar-item active" id="sb-home" onclick="switchPage('home')"><span class="si-icon">🏠</span>홈</button>
       <button class="sidebar-item" id="sb-mypage" onclick="switchPage('mypage')"><span class="si-icon">👤</span>마이페이지</button>
-      <button class="sidebar-item" id="sb-admin" onclick="switchPage('admin')" style="display:none;" id="sb-admin-item"><span class="si-icon">📊</span>관리자</button>
+      <button class="sidebar-item" id="sb-admin" onclick="switchPage('admin')" style="display:none;"><span class="si-icon">📊</span>관리자</button>
     </div>
     <div class="sidebar-bottom">
       <div class="sidebar-user" onclick="logout()">
@@ -436,6 +436,8 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
         </div>
       </div>
       <div class="section-label" style="margin-top:4px;">최근 기록</div>
+      <!-- 오늘 복수 근무 타임라인 -->
+      <div id="today-timeline" style="display:none;max-width:560px;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:16px 18px;"></div>
       <div id="record-list" style="max-width:560px;"><div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div></div>
     </div>
 
@@ -613,7 +615,7 @@ async function fsAdd(col,data){const r=await _req(`${FS_BASE}/${col}`,{method:'P
 async function fsUpdate(col,id,data){const mask=Object.keys(data).map(k=>`updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');const r=await _req(`${FS_BASE}/${col}/${id}?${mask}`,{method:'PATCH',body:JSON.stringify({fields:_fsEnc(data)})});return r?.ok??false;}
 async function fsDelete(col,id){const r=await _req(`${FS_BASE}/${col}/${id}`,{method:'DELETE'});return r?.ok??false;}
 
-let currentUser=null,todayAttendance=null,isRegisterMode=false;
+let currentUser=null,todayAttendance=null,todayAllRecs=[],isRegisterMode=false;
 let myCalYear=new Date().getFullYear(),myCalMonth=new Date().getMonth();
 let teamCalYear=new Date().getFullYear(),teamCalMonth=new Date().getMonth();
 let _allUsers=[];
@@ -689,7 +691,7 @@ async function handleLogin(){
 function logout(){
   if(!confirm('로그아웃 하시겠습니까?'))return;
   localStorage.removeItem('addi_user');
-  currentUser=null;todayAttendance=null;_clearAuth();_allUsers=[];
+  currentUser=null;todayAttendance=null;todayAllRecs=[];_clearAuth();_allUsers=[];
   document.getElementById('main-app').style.display='none';
   document.getElementById('login-page').style.display='flex';
   ['login-name','login-phone'].forEach(id=>document.getElementById(id).value='');
@@ -699,6 +701,9 @@ function logout(){
   document.getElementById('login-title').textContent='로그인';
   isRegisterMode=false;
   document.querySelector('.register-hint').innerHTML='처음이신가요? <button class="link-btn" onclick="toggleRegister()">회원가입</button>';
+  document.getElementById('nav-admin').style.display='none';
+  document.getElementById('sb-admin').style.display='none';
+  document.getElementById('admin-badge').style.display='none';
 }
 
 function enterApp(){
@@ -713,7 +718,7 @@ function enterApp(){
   if(isAdm(currentUser)){
     document.getElementById('admin-badge').style.display='inline-flex';
     document.getElementById('nav-admin').style.display='flex';
-    document.getElementById('sb-admin-item').style.display='flex';
+    document.getElementById('sb-admin').style.display='flex';
   }
   switchPage('home');
   loadTodayAttendance();
@@ -723,7 +728,10 @@ function enterApp(){
 // ── Attendance ──
 async function loadTodayAttendance(){
   const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',getToday()]]);
-  todayAttendance=recs.find(r=>r.status==='active'||r.status==='completed')||null;
+  const sorted=recs.sort((a,b)=>(a.checkIn||'').localeCompare(b.checkIn||''));
+  todayAllRecs=sorted;
+  // 마지막 기록이 active면 근무중, completed면 재출근 가능, 없으면 미출근
+  todayAttendance=sorted.length>0?sorted[sorted.length-1]:null;
   renderStatus();
 }
 function renderStatus(){
@@ -732,7 +740,9 @@ function renderStatus(){
   const ciDisp=document.getElementById('checkin-display'),coDisp=document.getElementById('checkout-display');
   const durChip=document.getElementById('dur-chip');
   ciBtn.className='btn-action';coBtn.className='btn-action';
+
   if(!todayAttendance){
+    // 미출근
     badge.className='status-badge badge-none';badge.textContent='미출근';
     ciDisp.textContent='--:--';ciDisp.className='tv empty';
     coDisp.textContent='--:--';coDisp.className='tv empty';
@@ -740,6 +750,7 @@ function renderStatus(){
     ciBtn.classList.add('btn-checkin-active');ciBtn.textContent='출근하기';ciBtn.disabled=false;
     coBtn.classList.add('btn-checkout-inactive');coBtn.textContent='퇴근하기';coBtn.disabled=true;
   }else if(todayAttendance.status==='active'){
+    // 근무중
     badge.className='status-badge badge-active';badge.textContent='근무중';
     ciDisp.textContent=fmtTime(todayAttendance.checkIn);ciDisp.className='tv brand';
     coDisp.textContent='--:--';coDisp.className='tv empty';
@@ -747,25 +758,53 @@ function renderStatus(){
     ciBtn.classList.add('btn-checkin-done');ciBtn.textContent='✓ 출근완료';ciBtn.disabled=true;
     coBtn.classList.add('btn-checkout-active');coBtn.textContent='퇴근하기';coBtn.disabled=false;
   }else{
-    badge.className='status-badge badge-done';badge.textContent='퇴근완료';
+    // 마지막 기록이 completed → 재출근 가능
+    const totalMin=todayAllRecs.filter(r=>r.status==='completed').reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+    const totalDur=totalMin>0?`${Math.floor(totalMin/60)}h ${Math.floor(totalMin%60)}m`:null;
+    badge.className='status-badge badge-done';
+    badge.textContent=todayAllRecs.length>1?`퇴근완료 (${todayAllRecs.length}회)`:'퇴근완료';
     ciDisp.textContent=fmtTime(todayAttendance.checkIn);ciDisp.className='tv brand';
     coDisp.textContent=fmtTime(todayAttendance.checkOut);coDisp.className='tv brand';
-    const dur=calcDur(todayAttendance.checkIn,todayAttendance.checkOut);
-    if(dur){durChip.style.display='inline-flex';durChip.querySelector('span').textContent=dur;}
-    ciBtn.classList.add('btn-checkin-done');ciBtn.textContent='✓ 출근완료';ciBtn.disabled=true;
+    if(totalDur){durChip.style.display='inline-flex';durChip.querySelector('span').textContent='누적 '+totalDur;}
+    // 재출근 버튼 활성화
+    ciBtn.classList.add('btn-checkin-active');ciBtn.textContent='재출근하기';ciBtn.disabled=false;
     coBtn.classList.add('btn-checkout-done');coBtn.textContent='✓ 퇴근완료';coBtn.disabled=true;
   }
+
+  // 오늘 여러 건이면 타임라인 렌더
+  renderTodayTimeline();
 }
+function renderTodayTimeline(){
+  const wrap=document.getElementById('today-timeline');
+  if(!wrap)return;
+  if(todayAllRecs.length<=1){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  const totalMin=todayAllRecs.filter(r=>r.status==='completed').reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+  wrap.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">오늘 근무 기록 (${todayAllRecs.length}회 · 총 ${Math.floor(totalMin/60)}h ${Math.floor(totalMin%60)}m)</div>
+  ${todayAllRecs.map((r,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:${i<todayAllRecs.length-1?'1px solid var(--border)':'none'};">
+      <div style="width:22px;height:22px;border-radius:50%;background:var(--brand);color:white;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
+      <div style="flex:1;font-size:13px;">출근 <b>${fmtTime(r.checkIn)}</b>${r.checkOut?` → 퇴근 <b>${fmtTime(r.checkOut)}</b>`:' → <span style="color:var(--success);font-weight:700;">근무중</span>'}</div>
+      ${r.checkOut?`<div style="font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-light);padding:3px 9px;border-radius:20px;">${calcDur(r.checkIn,r.checkOut)}</div>`:''}
+    </div>`).join('')}`;
+}
+
 async function handleCheckIn(){
-  if(todayAttendance)return;
+  // active 기록이 있으면 출근 불가
+  if(todayAttendance&&todayAttendance.status==='active')return;
   const now=new Date().toISOString();
   const btn=document.getElementById('checkin-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
   const id=await fsAdd('attendance',{userId:currentUser.id,date:getToday(),checkIn:now,status:'active'});
   if(id){
-    todayAttendance={id,userId:currentUser.id,date:getToday(),checkIn:now,status:'active'};
-    renderStatus();toast('출근 기록 완료 🟢');loadRecentRecords();
-    showProdPopup();
+    const newRec={id,userId:currentUser.id,date:getToday(),checkIn:now,status:'active'};
+    todayAllRecs.push(newRec);
+    todayAttendance=newRec;
+    renderStatus();
+    const isReCheckin=todayAllRecs.length>1;
+    toast(isReCheckin?`재출근 기록 완료 🟢 (${todayAllRecs.length}회째)`:'출근 기록 완료 🟢');
+    loadRecentRecords();
+    if(!isReCheckin)showProdPopup();
   }else{toast('오류가 발생했습니다');btn.disabled=false;btn.className='btn-action btn-checkin-active';btn.textContent='출근하기';}
 }
 async function handleCheckOut(){
@@ -774,8 +813,13 @@ async function handleCheckOut(){
   const btn=document.getElementById('checkout-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner" style="border-color:rgba(255,255,255,0.3);border-top-color:white;"></span>';
   const ok=await fsUpdate('attendance',todayAttendance.id,{checkOut:now,status:'completed'});
-  if(ok){todayAttendance.checkOut=now;todayAttendance.status='completed';renderStatus();toast('퇴근 기록 완료 👋');loadRecentRecords();}
-  else{toast('오류가 발생했습니다');btn.disabled=false;btn.className='btn-action btn-checkout-active';btn.textContent='퇴근하기';}
+  if(ok){
+    todayAttendance.checkOut=now;todayAttendance.status='completed';
+    // todayAllRecs 동기화
+    const idx=todayAllRecs.findIndex(r=>r.id===todayAttendance.id);
+    if(idx>=0){todayAllRecs[idx].checkOut=now;todayAllRecs[idx].status='completed';}
+    renderStatus();toast('퇴근 기록 완료 👋');loadRecentRecords();
+  }else{toast('오류가 발생했습니다');btn.disabled=false;btn.className='btn-action btn-checkout-active';btn.textContent='퇴근하기';}
 }
 async function loadRecentRecords(){
   const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
@@ -846,7 +890,12 @@ async function saveEdit(id,date){
 async function deleteRecord(id){
   if(!confirm('이 기록을 삭제할까요?'))return;
   const ok=await fsDelete('attendance',id);
-  if(ok){toast('삭제 완료 🗑️');if(todayAttendance?.id===id){todayAttendance=null;renderStatus();}loadRecentRecords();}else toast('삭제 실패');
+  if(ok){
+    toast('삭제 완료 🗑️');
+    todayAllRecs=todayAllRecs.filter(r=>r.id!==id);
+    todayAttendance=todayAllRecs.length>0?todayAllRecs[todayAllRecs.length-1]:null;
+    renderStatus();loadRecentRecords();
+  }else toast('삭제 실패');
 }
 function closeModal(){document.getElementById('modal').classList.remove('open');}
 function closeModalOverlay(e){if(e.target===document.getElementById('modal'))closeModal();}
