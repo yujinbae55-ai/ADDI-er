@@ -1063,7 +1063,7 @@ async function renderMyProducts(){
   let html='';
   for(const[date,items]of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
     html+=`<div style="margin-bottom:16px;"><div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;padding:0 4px;">${date?new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):''}</div>
-    ${items.map(l=>`<div class="prod-log"><div class="prod-log-hd"><div class="prod-log-icon ${l.type==='register'?'register':'edit'}">${l.type==='register'?'✅':'✏️'}</div><div style="flex:1;"><div class="prod-log-name">${l.productName}</div><div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${l.type==='register'?'제품 등록':'제품 수정'} · ${fmtTime(l.timestamp)}</div></div></div>${l.link?`<div class="prod-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}</div>`).join('')}
+    ${items.map(l=>`<div class="prod-log"><div class="prod-log-hd"><div class="prod-log-icon ${l.type==='register'?'register':l.type==='edit'?'edit':'etc'}">${l.type==='register'?'✅':l.type==='edit'?'✏️':'📌'}</div><div style="flex:1;"><div class="prod-log-name">${l.productName}</div><div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${l.type==='register'?'제품 등록':l.type==='edit'?'제품 수정':'기타 업무'} · ${fmtTime(l.timestamp)}</div></div><button class="icon-btn danger" onclick="deleteProductLog('${l.id}')" title="삭제">🗑️</button></div>${l.link?`<div class="prod-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}</div>`).join('')}
     </div>`;
   }
   list.innerHTML=html;
@@ -1438,6 +1438,13 @@ async function exportExcel(uid,name,month){
   }
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
   a.download=`${name}_${y}년${parseInt(m)}월.csv`;a.click();toast('다운로드 완료 📥');
+}
+
+async function deleteProductLog(id){
+  if(!confirm('이 로그를 삭제할까요?'))return;
+  const ok=await fsDelete('productLogs',id);
+  if(ok){toast('로그가 삭제되었습니다 🗑️');renderMyProducts();}
+  else toast('삭제 실패');
 }
 
 // ── 공지사항 ──
