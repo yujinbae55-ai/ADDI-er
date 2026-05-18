@@ -390,6 +390,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
     <div class="sidebar-nav">
       <button class="sidebar-item active" id="sb-home" onclick="switchPage('home')"><span class="si-icon">🏠</span>홈</button>
       <button class="sidebar-item" id="sb-mypage" onclick="switchPage('mypage')"><span class="si-icon">👤</span>마이페이지</button>
+      <button class="sidebar-item" id="sb-notice" onclick="switchPage('notice')"><span class="si-icon">📢</span>공지사항</button>
       <button class="sidebar-item" id="sb-admin" onclick="switchPage('admin')" style="display:none;"><span class="si-icon">📊</span>관리자</button>
     </div>
     <div class="sidebar-bottom">
@@ -471,6 +472,25 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
       <div id="my-products" style="display:none;max-width:560px;"></div>
     </div>
 
+    <!-- 공지사항 -->
+    <div class="page" id="page-notice">
+      <div class="page-header">
+        <div class="page-title">공지사항 📢</div>
+        <div class="page-sub">팀 공지 및 파일 안내</div>
+      </div>
+      <!-- 관리자만 보이는 작성 폼 -->
+      <div id="notice-write-wrap" style="display:none;">
+        <div class="card-sm" style="margin-bottom:4px;">
+          <div class="section-label" style="margin-bottom:12px;">새 공지 작성</div>
+          <input id="notice-title-input" type="text" placeholder="제목을 입력하세요" style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:15px;font-family:'Pretendard',sans-serif;outline:none;margin-bottom:10px;background:#FAFAF9;"/>
+          <textarea id="notice-body-input" placeholder="내용을 입력하세요" rows="4" style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:14px;font-family:'Pretendard',sans-serif;outline:none;resize:vertical;margin-bottom:10px;background:#FAFAF9;"></textarea>
+          <input id="notice-link-input" type="url" placeholder="파일/링크 URL (선택사항)" style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:14px;font-family:'Pretendard',sans-serif;outline:none;margin-bottom:12px;background:#FAFAF9;"/>
+          <button onclick="postNotice()" style="width:100%;padding:13px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;">공지 등록</button>
+        </div>
+      </div>
+      <div id="notice-list"><div class="empty-state"><div class="empty-icon">📢</div>등록된 공지가 없습니다</div></div>
+    </div>
+
     <!-- ADMIN -->
     <div class="page" id="page-admin">
       <div class="page-header">
@@ -527,6 +547,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 <div class="bottom-nav">
   <button class="nav-btn active" id="nav-home" onclick="switchPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></button>
   <button class="nav-btn" id="nav-mypage" onclick="switchPage('mypage')"><span class="nav-icon">👤</span><span class="nav-label">마이페이지</span></button>
+  <button class="nav-btn" id="nav-notice" onclick="switchPage('notice')"><span class="nav-icon">📢</span><span class="nav-label">공지</span></button>
   <button class="nav-btn" id="nav-admin" onclick="switchPage('admin')" style="display:none;"><span class="nav-icon">📊</span><span class="nav-label">관리자</span></button>
 </div>
 
@@ -539,6 +560,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
     <div class="radio-group">
       <label class="radio-label selected" id="label-register" onclick="selectType('register')"><input type="radio" name="pl-type" id="pl-type-register" value="register" checked/>✅ 제품 등록</label>
       <label class="radio-label" id="label-edit" onclick="selectType('edit')"><input type="radio" name="pl-type" id="pl-type-edit" value="edit"/>✏️ 제품 수정</label>
+      <label class="radio-label" id="label-etc" onclick="selectType('etc')"><input type="radio" name="pl-type" id="pl-type-etc" value="etc"/>📌 기타</label>
     </div>
     <input class="popup-input" id="pl-name" type="text" placeholder="제품명을 입력하세요"/>
     <input class="popup-input" id="pl-link" type="url" placeholder="제품 링크 (선택사항)"/>
@@ -846,21 +868,26 @@ function hideProdPopup(){
   selectType('register');
 }
 function selectType(t){
-  document.getElementById('pl-type-register').checked=t==='register';
-  document.getElementById('pl-type-edit').checked=t==='edit';
-  document.getElementById('label-register').classList.toggle('selected',t==='register');
-  document.getElementById('label-edit').classList.toggle('selected',t==='edit');
+  ['register','edit','etc'].forEach(v=>{
+    document.getElementById(`pl-type-${v}`).checked=t===v;
+    document.getElementById(`label-${v}`).classList.toggle('selected',t===v);
+  });
+}
+function hideProdPopup(){
+  document.getElementById('prod-popup').classList.remove('open');
+  document.getElementById('pl-name').value='';document.getElementById('pl-link').value='';
+  selectType('register');
 }
 async function saveProductLog(){
-  const type=document.getElementById('pl-type-register').checked?'register':'edit';
+  const type=document.getElementById('pl-type-register').checked?'register':document.getElementById('pl-type-edit').checked?'edit':'etc';
   const productName=document.getElementById('pl-name').value.trim();
   const link=document.getElementById('pl-link').value.trim();
-  if(!productName){toast('제품명을 입력해주세요');return;}
+  if(!productName){toast('제품명/업무명을 입력해주세요');return;}
   if(!todayAttendance){toast('출근 기록이 없습니다');return;}
   const btn=document.getElementById('pl-save-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
   const id=await fsAdd('productLogs',{userId:currentUser.id,attendanceId:todayAttendance.id,type,productName,link:link||'',timestamp:new Date().toISOString(),date:getToday()});
-  if(id){toast('제품 로그 저장 ✅');hideProdPopup();}else toast('저장 실패');
+  if(id){toast('로그 저장 ✅');hideProdPopup();}else toast('저장 실패');
   btn.disabled=false;btn.textContent='저장';
 }
 
@@ -1244,7 +1271,7 @@ async function showAdminDetail(uid,name,month){
   document.getElementById('modal').classList.add('open');
 }
 
-// ── AI 실적 리포트 ──
+// ── 실적 리포트 (데이터 집계만) ──
 function populateReportSelect(){
   const sel=document.getElementById('report-month-select');
   if(sel.options.length>0)return;
@@ -1257,27 +1284,43 @@ function populateReportSelect(){
     if(i===0)opt.selected=true;sel.appendChild(opt);
   }
 }
+
 async function loadAdminReport(){
   const month=document.getElementById('report-month-select').value;
   if(!month)return;
-  document.getElementById('report-content').innerHTML='<div class="empty-state"><div class="spinner-dark" style="margin:0 auto 12px;"></div>데이터 분석 중...</div>';
+  document.getElementById('report-content').innerHTML='<div class="empty-state"><div class="spinner-dark" style="margin:0 auto 12px;"></div>집계 중...</div>';
   const[y,m]=month.split('-');
   const start=`${y}-${m}-01`,end=`${y}-${m}-31`;
   const prevDate=new Date(parseInt(y),parseInt(m)-2,1);
   const py=prevDate.getFullYear(),pm=String(prevDate.getMonth()+1).padStart(2,'0');
   const pStart=`${py}-${pm}-01`,pEnd=`${py}-${pm}-31`;
+
   const[users,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
   _allUsers=users;
+
   const fr=recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
   const fl=logs.filter(l=>l.date&&l.date>=start&&l.date<=end);
   const pfr=recs.filter(r=>r.date>=pStart&&r.date<=pEnd&&r.status==='completed');
   const pfl=logs.filter(l=>l.date&&l.date>=pStart&&l.date<=pEnd);
+
   const tot=fr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
   const totH=(tot/60).toFixed(1);
-  const reg=fl.filter(l=>l.type==='register').length,edit=fl.filter(l=>l.type==='edit').length;
+  const reg=fl.filter(l=>l.type==='register').length;
+  const edit=fl.filter(l=>l.type==='edit').length;
+  const etc=fl.filter(l=>l.type==='etc').length;
+  const total=fl.length;
+
+  const pReg=pfl.filter(l=>l.type==='register').length;
+  const pEdit=pfl.filter(l=>l.type==='edit').length;
+  const pEtc=pfl.filter(l=>l.type==='etc').length;
+  const pTotal=pfl.length;
+
   const ptot=pfr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
   const hDiff=ptot>0?Math.round((tot-ptot)/ptot*100):null;
-  const lDiff=pfl.length>0?Math.round((fl.length-pfl.length)/pfl.length*100):null;
+  const lDiff=pTotal>0?Math.round((total-pTotal)/pTotal*100):null;
+  const rDiff=pReg>0?Math.round((reg-pReg)/pReg*100):null;
+  const eDiff=pEdit>0?Math.round((edit-pEdit)/pEdit*100):null;
+
   const memberStats=users.map((u,i)=>{
     const ur=fr.filter(r=>r.userId===u.id);
     const ul=fl.filter(l=>l.userId===u.id);
@@ -1285,43 +1328,67 @@ async function loadAdminReport(){
     const pct=Math.min(100,Math.round(parseFloat(uh)/MONTHLY_TARGET_H*100));
     const color=pct>=100?'#10B981':pct>=70?'var(--brand)':'#F59E0B';
     const emoji=u.emoji||DEFAULT_EMOJIS[i%DEFAULT_EMOJIS.length];
-    return{name:u.name,emoji,days:ur.length,hours:uh,logs:ul.length,reg:ul.filter(l=>l.type==='register').length,edit:ul.filter(l=>l.type==='edit').length,pct,color};
+    return{name:u.name,emoji,days:ur.length,hours:uh,reg:ul.filter(l=>l.type==='register').length,edit:ul.filter(l=>l.type==='edit').length,etc:ul.filter(l=>l.type==='etc').length,total:ul.length,pct,color};
   });
-  const diffBadge=diff=>diff===null?'<span style="font-size:11px;color:var(--text-hint);">전월 데이터 없음</span>':`<span style="font-size:12px;font-weight:700;color:${diff>0?'#10B981':diff<0?'#EF4444':'#7A7A9A'};">${diff>0?'↑':diff<0?'↓':'→'} ${Math.abs(diff)}%</span>`;
+
+  const diff=(n,p)=>{
+    if(p===null||p===undefined)return'';
+    const v=p>0?Math.round((n-p)/p*100):null;
+    if(v===null)return'';
+    const color=v>0?'#10B981':v<0?'#EF4444':'#888';
+    const arrow=v>0?'↑':v<0?'↓':'→';
+    return`<span style="font-size:12px;font-weight:700;color:${color};margin-left:6px;">${arrow} ${Math.abs(v)}%</span>`;
+  };
+
+  const yKo=y,mKo=parseInt(m);
+  const pyKo=py,pmKo=parseInt(pm);
+
   document.getElementById('report-content').innerHTML=`
-    <div class="grid-2" style="margin-bottom:16px;">
-      <div class="stat-card"><div class="stat-val">${totH}<span style="font-size:16px;font-weight:600;">h</span></div><div class="stat-label">총 근무시간</div><div class="stat-diff">${diffBadge(hDiff)}</div></div>
-      <div class="stat-card"><div class="stat-val">${fl.length}</div><div class="stat-label">총 제품 로그</div><div class="stat-diff">${diffBadge(lDiff)}</div></div>
-      <div class="stat-card"><div class="stat-val">${reg}</div><div class="stat-label">신규 등록</div></div>
-      <div class="stat-card"><div class="stat-val">${edit}</div><div class="stat-label">수정 작업</div></div>
+    <!-- 실적 요약 박스 -->
+    <div style="background:linear-gradient(135deg,#1A1A2E,#2D1F5E);border-radius:var(--radius-sm);padding:22px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">📊 업무 주요 실적 사항</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.88);line-height:2;">
+        <div style="margin-bottom:8px;">• 지난 ${mKo}월 한 달 동안 에디터 팀(${users.map(u=>u.name).join(', ')})은 총 <b style="color:#C9A0FF;">${totH}시간</b> 근무하였습니다. ${hDiff!==null?`(전월比 <b style="color:${hDiff>=0?'#10B981':'#EF4444'}">${hDiff>=0?'+':''}${hDiff}%</b>)`:''}
+        </div>
+        <div style="margin-bottom:4px;">• [제품 정보 수정 및 기타] 총 <b style="color:#C9A0FF;">${total}건</b>의 제품 등록 & 수정 & 기타 업무 수행 ${diff(total,pTotal)}
+        </div>
+        <div style="margin-left:20px;margin-bottom:4px;font-size:13px;color:rgba(255,255,255,0.7);">
+          ✅ 새롭게 등록된 제품: <b style="color:white;">${reg}개</b> ${diff(reg,pReg)}<br/>
+          ✏️ 수정된 제품: <b style="color:white;">${edit}개</b> ${diff(edit,pEdit)}<br/>
+          📌 기타 업무: <b style="color:white;">${etc}건</b>
+        </div>
+        ${pTotal>0?`<div style="margin-top:8px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:10px;font-size:13px;">
+          📈 전월(${pmKo}월) 대비: 등록 ${pReg}→${reg}개, 수정 ${pEdit}→${edit}개, 기타 ${pEtc}→${etc}건
+        </div>`:''}
+      </div>
     </div>
-    <div class="card-sm" style="margin-bottom:16px;">
+
+    <!-- 통계 카드 -->
+    <div class="grid-2" style="margin-bottom:16px;">
+      <div class="stat-card"><div class="stat-val">${totH}<span style="font-size:16px;font-weight:600;">h</span></div><div class="stat-label">총 근무시간</div><div class="stat-diff">${diff(tot,ptot)}</div></div>
+      <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">총 작업 건수</div><div class="stat-diff">${diff(total,pTotal)}</div></div>
+      <div class="stat-card"><div class="stat-val">${reg}</div><div class="stat-label">제품 등록 ✅</div><div class="stat-diff">${diff(reg,pReg)}</div></div>
+      <div class="stat-card"><div class="stat-val">${edit}</div><div class="stat-label">제품 수정 ✏️</div><div class="stat-diff">${diff(edit,pEdit)}</div></div>
+      ${etc>0?`<div class="stat-card" style="grid-column:1/-1;"><div class="stat-val">${etc}</div><div class="stat-label">기타 업무 📌</div></div>`:''}
+    </div>
+
+    <!-- 팀원별 기여 -->
+    <div class="card-sm">
       <div class="section-label" style="margin-bottom:14px;">팀원별 기여도</div>
-      ${memberStats.map(ms=>`<div style="margin-bottom:14px;">
+      ${memberStats.map(ms=>`<div style="margin-bottom:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:20px;">${ms.emoji}</span>
             <span style="font-size:14px;font-weight:700;">${ms.name}</span>
           </div>
-          <div style="text-align:right;"><span style="font-size:13px;font-weight:700;color:${ms.color};">${ms.hours}h</span><span style="font-size:11px;color:var(--text-muted);margin-left:6px;">로그 ${ms.logs}건</span></div>
+          <div style="text-align:right;font-size:12px;color:var(--text-muted);">
+            등록 <b style="color:var(--brand);">${ms.reg}</b> · 수정 <b style="color:var(--brand);">${ms.edit}</b>${ms.etc?` · 기타 <b style="color:var(--brand);">${ms.etc}</b>`:''} · <b style="color:var(--brand);">${ms.hours}h</b>
+          </div>
         </div>
         <div class="prog-bar"><div class="prog-fill" style="width:${ms.pct}%;background:${ms.color};"></div></div>
+        <div style="font-size:11px;color:var(--text-hint);margin-top:4px;">${ms.days}일 출근 · 목표 ${MONTHLY_TARGET_H}h 대비 ${ms.pct}%</div>
       </div>`).join('')}
-    </div>
-    <div class="ai-box" id="ai-report-box">
-      <div class="ai-box-title"><span>✨</span><span>AI 실적 요약</span><span style="font-size:11px;color:rgba(255,255,255,0.4);margin-left:auto;">${y}년 ${parseInt(m)}월</span></div>
-      <div class="ai-text" id="ai-report-text"><div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.5);"><span class="spinner"></span> 분석 중...</div></div>
     </div>`;
-  // AI 호출
-  const ctx=`팀명: ADDI+er 에디터 팀 / 분석월: ${y}년 ${parseInt(m)}월 / 팀원: ${users.map(u=>u.name).join(', ')}
-총 근무: ${totH}h (목표 ${MONTHLY_TARGET_H*users.length}h) / 전월比 ${hDiff!==null?(hDiff>0?'+':'')+hDiff+'%':'없음'}
-제품등록: ${reg}건 / 수정: ${edit}건 / 전월 등록: ${pfl.filter(l=>l.type==='register').length}건 수정: ${pfl.filter(l=>l.type==='edit').length}건
-팀원별: ${memberStats.map(m=>`${m.name}(${m.days}일,${m.hours}h,로그${m.logs}건)`).join(' / ')}`;
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:`당신은 팀 실적 보고서를 작성하는 어시스턴트입니다. 주어진 데이터로 자연스럽고 전문적인 한국어 실적 보고서를 작성하세요. 형식: 📊 업무 주요 실적 사항\n• [팀 활동 요약]\n• [제품 실적 총괄]\n  - 새롭게 등록된 제품: N개\n  - 수정된 제품: N개\n• [전월 대비 분석]\n• [팀원 칭찬/격려]\n마크다운 없이 텍스트만, 이모지 적절히 사용.`,messages:[{role:'user',content:`데이터:\n${ctx}`}]})});
-    const data=await resp.json();
-    document.getElementById('ai-report-text').textContent=data.content?.[0]?.text||'요약 생성 불가';
-  }catch(e){document.getElementById('ai-report-text').textContent='⚠️ AI 요약 생성 중 오류가 발생했습니다.';}
 }
 
 // ── 팀원 관리 ──
@@ -1373,6 +1440,53 @@ async function exportExcel(uid,name,month){
   a.download=`${name}_${y}년${parseInt(m)}월.csv`;a.click();toast('다운로드 완료 📥');
 }
 
+// ── 공지사항 ──
+async function loadNotice(){
+  if(isAdm(currentUser)){
+    document.getElementById('notice-write-wrap').style.display='block';
+  }
+  const notices=await fsQuery('notices');
+  const sorted=notices.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const list=document.getElementById('notice-list');
+  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📢</div>등록된 공지가 없습니다</div>';return;}
+  list.innerHTML=sorted.map(n=>`
+    <div style="background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:20px;margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:var(--brand-light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📢</div>
+          <div>
+            <div style="font-size:15px;font-weight:700;">${n.title}</div>
+            <div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${n.author||'관리자'} · ${n.createdAt?new Date(n.createdAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
+          </div>
+        </div>
+        ${isAdm(currentUser)?`<button class="icon-btn danger" onclick="deleteNotice('${n.id}')" title="삭제">🗑️</button>`:''}
+      </div>
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.7;white-space:pre-wrap;padding-left:46px;">${n.body||''}</div>
+      ${n.link?`<div style="margin-top:10px;padding-left:46px;"><a href="${n.link}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--brand);text-decoration:none;background:var(--brand-light);padding:7px 14px;border-radius:20px;border:1px solid var(--brand-mid);">🔗 링크/파일 열기</a></div>`:''}
+    </div>`).join('');
+}
+
+async function postNotice(){
+  const title=document.getElementById('notice-title-input').value.trim();
+  const body=document.getElementById('notice-body-input').value.trim();
+  const link=document.getElementById('notice-link-input').value.trim();
+  if(!title){toast('제목을 입력해주세요');return;}
+  const id=await fsAdd('notices',{title,body,link:link||'',author:currentUser.name,createdAt:new Date().toISOString()});
+  if(id){
+    toast('공지가 등록되었습니다 📢');
+    document.getElementById('notice-title-input').value='';
+    document.getElementById('notice-body-input').value='';
+    document.getElementById('notice-link-input').value='';
+    loadNotice();
+  }else toast('등록 실패');
+}
+
+async function deleteNotice(id){
+  if(!confirm('이 공지를 삭제할까요?'))return;
+  const ok=await fsDelete('notices',id);
+  if(ok){toast('공지가 삭제되었습니다');loadNotice();}else toast('삭제 실패');
+}
+
 // ── Nav ──
 function switchPage(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1382,6 +1496,7 @@ function switchPage(page){
   document.getElementById(`sb-${page}`)?.classList.add('active');
   document.getElementById('fab-product').style.display=page==='home'?'flex':'none';
   if(page==='mypage')loadMyPage();
+  if(page==='notice')loadNotice();
   if(page==='admin'){switchAdminTab('team-cal');}
 }
 
