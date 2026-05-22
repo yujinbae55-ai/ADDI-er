@@ -419,6 +419,9 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 /* ── PO tabs ── */
 .po-tab-btn{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;white-space:nowrap;}
 .po-tab-btn.active{background:var(--brand);color:white;box-shadow:0 2px 8px rgba(139,63,255,0.3);}
+/* ── Notice badge ── */
+.notice-badge-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#EF4444;margin-left:4px;vertical-align:middle;animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.8);}}
 </style>
 </head>
 <body>
@@ -452,7 +455,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
     <div class="sidebar-nav">
       <button class="sidebar-item active" id="sb-home" onclick="switchPage('home')"><span class="si-icon">🏠</span>홈</button>
       <button class="sidebar-item" id="sb-mypage" onclick="switchPage('mypage')"><span class="si-icon">👤</span>마이페이지</button>
-      <button class="sidebar-item" id="sb-notice" onclick="switchPage('notice')"><span class="si-icon">📢</span>공지사항</button>
+      <button class="sidebar-item" id="sb-notice" onclick="switchPage('notice')"><span class="si-icon">📢</span>공지사항<span id="notice-badge-sb" style="display:none;margin-left:auto;background:#EF4444;color:white;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;min-width:18px;text-align:center;"></span></button>
       <button class="sidebar-item" id="sb-admin" onclick="switchPage('admin')" style="display:none;"><span class="si-icon">📊</span>관리자</button>
       <button class="sidebar-item" id="sb-po" onclick="switchPage('po')" style="display:none;"><span class="si-icon">🎯</span>PO 대시보드</button>
     </div>
@@ -708,7 +711,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 <div class="bottom-nav">
   <button class="nav-btn active" id="nav-home" onclick="switchPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></button>
   <button class="nav-btn" id="nav-mypage" onclick="switchPage('mypage')"><span class="nav-icon">👤</span><span class="nav-label">마이페이지</span></button>
-  <button class="nav-btn" id="nav-notice" onclick="switchPage('notice')"><span class="nav-icon">📢</span><span class="nav-label">공지</span></button>
+  <button class="nav-btn" id="nav-notice" onclick="switchPage('notice')" style="position:relative;"><span class="nav-icon">📢</span><span class="nav-label">공지</span><span id="notice-badge-nav" style="display:none;position:absolute;top:4px;right:12px;background:#EF4444;color:white;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:800;min-width:16px;text-align:center;"></span></button>
   <button class="nav-btn" id="nav-admin" onclick="switchPage('admin')" style="display:none;"><span class="nav-icon">📊</span><span class="nav-label">관리자</span></button>
   <button class="nav-btn" id="nav-po" onclick="switchPage('po')" style="display:none;"><span class="nav-icon">🎯</span><span class="nav-label">PO</span></button>
 </div>
@@ -884,6 +887,7 @@ async function handleLogin(){
 
 function logout(){
   if(!confirm('로그아웃 하시겠습니까?'))return;
+  stopPolling();
   localStorage.removeItem('addi_user');
   currentUser=null;todayAttendance=null;todayAllRecs=[];_clearAuth();_allUsers=[];
   document.getElementById('main-app').style.display='none';
@@ -936,6 +940,8 @@ function enterApp(){
   document.getElementById('user-name-display').textContent=currentUser.name;
   switchPage(poOnly?'po':'home');
   if(!poOnly){loadTodayAttendance();loadRecentRecords();loadHomeGameStats();loadHomeChecklist();}
+  // 공지 알림 뱃지 초기 체크 + 폴링 시작
+  setTimeout(()=>{updateNoticeBadge();startPolling();},1500);
 }
 
 // ── Attendance ──
@@ -1765,6 +1771,9 @@ async function postNotice(){
     document.getElementById('notice-title-input').value='';
     document.getElementById('notice-body-input').value='';
     document.getElementById('notice-link-input').value='';
+    // 등록자는 읽음 처리
+    setLastReadNotice(new Date().toISOString());
+    hideNoticeBadge();
     loadNotice();
   }else toast('등록 실패');
 }
@@ -1773,6 +1782,36 @@ async function deleteNotice(id){
   if(!confirm('이 공지를 삭제할까요?'))return;
   const ok=await fsDelete('notices',id);
   if(ok){toast('공지가 삭제되었습니다');loadNotice();}else toast('삭제 실패');
+}
+
+// ── 공지 알림 뱃지 ──
+function getLastReadNotice(){
+  return localStorage.getItem(`addi_lastread_notice_${currentUser?.id||'x'}`)||'';
+}
+function setLastReadNotice(ts){
+  localStorage.setItem(`addi_lastread_notice_${currentUser?.id||'x'}`,ts);
+}
+async function updateNoticeBadge(){
+  const notices=await fsQuery('notices');
+  if(!notices.length){hideNoticeBadge();return;}
+  const latest=notices.reduce((a,b)=>(a.createdAt||'')>(b.createdAt||'')?a:b);
+  const lastRead=getLastReadNotice();
+  const unread=notices.filter(n=>(n.createdAt||'')>lastRead).length;
+  if(unread>0){
+    const label=unread>9?'9+':String(unread);
+    const sb=document.getElementById('notice-badge-sb');
+    const nb=document.getElementById('notice-badge-nav');
+    if(sb){sb.textContent=label;sb.style.display='inline-block';}
+    if(nb){nb.textContent=label;nb.style.display='inline-block';}
+  }else{
+    hideNoticeBadge();
+  }
+}
+function hideNoticeBadge(){
+  const sb=document.getElementById('notice-badge-sb');
+  const nb=document.getElementById('notice-badge-nav');
+  if(sb)sb.style.display='none';
+  if(nb)nb.style.display='none';
 }
 
 // ── Nav ──
@@ -1785,7 +1824,17 @@ function switchPage(page){
   const fab=document.getElementById('fab-product');
   if(fab)fab.style.display=page==='home'&&!isPO(currentUser)?'flex':'none';
   if(page==='mypage')loadMyPage();
-  if(page==='notice')loadNotice();
+  if(page==='notice'){
+    // 공지 읽음 처리
+    fsQuery('notices').then(notices=>{
+      if(notices.length){
+        const latest=notices.reduce((a,b)=>(a.createdAt||'')>(b.createdAt||'')?a:b);
+        setLastReadNotice(latest.createdAt||new Date().toISOString());
+        hideNoticeBadge();
+      }
+    });
+    loadNotice();
+  }
   if(page==='admin'){switchAdminTab('team-cal');}
   if(page==='po'){switchPOTab('po-report');}
 }
@@ -1907,42 +1956,130 @@ function renderChecklistItem(item,isAdmin){
   const type=item.type||'register';
   const typeLabel=type==='register'?'등록':type==='edit'?'수정':'기타';
   const typeClass=type==='register'?'cl-type-register':type==='edit'?'cl-type-edit':'cl-type-etc';
-  const rawLogs=item.logs||'_none_';const logs=rawLogs==='_none_'?[]:rawLogs.split('||').filter(l=>l&&l!=='_none_');
+  const rawLogs=item.logs||'_none_';
+  const checkedUsers=rawLogs==='_none_'?[]:rawLogs.split('||').filter(l=>l&&l!=='_none_');
+  const iMeChecked=currentUser&&checkedUsers.includes(currentUser.name);
+  // 체크 버튼: 내가 체크했으면 해제 가능, 안 했으면 체크 가능
+  const checkIcon=iMeChecked?'✓':'';
+  const checkTitle=iMeChecked?'내 완료 취소':'완료 처리 (제품 로그 자동 등록)';
+  const checkStyle=iMeChecked?'background:var(--success-light);border-color:var(--success);color:var(--success-text);':'';
   return`<div class="cl-item type-${type}${isDone?' done':''}" id="cl-item-${item.id}">
-    <div class="cl-check" onclick="toggleChecklistItem('${item.id}','${isDone}')" title="${isDone?'완료 취소':'완료 처리'}">${isDone?'✓':''}</div>
+    <div class="cl-check" onclick="toggleChecklistItem('${item.id}','${iMeChecked}')" title="${checkTitle}" style="${checkStyle}">${checkIcon}</div>
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <span class="cl-name">${item.name}</span>
         <span class="cl-type-badge ${typeClass}">${typeLabel}</span>
       </div>
       ${item.link&&item.link!=='_none_'?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--brand);word-break:break-all;">${item.link}</a>`:''}
-      ${logs.length?`<div style="font-size:11px;color:var(--text-hint);margin-top:3px;">✓ ${logs.join(' / ')}</div>`:''}
-      ${isDone&&item.checkedBy&&item.checkedBy!=='_none_'?`<div style="font-size:10px;color:var(--text-hint);">완료: ${item.checkedBy} ${item.checkedAt&&item.checkedAt!=='_none_'?new Date(item.checkedAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>`:''}
+      ${checkedUsers.length?`<div style="font-size:11px;color:var(--text-hint);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
+        ${checkedUsers.map(u=>`<span style="display:inline-flex;align-items:center;gap:3px;background:var(--success-light);color:var(--success-text);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;">✓ ${u}</span>`).join('')}
+      </div>`:''}
+      ${item.checkedAt&&item.checkedAt!=='_none_'?`<div style="font-size:10px;color:var(--text-hint);margin-top:2px;">마지막 완료: ${new Date(item.checkedAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`:''}
     </div>
     ${isAdmin?`<button class="icon-btn danger" onclick="deleteChecklistItem('${item.id}')" title="삭제">🗑️</button>`:''}
   </div>`;
 }
 
-async function toggleChecklistItem(id,isDoneStr){
-  const isDone=isDoneStr==='true';
+async function toggleChecklistItem(id,iMeCheckedStr){
+  const isDone=iMeCheckedStr==='true';
   const newDone=!isDone;
   const now=new Date().toISOString();
-  let updateData={done:newDone?'true':'false'};
-  if(newDone){
-    updateData.checkedBy=currentUser.name;
-    updateData.checkedAt=now;
-    const existing=await fsQuery('checklist');
-    const item=existing.find(i=>i.id===id);
-    const rawLogs=item?.logs||'_none_';
-    const prevLogs=rawLogs==='_none_'?[]:(rawLogs.split('||').filter(l=>l&&l!=='_none_'));
-    if(!prevLogs.includes(currentUser.name))prevLogs.push(currentUser.name);
-    updateData.logs=prevLogs.join('||')||'_none_';
-  }else{
-    updateData.checkedBy='_none_';updateData.checkedAt='_none_';
+  const today=getToday();
+
+  // 체크리스트 항목 최신 정보 가져오기
+  const allItems=await fsQuery('checklist');
+  const item=allItems.find(i=>i.id===id);
+  if(!item){toast('항목을 찾을 수 없습니다');return;}
+
+  // 이미 이 유저가 체크했는지 확인
+  const rawLogs=item.logs||'_none_';
+  const checkedUsers=rawLogs==='_none_'?[]:rawLogs.split('||').filter(l=>l&&l!=='_none_');
+  const alreadyChecked=checkedUsers.includes(currentUser.name);
+
+  // logIds: 유저별 생성된 productLog ID 매핑 (형식: "유진:logId||소연:logId2")
+  const rawLogIds=item.logIds||'_none_';
+  const logIdMap={};
+  if(rawLogIds!=='_none_'){
+    rawLogIds.split('||').filter(Boolean).forEach(pair=>{
+      const[u,lid]=pair.split(':');
+      if(u&&lid)logIdMap[u]=lid;
+    });
   }
-  const ok=await fsUpdate('checklist',id,updateData);
-  if(ok){toast(newDone?`${currentUser.name}님 완료 체크 ✅`:'완료 취소');loadHomeChecklist();if(document.getElementById('admin-checklist-panel')?.style.display!=='none')loadChecklist();}
-  else toast('업데이트 실패');
+
+  let updateData={};
+
+  if(newDone && !alreadyChecked){
+    // ── 체크: productLog 생성 + checklist 업데이트 ──
+    // 오늘 출근 기록 찾기
+    const todayRecs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',today]]);
+    const activeRec=todayRecs.find(r=>r.status==='active')||todayRecs.find(r=>r.status==='completed')||null;
+
+    const logPayload={
+      userId:currentUser.id,
+      attendanceId:activeRec?.id||'checklist',
+      type:item.type||'register',
+      productName:item.name,
+      link:item.link&&item.link!=='_none_'?item.link:'',
+      timestamp:now,
+      date:today,
+      fromChecklist:'true',
+      checklistId:id
+    };
+    const logId=await fsAdd('productLogs',logPayload);
+    if(!logId){toast('제품 로그 저장 실패');return;}
+
+    // checklist 업데이트
+    const newUsers=[...checkedUsers,currentUser.name];
+    logIdMap[currentUser.name]=logId;
+    const newLogIds=Object.entries(logIdMap).map(([u,l])=>`${u}:${l}`).join('||')||'_none_';
+    updateData={
+      done:'true',
+      checkedBy:newUsers[newUsers.length-1],
+      checkedAt:now,
+      logs:newUsers.join('||'),
+      logIds:newLogIds
+    };
+    const ok=await fsUpdate('checklist',id,updateData);
+    if(ok){
+      toast(`✅ ${item.name} 제품 로그 등록 완료!`);
+      // 내 로컬 캐시도 업데이트
+      _myAllLogs=[..._myAllLogs,{...logPayload,id:logId}];
+    }else{
+      // rollback productLog
+      await fsDelete('productLogs',logId);
+      toast('업데이트 실패');return;
+    }
+  } else if(!newDone && alreadyChecked){
+    // ── 체크 해제: 내가 생성한 productLog 삭제 ──
+    const myLogId=logIdMap[currentUser.name];
+    if(myLogId){
+      await fsDelete('productLogs',myLogId);
+      _myAllLogs=_myAllLogs.filter(l=>l.id!==myLogId);
+      delete logIdMap[currentUser.name];
+    }
+    const newUsers=checkedUsers.filter(u=>u!==currentUser.name);
+    const newLogIds=Object.entries(logIdMap).map(([u,l])=>`${u}:${l}`).join('||')||'_none_';
+    updateData={
+      done:newUsers.length>0?'true':'false',
+      checkedBy:newUsers.length>0?newUsers[newUsers.length-1]:'_none_',
+      checkedAt:newUsers.length>0?now:'_none_',
+      logs:newUsers.join('||')||'_none_',
+      logIds:newLogIds
+    };
+    const ok=await fsUpdate('checklist',id,updateData);
+    if(ok){toast('완료 취소 · 제품 로그 삭제됨');}
+    else{toast('업데이트 실패');return;}
+  } else if(newDone && alreadyChecked){
+    toast('이미 완료 처리하셨습니다');return;
+  } else {
+    toast('체크되지 않은 항목입니다');return;
+  }
+
+  // 화면 갱신
+  loadHomeChecklist();
+  if(document.getElementById('admin-checklist-panel')?.style.display!=='none')loadChecklist();
+  if(document.getElementById('page-mypage')?.classList.contains('active')){renderSidePanel();renderMyCalendar();}
+  loadHomeGameStats();
 }
 
 async function deleteChecklistItem(id){
@@ -2080,6 +2217,29 @@ async function loadPOChecklist(){
   el.innerHTML=`<div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">${sorted.length}개 항목 · ${done}개 완료</div>`+
     sorted.map(item=>renderChecklistItem(item,false)).join('');
 }
+
+// ── 실시간 폴링 (30초) ──
+let _pollInterval=null;
+function startPolling(){
+  if(_pollInterval)clearInterval(_pollInterval);
+  _pollInterval=setInterval(async()=>{
+    // 공지 뱃지 갱신
+    updateNoticeBadge();
+    // 홈 체크리스트 실시간 갱신 (홈 활성시)
+    if(document.getElementById('page-home')?.classList.contains('active')){
+      loadHomeChecklist();
+    }
+    // 관리자 체크리스트 활성시
+    if(document.getElementById('admin-checklist-panel')?.style.display==='block'){
+      loadChecklist();
+    }
+    // PO 체크리스트 활성시
+    if(document.getElementById('po-panel-checklist')?.style.display==='block'){
+      loadPOChecklist();
+    }
+  },30000);
+}
+function stopPolling(){if(_pollInterval){clearInterval(_pollInterval);_pollInterval=null;}}
 
 // ── Init ──
 (async()=>{
