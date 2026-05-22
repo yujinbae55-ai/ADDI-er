@@ -1682,50 +1682,53 @@ async function loadAdminReport(){
   const etcLogs=fl.filter(l=>l.type==='etc');
 
   function renderLogToggle(type,logs,label,icon,bgColor,textColor){
-    if(!logs.length)return`<div class="stat-card" style="opacity:0.5;cursor:default;">
-      <div class="stat-val">0</div><div class="stat-label">${label}</div></div>`;
-    const id=`report-toggle-${type}`;
-    // 팀원별 그룹
+    if(!logs.length)return '<div class="stat-card" style="opacity:0.5;cursor:default;"><div class="stat-val">0</div><div class="stat-label">'+label+'</div></div>';
+    const id='report-toggle-'+type;
     const byUser={};
-    logs.forEach(l=>{
-      const u=users.find(u=>u.id===l.userId);
-      const name=u?.name||'알 수 없음';
-      if(!byUser[name])byUser[name]=[];
-      byUser[name].push(l);
+    logs.forEach(function(l){
+      const u=users.find(function(uu){return uu.id===l.userId;});
+      const uname=u?u.name:'알 수 없음';
+      if(!byUser[uname])byUser[uname]=[];
+      byUser[uname].push(l);
     });
-    const rows=Object.entries(byUser).map(([name,items])=>
-      items.map(l=>`<tr>
-        <td style="padding:8px 10px;font-size:13px;font-weight:600;white-space:nowrap;">${name}</td>
-        <td style="padding:8px 10px;font-size:13px;">${l.date||''}</td>
-        <td style="padding:8px 10px;font-size:13px;font-weight:600;">${l.productName||''}</td>
-        <td style="padding:8px 10px;font-size:12px;">${l.link?`<a href="${l.link}" target="_blank" style="color:var(--brand);">${l.link}</a>`:'-'}</td>
-      </tr>`).join('')
-    ).join('');
-    return`<div class="stat-card report-toggle-card" onclick="toggleReportSection('${id}')" style="cursor:pointer;position:relative;">
-      <div style="position:absolute;top:10px;right:12px;font-size:12px;color:var(--text-hint);" id="${id}-arrow">▼ 펼치기</div>
-      <div class="stat-val" style="color:${textColor};">${logs.length}</div>
-      <div class="stat-label">${label}</div>
-      <div class="stat-diff">${diff(logs.length, type==='register'?pReg:type==='edit'?pEdit:pEtc)}</div>
-      <div id="${id}" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px;" onclick="event.stopPropagation()">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">${icon} ${label} 상세 목록</span>
-          <button onclick="exportReportCSV('${type}','${month}')" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 CSV 저장</button>
-        </div>
-        <div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border);">
-          <table style="width:100%;border-collapse:collapse;background:var(--surface);">
-            <thead>
-              <tr style="background:${bgColor};">
-                <th style="padding:8px 10px;font-size:11px;font-weight:700;text-align:left;color:${textColor};white-space:nowrap;">팀원</th>
-                <th style="padding:8px 10px;font-size:11px;font-weight:700;text-align:left;color:${textColor};white-space:nowrap;">날짜</th>
-                <th style="padding:8px 10px;font-size:11px;font-weight:700;text-align:left;color:${textColor};white-space:nowrap;">제품명</th>
-                <th style="padding:8px 10px;font-size:11px;font-weight:700;text-align:left;color:${textColor};white-space:nowrap;">링크</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      </div>
-    </div>`;
+    let rows='';
+    Object.entries(byUser).forEach(function(entry){
+      const uname=entry[0]; const items=entry[1];
+      items.forEach(function(l){
+        const linkCell=l.link?('<a href="'+l.link+'" target="_blank" style="color:var(--brand);">'+l.link+'</a>'):'-';
+        rows+='<tr>'
+          +'<td style="padding:8px 10px;font-size:13px;font-weight:600;white-space:nowrap;">'+uname+'</td>'
+          +'<td style="padding:8px 10px;font-size:13px;">'+(l.date||'')+'</td>'
+          +'<td style="padding:8px 10px;font-size:13px;font-weight:600;">'+(l.productName||'')+'</td>'
+          +'<td style="padding:8px 10px;font-size:12px;">'+linkCell+'</td>'
+          +'</tr>';
+      });
+    });
+    const diffHtml=diff(logs.length, type==='register'?pReg:type==='edit'?pEdit:pEtc);
+    const thStyle='padding:8px 10px;font-size:11px;font-weight:700;text-align:left;white-space:nowrap;color:'+textColor+';';
+    return '<div class="stat-card report-toggle-card" data-toggle-id="'+id+'" style="cursor:pointer;position:relative;">'
+      +'<div style="position:absolute;top:10px;right:12px;font-size:12px;color:var(--text-hint);" id="'+id+'-arrow">▼ 펼치기</div>'
+      +'<div class="stat-val" style="color:'+textColor+';">'+logs.length+'</div>'
+      +'<div class="stat-label">'+label+'</div>'
+      +'<div class="stat-diff">'+diffHtml+'</div>'
+      +'<div id="'+id+'" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+          +'<span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">'+icon+' '+label+' 상세</span>'
+          +'<button data-export-type="'+type+'" class="report-csv-btn" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 CSV</button>'
+        +'</div>'
+        +'<div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border);">'
+          +'<table style="width:100%;border-collapse:collapse;background:var(--surface);">'
+            +'<thead><tr style="background:'+bgColor+';">'
+              +'<th style="'+thStyle+'">팀원</th>'
+              +'<th style="'+thStyle+'">날짜</th>'
+              +'<th style="'+thStyle+'">제품명</th>'
+              +'<th style="'+thStyle+'">링크</th>'
+            +'</tr></thead>'
+            +'<tbody>'+rows+'</tbody>'
+          +'</table>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
   }
 
   // _reportLogsCache에 저장 (CSV 다운로드용)
@@ -1756,7 +1759,7 @@ async function loadAdminReport(){
     <div class="grid-2" style="margin-bottom:16px;">
       <div class="stat-card"><div class="stat-val">${totH}<span style="font-size:16px;font-weight:600;">h</span></div><div class="stat-label">총 근무시간</div><div class="stat-diff">${diff(tot,ptot)}</div></div>
       <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">총 작업 건수</div>
-        <div style="margin-top:10px;"><button onclick="exportReportCSV('all','${month}')" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--brand-light);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 전체 CSV</button></div>
+        <div style="margin-top:10px;"><button onclick="exportReportCSV('all')" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--brand-light);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 전체 CSV</button></div>
       </div>
       ${renderLogToggle('register',regLogs,'제품 등록 ✅','✅','var(--success-light)','var(--success-text)')}
       ${renderLogToggle('edit',editLogs,'제품 수정 ✏️','✏️','var(--warn-light)','var(--warn-text)')}
@@ -1791,14 +1794,29 @@ function toggleReportSection(id){
   if(arrow)arrow.textContent=isOpen?'▼ 펼치기':'▲ 접기';
 }
 
-function exportReportCSV(type,month){
+// report-content 클릭 이벤트 위임 (onclick 속성 대신)
+document.addEventListener('click',function(e){
+  // 토글 카드 클릭
+  const card=e.target.closest('[data-toggle-id]');
+  if(card&&!e.target.closest('.report-csv-btn')&&!e.target.closest('[id^="report-toggle-"]')){
+    toggleReportSection(card.dataset.toggleId);
+    return;
+  }
+  // CSV 버튼 클릭
+  const csvBtn=e.target.closest('.report-csv-btn');
+  if(csvBtn){
+    e.stopPropagation();
+    exportReportCSV(csvBtn.dataset.exportType);
+  }
+});
+
+function exportReportCSV(type){
   const cache=window._reportLogsCache;
   if(!cache){toast('데이터 없음');return;}
-  const {users,regLogs,editLogs,etcLogs,fl}=cache;
+  const {month,users,regLogs,editLogs,etcLogs,fl}=cache;
   let logs=type==='register'?regLogs:type==='edit'?editLogs:type==='etc'?etcLogs:fl;
   const [y,m]=month.split('-');
-  let csv='﻿팀원,날짜,구분,제품명,링크
-';
+  let csv='\uFEFF팀원,날짜,구분,제품명,링크\n';
   logs.sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(l=>{
     const u=users.find(u=>u.id===l.userId);
     const name=u?.name||'알 수 없음';
