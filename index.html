@@ -855,6 +855,10 @@ function logout(){
   document.getElementById('admin-badge').style.display='none';
   document.getElementById('nav-po').style.display='none';
   document.getElementById('sb-po').style.display='none';
+  // PO 전용으로 숨겼던 탭들 다시 표시 (다음 로그인 유저를 위해)
+  ['nav-home','nav-mypage','nav-notice','sb-home','sb-mypage','sb-notice'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='';
+  });
 }
 
 function isPO(u){return u&&(u.isPO===true||u.isPO==='true');}
@@ -868,21 +872,25 @@ function enterApp(){
   document.getElementById('sb-emoji').textContent=currentUser.emoji||'😊';
   document.getElementById('user-avatar').textContent=currentUser.emoji||currentUser.name[0];
   document.getElementById('today-date').textContent=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+  const poOnly=isPO(currentUser)&&!isAdm(currentUser);
   if(isAdm(currentUser)){
     document.getElementById('admin-badge').style.display='inline-flex';
     document.getElementById('nav-admin').style.display='flex';
     document.getElementById('sb-admin').style.display='flex';
   }
-  if(isPO(currentUser)&&!isAdm(currentUser)){
+  if(poOnly){
+    // PO 전용: 홈/마이페이지/공지사항 완전 숨김, PO 대시보드만 노출
+    ['nav-home','nav-mypage','nav-notice','sb-home','sb-mypage','sb-notice'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.style.display='none';
+    });
     document.getElementById('nav-po').style.display='flex';
     document.getElementById('sb-po').style.display='flex';
+    const fab=document.getElementById('fab-product');if(fab)fab.style.display='none';
   }
   // [FIX 1] 이름이 올바른지 화면 즉시 반영
   document.getElementById('user-name-display').textContent=currentUser.name;
-  switchPage(isPO(currentUser)&&!isAdm(currentUser)?'po':'home');
-  if(!isPO(currentUser)||isAdm(currentUser)){loadTodayAttendance();loadRecentRecords();}
-  loadHomeGameStats();
-  loadHomeChecklist();
+  switchPage(poOnly?'po':'home');
+  if(!poOnly){loadTodayAttendance();loadRecentRecords();loadHomeGameStats();loadHomeChecklist();}
 }
 
 // ── Attendance ──
