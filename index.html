@@ -353,6 +353,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .my-tab-btn{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;}
 .my-tab-btn.active{background:var(--brand);color:white;box-shadow:0 2px 8px rgba(139,63,255,0.3);}
 .has-record{background:var(--brand-light)!important;border-color:var(--brand-mid)!important;}
+.cal-selected{border-color:var(--brand)!important;box-shadow:0 0 0 2px rgba(139,63,255,0.20)!important;background:var(--brand-light)!important;}
 
 /* ── Home 2-col grid ── */
 .home-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
@@ -389,6 +390,31 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .cl-type-etc{background:#DBEAFE;color:#1D4ED8;}
 .cl-log-expand{font-size:11px;color:var(--text-hint);cursor:pointer;background:none;border:none;padding:3px 6px;border-radius:6px;font-family:inherit;}
 .cl-log-expand:hover{background:var(--bg);color:var(--text-muted);}
+
+/* ── MyPage 2-col grid ── */
+.mypage-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+.mypage-cal-col,.mypage-side-col{display:flex;flex-direction:column;gap:0;}
+.mypage-side-col{gap:0;}
+.my-side-panel{display:flex;flex-direction:column;gap:10px;}
+.my-side-tab{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;}
+.my-side-tab.active{background:var(--brand);color:white;box-shadow:0 2px 8px rgba(139,63,255,0.3);}
+/* day detail inline card */
+.day-detail-card{background:linear-gradient(135deg,var(--brand-light),rgba(240,232,255,0.3));border-radius:var(--radius-sm);border:1px solid var(--brand-mid);padding:16px;margin-bottom:8px;}
+.day-detail-times{display:flex;gap:20px;align-items:flex-end;margin-top:8px;}
+.day-detail-t{font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:3px;}
+.day-detail-v{font-size:22px;font-weight:800;line-height:1;}
+/* side record item */
+.side-rec{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);overflow:hidden;transition:all 0.15s;}
+.side-rec:hover{border-color:var(--brand-mid);box-shadow:0 2px 12px rgba(139,63,255,0.08);}
+.side-rec.selected{border-color:var(--brand);box-shadow:0 0 0 2px rgba(139,63,255,0.15);}
+.side-rec-main{display:flex;align-items:center;padding:12px 14px;gap:12px;cursor:pointer;}
+.side-date-box{width:40px;height:40px;background:var(--brand-light);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.side-date-day{font-size:18px;font-weight:800;color:var(--brand);line-height:1;}
+.side-date-dow{font-size:10px;font-weight:600;color:var(--brand-mid);}
+@media(max-width:900px){
+  .mypage-grid{grid-template-columns:1fr;}
+  .mypage-side-col{order:-1;}
+}
 
 /* ── PO tabs ── */
 .po-tab-btn{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;white-space:nowrap;}
@@ -520,32 +546,44 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 
     <!-- 마이페이지 -->
     <div class="page" id="page-mypage">
+      <!-- Header -->
       <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
         <div><div class="page-title">내 기록</div><div class="page-sub">개인 근무 현황 및 제품 로그</div></div>
         <button onclick="openEmojiPicker()" style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-family:'Pretendard',sans-serif;font-size:14px;font-weight:600;">
           <span id="my-emoji-display" style="font-size:24px;">😊</span> 이모지 변경
         </button>
       </div>
-      <!-- 월 목표 카드 -->
-      <div class="goal-card" id="goal-card" style="max-width:560px;"></div>
-      <!-- 탭 -->
-      <div class="tabs" style="max-width:560px;">
-        <button class="my-tab-btn active" onclick="switchMyTab('calendar')">📅 달력</button>
-        <button class="my-tab-btn" onclick="switchMyTab('list')">📋 근무내역</button>
-        <button class="my-tab-btn" onclick="switchMyTab('products')">📦 제품로그</button>
-      </div>
-      <div id="my-calendar" style="max-width:560px;">
-        <div class="cal-wrap">
-          <div class="cal-nav">
-            <button class="cal-nav-btn" onclick="prevMonth()">‹</button>
-            <div class="cal-title" id="cal-title"></div>
-            <button class="cal-nav-btn" onclick="nextMonth()">›</button>
+      <!-- 월 목표 카드 (full width) -->
+      <div class="goal-card" id="goal-card"></div>
+      <!-- 2-col: 달력 | 사이드 패널 -->
+      <div class="mypage-grid">
+        <!-- 왼쪽: 달력 -->
+        <div class="mypage-cal-col">
+          <div class="cal-wrap">
+            <div class="cal-nav">
+              <button class="cal-nav-btn" onclick="prevMonth()">‹</button>
+              <div class="cal-title" id="cal-title"></div>
+              <button class="cal-nav-btn" onclick="nextMonth()">›</button>
+            </div>
+            <div id="my-cal-body"></div>
           </div>
-          <div id="my-cal-body"></div>
+        </div>
+        <!-- 오른쪽: 사이드 패널 (근무내역 + 제품로그, 날짜 클릭 시 상세) -->
+        <div class="mypage-side-col">
+          <!-- 상단 탭 (근무내역 / 제품로그) -->
+          <div class="tabs" style="margin-bottom:14px;">
+            <button class="my-side-tab active" data-tab="list" onclick="switchSideTab('list')">📋 근무내역</button>
+            <button class="my-side-tab" data-tab="products" onclick="switchSideTab('products')">📦 제품로그</button>
+          </div>
+          <!-- 날짜 선택 표시 -->
+          <div id="my-date-indicator" style="display:none;margin-bottom:10px;padding:8px 14px;background:var(--brand-light);border-radius:10px;border:1px solid var(--brand-mid);display:flex;align-items:center;justify-content:space-between;">
+            <span id="my-date-indicator-text" style="font-size:13px;font-weight:700;color:var(--brand);"></span>
+            <button onclick="clearDateFilter()" style="background:none;border:none;font-size:13px;color:var(--brand);cursor:pointer;font-weight:700;font-family:inherit;">✕ 전체보기</button>
+          </div>
+          <div id="my-side-list" class="my-side-panel active-panel"></div>
+          <div id="my-side-products" class="my-side-panel" style="display:none;"></div>
         </div>
       </div>
-      <div id="my-list" style="display:none;max-width:560px;"></div>
-      <div id="my-products" style="display:none;max-width:560px;"></div>
     </div>
 
     <!-- 공지사항 -->
@@ -757,7 +795,14 @@ async function fsQuery(col,filters=[]){
   return(await r.json()).filter(d=>d.document).map(d=>_fsParse(d.document));
 }
 async function fsSet(col,id,data){const r=await _req(`${FS_BASE}/${col}/${id}`,{method:'PATCH',body:JSON.stringify({fields:_fsEnc(data)})});return r?.ok?r.json():null;}
-async function fsAdd(col,data){const r=await _req(`${FS_BASE}/${col}`,{method:'POST',body:JSON.stringify({fields:_fsEnc(data)})});if(!r?.ok)return null;return(await r.json()).name.split('/').pop();}
+async function fsAdd(col,data){
+  const r=await _req(`${FS_BASE}/${col}`,{method:'POST',body:JSON.stringify({fields:_fsEnc(data)})});
+  if(!r?.ok){
+    try{const err=await r.json();console.error('[fsAdd] '+col+' 실패:',JSON.stringify(err));}catch(e){}
+    return null;
+  }
+  return(await r.json()).name.split('/').pop();
+}
 async function fsUpdate(col,id,data){const mask=Object.keys(data).map(k=>`updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');const r=await _req(`${FS_BASE}/${col}/${id}?${mask}`,{method:'PATCH',body:JSON.stringify({fields:_fsEnc(data)})});return r?.ok??false;}
 async function fsDelete(col,id){const r=await _req(`${FS_BASE}/${col}/${id}`,{method:'DELETE'});return r?.ok??false;}
 
@@ -1067,22 +1112,36 @@ async function deleteRecord(id){
     toast('삭제 완료 🗑️');
     todayAllRecs=todayAllRecs.filter(r=>r.id!==id);
     todayAttendance=todayAllRecs.length>0?todayAllRecs[todayAllRecs.length-1]:null;
-    renderStatus();loadRecentRecords();
+    _myAllRecs=_myAllRecs.filter(r=>r.id!==id);
+    renderStatus();loadRecentRecords();if(document.getElementById('page-mypage').classList.contains('active')){renderSidePanel();renderMyCalendar();}
   }else toast('삭제 실패');
 }
 function closeModal(){document.getElementById('modal').classList.remove('open');}
 function closeModalOverlay(e){if(e.target===document.getElementById('modal'))closeModal();}
 
 // ── 마이페이지 ──
+// ── 마이페이지 state ──
+let _myAllRecs=[], _myAllLogs=[], _mySelectedDate=null, _mySideTab='list';
+
 async function loadMyPage(){
   myCalYear=new Date().getFullYear();myCalMonth=new Date().getMonth();
-  const [recs,logs]=await Promise.all([
+  _mySelectedDate=null;
+  document.getElementById('my-emoji-display').textContent=currentUser.emoji||'😊';
+  // 전체 데이터 한 번에 로드
+  const[recs,logs]=await Promise.all([
     fsQuery('attendance',[['userId','EQUAL',currentUser.id]]),
     fsQuery('productLogs',[['userId','EQUAL',currentUser.id]])
   ]);
+  _myAllRecs=recs; _myAllLogs=logs;
+  renderGoalCard();
+  renderMyCalendar();
+  renderSidePanel();
+}
+
+function renderGoalCard(){
   const pfx=`${myCalYear}-${String(myCalMonth+1).padStart(2,'0')}`;
-  const mr=recs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
-  const ml=logs.filter(l=>l.date&&l.date.startsWith(pfx));
+  const mr=_myAllRecs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
+  const ml=_myAllLogs.filter(l=>l.date&&l.date.startsWith(pfx));
   const tot=mr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
   const totH=tot/60;
   const pct=Math.min(100,Math.round(totH/MONTHLY_TARGET_H*100));
@@ -1106,114 +1165,179 @@ async function loadMyPage(){
       </div>
       <div style="font-size:12px;color:var(--text-muted);">${mr.length}일 출근 · 로그 ${ml.length}건</div>
     </div>`;
-  // 이모지 설정 버튼
-  document.getElementById('my-emoji-display').textContent=currentUser.emoji||'😊';
-  switchMyTab('calendar');
 }
-function switchMyTab(tab){
-  document.querySelectorAll('.my-tab-btn').forEach((b,i)=>b.classList.toggle('active',['calendar','list','products'][i]===tab));
-  document.getElementById('my-calendar').style.display=tab==='calendar'?'block':'none';
-  document.getElementById('my-list').style.display=tab==='list'?'block':'none';
-  document.getElementById('my-products').style.display=tab==='products'?'block':'none';
-  if(tab==='calendar')renderMyCalendar();
-  if(tab==='list')renderMyList();
-  if(tab==='products')renderMyProducts();
+
+function switchSideTab(tab){
+  _mySideTab=tab;
+  document.querySelectorAll('.my-side-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.getElementById('my-side-list').style.display=tab==='list'?'flex':'none';
+  document.getElementById('my-side-products').style.display=tab==='products'?'flex':'none';
+  renderSidePanel();
 }
+
+function selectCalDate(date){
+  _mySelectedDate=date;
+  // 달력 하이라이트 갱신
+  document.querySelectorAll('.cal-cell').forEach(c=>{
+    c.classList.toggle('cal-selected', c.dataset.date===date);
+  });
+  // date indicator
+  const ind=document.getElementById('my-date-indicator');
+  const indText=document.getElementById('my-date-indicator-text');
+  if(ind&&indText){
+    ind.style.display='flex';
+    indText.textContent=new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})+' 기록';
+  }
+  renderSidePanel();
+}
+
+function clearDateFilter(){
+  _mySelectedDate=null;
+  document.querySelectorAll('.cal-cell').forEach(c=>c.classList.remove('cal-selected'));
+  const ind=document.getElementById('my-date-indicator');
+  if(ind)ind.style.display='none';
+  renderSidePanel();
+}
+
+function renderSidePanel(){
+  if(_mySideTab==='list')renderSideList();
+  else renderSideProducts();
+}
+
+function renderSideList(){
+  const el=document.getElementById('my-side-list');
+  if(!el)return;
+  let recs=_myAllRecs.filter(r=>r.status==='completed');
+  if(_mySelectedDate){
+    recs=recs.filter(r=>r.date===_mySelectedDate);
+  }else{
+    // 전체: 최근 순, 최대 60건
+    recs=recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||'')).slice(0,60);
+  }
+  if(!recs.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>'+(
+      _mySelectedDate?'이 날 근무 기록이 없습니다':'기록이 없습니다'
+    )+'</div>';
+    return;
+  }
+  // 날짜별 그룹
+  const groups={};
+  for(const r of recs){const k=r.date||'';if(!groups[k])groups[k]=[];groups[k].push(r);}
+  let html='';
+  for(const[date,items]of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
+    const d0=new Date(date+'T00:00:00');
+    const dow=['일','월','화','수','목','금','토'][d0.getDay()];
+    const dateLabel=d0.toLocaleDateString('ko-KR',{month:'long',day:'numeric'});
+    // 날짜별 헤더 (선택된 날짜가 없을 때만)
+    if(!_mySelectedDate){
+      const tot=items.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+      const totH=Math.floor(tot/60);const totM=Math.floor(tot%60);
+      html+=`<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;padding:4px 2px 6px;">${dateLabel}(${dow}) · ${totH}h ${totM}m</div>`;
+    }
+    for(const r of items){
+      const dayLogs=_myAllLogs.filter(l=>l.date===r.date&&l.userId===currentUser.id);
+      html+=`<div class="side-rec${_mySelectedDate?' selected':''}">
+        <div class="side-rec-main" onclick="openEditModal('${r.id}','${r.checkIn}','${r.checkOut||''}','${r.date}')">
+          <div class="side-date-box"><div class="side-date-day">${d0.getDate()}</div><div class="side-date-dow">${dow}</div></div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;">${fmtTime(r.checkIn)} → ${r.checkOut?fmtTime(r.checkOut):'근무중'}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${r.checkOut?'총 '+calcDur(r.checkIn,r.checkOut):'🟢 근무중'}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            ${r.checkOut?`<span style="font-size:12px;font-weight:800;color:var(--brand);background:var(--brand-light);padding:4px 10px;border-radius:20px;">${calcDur(r.checkIn,r.checkOut)}</span>`:'<span style="font-size:12px;font-weight:700;color:#10B981;background:#D1FAE5;padding:4px 10px;border-radius:20px;">근무중</span>'}
+            <button class="icon-btn danger" onclick="event.stopPropagation();deleteRecord('${r.id}')" title="삭제">🗑️</button>
+          </div>
+        </div>
+        ${dayLogs.length?`<div style="padding:0 14px 10px;display:flex;flex-wrap:wrap;gap:6px;">
+          ${dayLogs.map(l=>`<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px;background:${l.type==='register'?'var(--success-light)':l.type==='edit'?'var(--warn-light)':'#DBEAFE'};color:${l.type==='register'?'var(--success-text)':l.type==='edit'?'var(--warn-text)':'#1D4ED8'};">${l.type==='register'?'✅':l.type==='edit'?'✏️':'📌'} ${l.productName}</span>`).join('')}
+        </div>`:''}
+      </div>`;
+    }
+  }
+  el.innerHTML=html||'<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>';
+}
+
+function renderSideProducts(){
+  const el=document.getElementById('my-side-products');
+  if(!el)return;
+  let logs=_myAllLogs;
+  if(_mySelectedDate){
+    logs=logs.filter(l=>l.date===_mySelectedDate);
+  }else{
+    logs=logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||'')).slice(0,80);
+  }
+  if(!logs.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>'+(
+      _mySelectedDate?'이 날 제품 로그가 없습니다':'제품 로그가 없습니다'
+    )+'</div>';
+    return;
+  }
+  const sorted=logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
+  const groups={};
+  for(const l of sorted){const k=l.date||l.timestamp?.slice(0,10)||'';if(!groups[k])groups[k]=[];groups[k].push(l);}
+  let html='';
+  for(const[date,items]of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
+    if(!_mySelectedDate){
+      html+=`<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;padding:4px 2px 6px;">${date?new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):''}</div>`;
+    }
+    html+=items.map(l=>`<div class="prod-log">
+      <div class="prod-log-hd">
+        <div class="prod-log-icon ${l.type==='register'?'register':l.type==='edit'?'edit':'etc'}">${l.type==='register'?'✅':l.type==='edit'?'✏️':'📌'}</div>
+        <div style="flex:1;">
+          <div class="prod-log-name">${l.productName}</div>
+          <div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${l.type==='register'?'제품 등록':l.type==='edit'?'제품 수정':'기타 업무'} · ${fmtTime(l.timestamp)}</div>
+        </div>
+        <button class="icon-btn danger" onclick="deleteProductLog('${l.id}')" title="삭제">🗑️</button>
+      </div>
+      ${l.link?`<div class="prod-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}
+    </div>`).join('');
+  }
+  el.innerHTML=html;
+}
+
 async function renderMyCalendar(){
   const y=myCalYear,m=myCalMonth;
   document.getElementById('cal-title').textContent=`${y}년 ${m+1}월`;
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
   const pfx=`${y}-${String(m+1).padStart(2,'0')}`;
-  const byDate={};recs.filter(r=>r.date&&r.date.startsWith(pfx)).forEach(r=>byDate[r.date]=r);
+  const byDate={};
+  _myAllRecs.filter(r=>r.date&&r.date.startsWith(pfx)).forEach(r=>{
+    if(!byDate[r.date])byDate[r.date]={recs:[],logs:[]};
+    byDate[r.date].recs.push(r);
+  });
+  _myAllLogs.filter(l=>l.date&&l.date.startsWith(pfx)).forEach(l=>{
+    if(!byDate[l.date])byDate[l.date]={recs:[],logs:[]};
+    byDate[l.date].logs.push(l);
+  });
   const firstDay=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
   let html='<div class="cal-grid"><div class="cal-header" style="color:#EF4444;">일</div><div class="cal-header">월</div><div class="cal-header">화</div><div class="cal-header">수</div><div class="cal-header">목</div><div class="cal-header">금</div><div class="cal-header" style="color:#3B82F6;">토</div>';
   for(let i=0;i<firstDay;i++)html+='<div class="cal-cell empty"></div>';
   for(let d=1;d<=days;d++){
     const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const rec=byDate[ds];const dur=rec?calcDurMin(rec.checkIn,rec.checkOut):0;
+    const dayData=byDate[ds];
+    const completedRec=dayData?.recs.find(r=>r.status==='completed');
+    const dur=completedRec?calcDurMin(completedRec.checkIn,completedRec.checkOut):0;
+    const logCount=dayData?.logs.length||0;
     const isToday=ds===getToday();
+    const isSelected=_mySelectedDate===ds;
     const dow=new Date(ds+'T00:00:00').getDay();
     const dc=dow===0?'color:#EF4444':dow===6?'color:#3B82F6':'';
-    html+=`<div class="cal-cell${rec?' has-record':''}${isToday?' today':''}" onclick="showDayDetail('${ds}')" style="${rec?`background:var(--brand-light);border-color:var(--brand-mid);`:''}">
+    html+=`<div class="cal-cell${completedRec?' has-record':''}${isToday?' today':''}${isSelected?' cal-selected':''}"
+      data-date="${ds}" onclick="selectCalDate('${ds}')"
+      style="${completedRec?'background:var(--brand-light);border-color:var(--brand-mid);':''}${isSelected?'border-color:var(--brand)!important;box-shadow:0 0 0 2px rgba(139,63,255,0.25);':''}">
       <div class="cal-day" style="${dc}">${d}</div>
-      ${rec?`<div class="cal-dur-text">${dur?Math.floor(dur/60)+'h':'출근'}</div>`:''}
+      ${completedRec?`<div class="cal-dur-text">${dur?Math.floor(dur/60)+'h':'출근'}</div>`:''}
+      ${logCount?`<div style="font-size:9px;font-weight:700;color:var(--brand);text-align:center;margin-top:1px;">📦${logCount}</div>`:''}
     </div>`;
   }
   html+='</div>';
   document.getElementById('my-cal-body').innerHTML=html;
 }
-function prevMonth(){myCalMonth--;if(myCalMonth<0){myCalMonth=11;myCalYear--;}renderMyCalendar();}
-function nextMonth(){myCalMonth++;if(myCalMonth>11){myCalMonth=0;myCalYear++;}renderMyCalendar();}
+function prevMonth(){myCalMonth--;if(myCalMonth<0){myCalMonth=11;myCalYear--;}clearDateFilter();renderGoalCard();renderMyCalendar();}
+function nextMonth(){myCalMonth++;if(myCalMonth>11){myCalMonth=0;myCalYear++;}clearDateFilter();renderGoalCard();renderMyCalendar();}
 
-async function showDayDetail(date){
-  const[recs,logs]=await Promise.all([
-    fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]]),
-    fsQuery('productLogs',[['userId','EQUAL',currentUser.id],['date','EQUAL',date]])
-  ]);
-  const rec=recs[0];
-  document.getElementById('modal-content').innerHTML=`
-    <div class="modal-title">${new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}</div>
-    ${rec?`<div style="background:linear-gradient(135deg,var(--brand-light),rgba(240,232,255,0.4));border-radius:14px;padding:18px;margin-bottom:16px;">
-      <div style="font-size:11px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">근무 기록</div>
-      <div style="display:flex;gap:24px;align-items:flex-end;">
-        <div><div style="font-size:10px;color:var(--text-muted);font-weight:600;">출근</div><div style="font-size:24px;font-weight:800;">${fmtTime(rec.checkIn)}</div></div>
-        <div style="font-size:20px;color:var(--brand-mid);padding-bottom:3px;">→</div>
-        <div><div style="font-size:10px;color:var(--text-muted);font-weight:600;">퇴근</div><div style="font-size:24px;font-weight:800;">${rec.checkOut?fmtTime(rec.checkOut):'근무중'}</div></div>
-        ${rec.checkOut?`<div style="margin-left:auto;"><div style="font-size:10px;color:var(--text-muted);font-weight:600;">총 근무</div><div style="font-size:20px;font-weight:800;color:var(--brand);">${calcDur(rec.checkIn,rec.checkOut)}</div></div>`:''}
-      </div>
-    </div>`:'<div class="empty-state" style="margin-bottom:16px;padding:20px;">출근 기록 없음</div>'}
-    ${logs.length?`<div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px;">제품 로그 ${logs.length}건</div>
-    ${logs.map(l=>`<div class="prod-log"><div class="prod-log-hd"><div class="prod-log-icon ${l.type==='register'?'register':'edit'}">${l.type==='register'?'✅':'✏️'}</div><div style="flex:1;"><div class="prod-log-name">${l.productName}</div><div style="font-size:11px;color:var(--text-hint);">${l.type==='register'?'등록':'수정'}</div></div></div>${l.link?`<div class="prod-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}</div>`).join('')}`:''}`;
-  document.getElementById('modal').classList.add('open');
-}
-
-async function renderMyList(){
-  const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
-  const sorted=recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||''));
-  const list=document.getElementById('my-list');
-  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>';return;}
-  const groups={};
-  for(const r of sorted){const k=r.date?r.date.slice(0,7):'';if(!groups[k])groups[k]=[];groups[k].push(r);}
-  let html='';
-  for(const[ym,items]of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
-    const[y,mo]=ym.split('-');
-    const tot=items.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
-    const totH=tot/60,pct=Math.min(100,Math.round(totH/MONTHLY_TARGET_H*100));
-    const color=pct>=100?'#10B981':pct>=70?'var(--brand)':'#F59E0B';
-    html+=`<div class="work-group">
-      <div class="work-month-hd">
-        <div class="work-month-title">${y}년 ${parseInt(mo)}월</div>
-        <div class="work-month-meta"><span>${items.length}</span>일 <span>${Math.floor(totH)}h ${Math.floor((totH%1)*60)}m</span> <span style="color:${color};">${pct}%</span></div>
-      </div>
-      <div style="height:5px;background:#EAE8F0;border-radius:3px;overflow:hidden;margin-bottom:10px;"><div style="height:100%;width:${pct}%;background:${color};border-radius:3px;"></div></div>
-      ${items.map(r=>{
-        const d=new Date(r.checkIn);const dow=['일','월','화','수','목','금','토'][d.getDay()];
-        return`<div class="work-rec"><div class="work-rec-main">
-          <div class="work-date-box"><div class="work-date-day">${d.getDate()}</div><div class="work-date-dow">${dow}</div></div>
-          <div class="work-info"><div class="work-time">${fmtTime(r.checkIn)} → ${r.checkOut?fmtTime(r.checkOut):'근무중'}</div><div class="work-sub">${r.checkOut?'총 '+calcDur(r.checkIn,r.checkOut):'현재 근무중'}</div></div>
-          <div class="work-dur">${r.checkOut?calcDur(r.checkIn,r.checkOut):'🟢'}</div>
-        </div></div>`;
-      }).join('')}
-    </div>`;
-  }
-  list.innerHTML=html;
-}
-
-async function renderMyProducts(){
-  const logs=await fsQuery('productLogs',[['userId','EQUAL',currentUser.id]]);
-  const sorted=logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
-  const list=document.getElementById('my-products');
-  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>제품 로그가 없습니다</div>';return;}
-  const groups={};
-  for(const l of sorted){const k=l.date||l.timestamp?.slice(0,10)||'';if(!groups[k])groups[k]=[];groups[k].push(l);}
-  let html='';
-  for(const[date,items]of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
-    html+=`<div style="margin-bottom:16px;"><div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;padding:0 4px;">${date?new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):''}</div>
-    ${items.map(l=>`<div class="prod-log"><div class="prod-log-hd"><div class="prod-log-icon ${l.type==='register'?'register':l.type==='edit'?'edit':'etc'}">${l.type==='register'?'✅':l.type==='edit'?'✏️':'📌'}</div><div style="flex:1;"><div class="prod-log-name">${l.productName}</div><div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${l.type==='register'?'제품 등록':l.type==='edit'?'제품 수정':'기타 업무'} · ${fmtTime(l.timestamp)}</div></div><button class="icon-btn danger" onclick="deleteProductLog('${l.id}')" title="삭제">🗑️</button></div>${l.link?`<div class="prod-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}</div>`).join('')}
-    </div>`;
-  }
-  list.innerHTML=html;
-}
+// showDayDetail는 달력 클릭 시 더이상 모달 사용 안 함 (side panel로 대체)
+// 하지만 관리자 팀달력 클릭용은 유지 (showTeamDayDetail)
+async function showDayDetail(date){ selectCalDate(date); }
 
 // ── 이모지 설정 ──
 function openEmojiPicker(){
@@ -1600,7 +1724,7 @@ async function exportExcel(uid,name,month){
 async function deleteProductLog(id){
   if(!confirm('이 로그를 삭제할까요?'))return;
   const ok=await fsDelete('productLogs',id);
-  if(ok){toast('로그가 삭제되었습니다 🗑️');renderMyProducts();}
+  if(ok){toast('로그가 삭제되었습니다 🗑️');_myAllLogs=_myAllLogs.filter(l=>l.id!==id);renderSidePanel();renderMyCalendar();}
   else toast('삭제 실패');
 }
 
@@ -1729,13 +1853,22 @@ async function addChecklistItem(){
   const typeInput=document.querySelector('input[name="cl-type"]:checked');
   const type=typeInput?typeInput.value:'register';
   if(!name){toast('제품명을 입력해주세요');return;}
-  const id=await fsAdd('checklist',{name,link:link||'',type,done:false,createdBy:currentUser.name,createdAt:new Date().toISOString(),checkedBy:'',checkedAt:'',logs:''});
+  // done은 string으로 저장 (Firestore anonymous auth Rules 호환성)
+  // 빈 문자열은 _fsEnc에서 skip될 수 있으므로 placeholder 사용
+  const payload={name,link:link||'_none_',type,done:'false',createdBy:currentUser.name,createdAt:new Date().toISOString(),checkedBy:'_none_',checkedAt:'_none_',logs:'_none_'};
+  let id=null;
+  try{ id=await fsAdd('checklist',payload); }catch(e){ toast('오류: '+e.message); return; }
   if(id){
     toast('항목 추가 ✅');
     document.getElementById('cl-product-name').value='';
     document.getElementById('cl-product-link').value='';
     loadChecklist();loadHomeChecklist();
-  }else toast('추가 실패');
+  }else{
+    const rulesUrl=`https://console.firebase.google.com/project/additer-fef59/firestore/rules`;
+    toast('추가 실패 ⚠️ F12 콘솔 에러 확인 또는 Firestore Rules 점검');
+    console.error('[checklist] 추가 실패. Rules URL:', rulesUrl);
+    console.info('[checklist] Rules에 아래 추가 필요:\nmatch /checklist/{doc} { allow read, write: if request.auth != null; }');
+  }
 }
 
 async function loadChecklist(){
@@ -1774,7 +1907,7 @@ function renderChecklistItem(item,isAdmin){
   const type=item.type||'register';
   const typeLabel=type==='register'?'등록':type==='edit'?'수정':'기타';
   const typeClass=type==='register'?'cl-type-register':type==='edit'?'cl-type-edit':'cl-type-etc';
-  const logs=item.logs?item.logs.split('||').filter(Boolean):[];
+  const rawLogs=item.logs||'_none_';const logs=rawLogs==='_none_'?[]:rawLogs.split('||').filter(l=>l&&l!=='_none_');
   return`<div class="cl-item type-${type}${isDone?' done':''}" id="cl-item-${item.id}">
     <div class="cl-check" onclick="toggleChecklistItem('${item.id}','${isDone}')" title="${isDone?'완료 취소':'완료 처리'}">${isDone?'✓':''}</div>
     <div style="flex:1;min-width:0;">
@@ -1782,9 +1915,9 @@ function renderChecklistItem(item,isAdmin){
         <span class="cl-name">${item.name}</span>
         <span class="cl-type-badge ${typeClass}">${typeLabel}</span>
       </div>
-      ${item.link?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--brand);word-break:break-all;">${item.link}</a>`:''}
+      ${item.link&&item.link!=='_none_'?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--brand);word-break:break-all;">${item.link}</a>`:''}
       ${logs.length?`<div style="font-size:11px;color:var(--text-hint);margin-top:3px;">✓ ${logs.join(' / ')}</div>`:''}
-      ${isDone&&item.checkedBy?`<div style="font-size:10px;color:var(--text-hint);">완료: ${item.checkedBy} ${item.checkedAt?new Date(item.checkedAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>`:''}
+      ${isDone&&item.checkedBy&&item.checkedBy!=='_none_'?`<div style="font-size:10px;color:var(--text-hint);">완료: ${item.checkedBy} ${item.checkedAt&&item.checkedAt!=='_none_'?new Date(item.checkedAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>`:''}
     </div>
     ${isAdmin?`<button class="icon-btn danger" onclick="deleteChecklistItem('${item.id}')" title="삭제">🗑️</button>`:''}
   </div>`;
@@ -1794,18 +1927,18 @@ async function toggleChecklistItem(id,isDoneStr){
   const isDone=isDoneStr==='true';
   const newDone=!isDone;
   const now=new Date().toISOString();
-  let updateData={done:newDone};
+  let updateData={done:newDone?'true':'false'};
   if(newDone){
     updateData.checkedBy=currentUser.name;
     updateData.checkedAt=now;
-    // 로그에 이름 추가
-    const existing=await fsQuery('checklist',[]);
+    const existing=await fsQuery('checklist');
     const item=existing.find(i=>i.id===id);
-    const prevLogs=item?.logs?item.logs.split('||').filter(Boolean):[];
+    const rawLogs=item?.logs||'_none_';
+    const prevLogs=rawLogs==='_none_'?[]:(rawLogs.split('||').filter(l=>l&&l!=='_none_'));
     if(!prevLogs.includes(currentUser.name))prevLogs.push(currentUser.name);
-    updateData.logs=prevLogs.join('||');
+    updateData.logs=prevLogs.join('||')||'_none_';
   }else{
-    updateData.checkedBy='';updateData.checkedAt='';
+    updateData.checkedBy='_none_';updateData.checkedAt='_none_';
   }
   const ok=await fsUpdate('checklist',id,updateData);
   if(ok){toast(newDone?`${currentUser.name}님 완료 체크 ✅`:'완료 취소');loadHomeChecklist();if(document.getElementById('admin-checklist-panel')?.style.display!=='none')loadChecklist();}
