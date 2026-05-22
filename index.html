@@ -419,6 +419,10 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 /* ── PO tabs ── */
 .po-tab-btn{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;white-space:nowrap;}
 .po-tab-btn.active{background:var(--brand);color:white;box-shadow:0 2px 8px rgba(139,63,255,0.3);}
+/* ── Report toggle card ── */
+.report-toggle-card{cursor:pointer;transition:box-shadow 0.15s,border-color 0.15s;}
+.report-toggle-card:hover{border-color:var(--brand-mid)!important;box-shadow:0 4px 16px rgba(139,63,255,0.12)!important;}
+
 /* ── Notice badge ── */
 .notice-badge-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#EF4444;margin-left:4px;vertical-align:middle;animation:pulse-dot 2s infinite;}
 @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.8);}}
@@ -1286,7 +1290,7 @@ function renderSideProducts(){
     if(!_mySelectedDate){
       html+=`<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;padding:4px 2px 6px;">${date?new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):''}</div>`;
     }
-    html+=items.map(l=>`<div class="prod-log">
+    html+=items.map(l=>`<div class="prod-log" id="plog-${l.id}">
       <div class="prod-log-hd">
         <div class="prod-log-icon ${l.type==='register'?'register':l.type==='edit'?'edit':'etc'}">${l.type==='register'?'✅':l.type==='edit'?'✏️':'📌'}</div>
         <div style="flex:1;">
@@ -1295,10 +1299,63 @@ function renderSideProducts(){
         </div>
         <button class="icon-btn danger" onclick="deleteProductLog('${l.id}')" title="삭제">🗑️</button>
       </div>
-      ${l.link?`<div class="prod-log-link"><span>🔗</span><a href="${l.link}" target="_blank">${l.link}</a></div>`:''}
+      ${l.link
+        ?`<div class="prod-log-link"><span>🔗</span><a href="${l.link}" target="_blank" style="word-break:break-all;">${l.link}</a>
+           <button onclick="openEditLogLink('${l.id}','${(l.link||'').replace(/'/g,"\'")}')" style="margin-left:auto;background:none;border:none;font-size:11px;color:var(--text-hint);cursor:pointer;white-space:nowrap;">✏️ 수정</button>
+          </div>`
+        :`<div style="padding:8px 14px;background:#FFF9E6;border-top:1px solid #FEF3C7;">
+            <div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:5px;">🔗 ASKEDTECH 제품 링크 등록</div>
+            <div style="display:flex;gap:6px;">
+              <input id="link-input-${l.id}" type="url" placeholder="https://askedtech.com/product/..." 
+                style="flex:1;padding:7px 10px;border-radius:8px;border:1.5px solid #FCD34D;font-size:12px;font-family:inherit;outline:none;background:white;"
+                onkeydown="if(event.key==='Enter')saveProductLink('${l.id}')"/>
+              <button onclick="saveProductLink('${l.id}')" 
+                style="padding:7px 14px;border-radius:8px;border:none;background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">저장</button>
+            </div>
+          </div>`
+      }
     </div>`).join('');
   }
   el.innerHTML=html;
+}
+
+async function saveProductLink(logId){
+  const input=document.getElementById(`link-input-${logId}`);
+  if(!input){toast('입력창을 찾을 수 없습니다');return;}
+  const link=input.value.trim();
+  if(!link){toast('링크를 입력해주세요');return;}
+  if(!link.startsWith('http')){toast('http:// 또는 https:// 로 시작하는 URL을 입력해주세요');return;}
+  const btn=input.nextElementSibling;
+  if(btn){btn.disabled=true;btn.textContent='저장중...';}
+  const ok=await fsUpdate('productLogs',logId,{link});
+  if(ok){
+    toast('링크 저장 완료 🔗');
+    // 로컬 캐시 업데이트
+    const idx=_myAllLogs.findIndex(l=>l.id===logId);
+    if(idx>=0)_myAllLogs[idx].link=link;
+    renderSideProducts();
+  }else{
+    toast('저장 실패');
+    if(btn){btn.disabled=false;btn.textContent='저장';}
+  }
+}
+
+function openEditLogLink(logId,currentLink){
+  // 링크가 이미 있는 항목 수정
+  const el=document.getElementById(`plog-${logId}`);
+  if(!el)return;
+  const linkDiv=el.querySelector('.prod-log-link');
+  if(!linkDiv)return;
+  linkDiv.innerHTML=`
+    <span>🔗</span>
+    <input id="link-input-${logId}" type="url" value="${currentLink}"
+      style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid var(--brand-mid);font-size:12px;font-family:inherit;outline:none;"
+      onkeydown="if(event.key==='Enter')saveProductLink('${logId}')"/>
+    <button onclick="saveProductLink('${logId}')" style="padding:6px 12px;border-radius:8px;border:none;background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
+    <button onclick="renderSideProducts()" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:12px;cursor:pointer;font-family:inherit;">취소</button>
+  `;
+  linkDiv.style.gap='6px';
+  document.getElementById(`link-input-${logId}`)?.focus();
 }
 
 async function renderMyCalendar(){
@@ -1619,6 +1676,61 @@ async function loadAdminReport(){
   const yKo=y,mKo=parseInt(m);
   const pyKo=py,pmKo=parseInt(pm);
 
+  // 팀원별 제품 로그 (등록/수정/기타 각각)
+  const regLogs=fl.filter(l=>l.type==='register');
+  const editLogs=fl.filter(l=>l.type==='edit');
+  const etcLogs=fl.filter(l=>l.type==='etc');
+
+  function renderLogToggle(type,logs,label,icon,bgColor,textColor){
+    if(!logs.length)return`<div class="stat-card" style="opacity:0.5;cursor:default;">
+      <div class="stat-val">0</div><div class="stat-label">${label}</div></div>`;
+    const id=`report-toggle-${type}`;
+    // 팀원별 그룹
+    const byUser={};
+    logs.forEach(l=>{
+      const u=users.find(u=>u.id===l.userId);
+      const name=u?.name||'알 수 없음';
+      if(!byUser[name])byUser[name]=[];
+      byUser[name].push(l);
+    });
+    const rows=Object.entries(byUser).map(([name,items])=>
+      items.map(l=>`<tr>
+        <td style="padding:8px 10px;font-size:13px;font-weight:600;white-space:nowrap;">${name}</td>
+        <td style="padding:8px 10px;font-size:13px;">${l.date||''}</td>
+        <td style="padding:8px 10px;font-size:13px;font-weight:600;">${l.productName||''}</td>
+        <td style="padding:8px 10px;font-size:12px;">${l.link?`<a href="${l.link}" target="_blank" style="color:var(--brand);">${l.link}</a>`:'-'}</td>
+      </tr>`).join('')
+    ).join('');
+    return`<div class="stat-card report-toggle-card" onclick="toggleReportSection('${id}')" style="cursor:pointer;position:relative;">
+      <div style="position:absolute;top:10px;right:12px;font-size:12px;color:var(--text-hint);" id="${id}-arrow">▼ 펼치기</div>
+      <div class="stat-val" style="color:${textColor};">${logs.length}</div>
+      <div class="stat-label">${label}</div>
+      <div class="stat-diff">${diff(logs.length, type==='register'?pReg:type==='edit'?pEdit:pEtc)}</div>
+      <div id="${id}" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px;" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">${icon} ${label} 상세 목록</span>
+          <button onclick="exportReportCSV('${type}','${month}')" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 CSV 저장</button>
+        </div>
+        <div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border);">
+          <table style="width:100%;border-collapse:collapse;background:var(--surface);">
+            <thead>
+              <tr style="background:${bgColor};">
+                <th style="padding:8px 10px;font-size:11px;font-weight:700;text-align:left;color:${textColor};white-space:nowrap;">팀원</th>
+                <th style="padding:8px 10px;font-size:11px;font-weight:700;text-align:left;color:${textColor};white-space:nowrap;">날짜</th>
+                <th style="padding:8px 10px;font-size:11px;font-weight:700;text-align:left;color:${textColor};white-space:nowrap;">제품명</th>
+                <th style="padding:8px 10px;font-size:11px;font-weight:700;text-align:left;color:${textColor};white-space:nowrap;">링크</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // _reportLogsCache에 저장 (CSV 다운로드용)
+  window._reportLogsCache={month,users,regLogs,editLogs,etcLogs,fl};
+
   document.getElementById('report-content').innerHTML=`
     <!-- 실적 요약 박스 -->
     <div style="background:linear-gradient(135deg,#1A1A2E,#2D1F5E);border-radius:var(--radius-sm);padding:22px;margin-bottom:16px;">
@@ -1639,13 +1751,16 @@ async function loadAdminReport(){
       </div>
     </div>
 
-    <!-- 통계 카드 -->
+    <!-- 통계 카드 (클릭 시 토글) -->
+    <div style="margin-bottom:6px;font-size:11px;color:var(--text-hint);text-align:right;">💡 카드 클릭 시 상세 목록 펼침</div>
     <div class="grid-2" style="margin-bottom:16px;">
       <div class="stat-card"><div class="stat-val">${totH}<span style="font-size:16px;font-weight:600;">h</span></div><div class="stat-label">총 근무시간</div><div class="stat-diff">${diff(tot,ptot)}</div></div>
-      <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">총 작업 건수</div><div class="stat-diff">${diff(total,pTotal)}</div></div>
-      <div class="stat-card"><div class="stat-val">${reg}</div><div class="stat-label">제품 등록 ✅</div><div class="stat-diff">${diff(reg,pReg)}</div></div>
-      <div class="stat-card"><div class="stat-val">${edit}</div><div class="stat-label">제품 수정 ✏️</div><div class="stat-diff">${diff(edit,pEdit)}</div></div>
-      ${etc>0?`<div class="stat-card" style="grid-column:1/-1;"><div class="stat-val">${etc}</div><div class="stat-label">기타 업무 📌</div></div>`:''}
+      <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">총 작업 건수</div>
+        <div style="margin-top:10px;"><button onclick="exportReportCSV('all','${month}')" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--brand-light);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 전체 CSV</button></div>
+      </div>
+      ${renderLogToggle('register',regLogs,'제품 등록 ✅','✅','var(--success-light)','var(--success-text)')}
+      ${renderLogToggle('edit',editLogs,'제품 수정 ✏️','✏️','var(--warn-light)','var(--warn-text)')}
+      ${etc>0?renderLogToggle('etc',etcLogs,'기타 업무 📌','📌','#DBEAFE','#1D4ED8'):''}
     </div>
 
     <!-- 팀원별 기여 -->
@@ -1665,6 +1780,37 @@ async function loadAdminReport(){
         <div style="font-size:11px;color:var(--text-hint);margin-top:4px;">${ms.days}일 출근 · 목표 ${MONTHLY_TARGET_H}h 대비 ${ms.pct}%</div>
       </div>`).join('')}
     </div>`;
+}
+
+function toggleReportSection(id){
+  const el=document.getElementById(id);
+  const arrow=document.getElementById(id+'-arrow');
+  if(!el)return;
+  const isOpen=el.style.display!=='none';
+  el.style.display=isOpen?'none':'block';
+  if(arrow)arrow.textContent=isOpen?'▼ 펼치기':'▲ 접기';
+}
+
+function exportReportCSV(type,month){
+  const cache=window._reportLogsCache;
+  if(!cache){toast('데이터 없음');return;}
+  const {users,regLogs,editLogs,etcLogs,fl}=cache;
+  let logs=type==='register'?regLogs:type==='edit'?editLogs:type==='etc'?etcLogs:fl;
+  const [y,m]=month.split('-');
+  let csv='﻿팀원,날짜,구분,제품명,링크
+';
+  logs.sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(l=>{
+    const u=users.find(u=>u.id===l.userId);
+    const name=u?.name||'알 수 없음';
+    const typeLabel=l.type==='register'?'등록':l.type==='edit'?'수정':'기타';
+    csv+=`"${name}","${l.date||''}","${typeLabel}","${l.productName||''}","${l.link||''}"
+`;
+  });
+  const typeLabel=type==='register'?'등록':type==='edit'?'수정':type==='etc'?'기타':'전체';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`실적_${y}년${parseInt(m)}월_${typeLabel}.csv`;
+  a.click();toast('CSV 다운로드 완료 📥');
 }
 
 // ── 팀원 관리 ──
