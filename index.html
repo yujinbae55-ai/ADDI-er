@@ -1329,16 +1329,16 @@ function renderSideList(){
         ${dayLogs.length?`<div style="padding:0 14px 8px;display:flex;flex-wrap:wrap;gap:6px;">
           ${dayLogs.map(l=>`<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px;background:${l.type==='register'?'var(--success-light)':l.type==='edit'?'var(--warn-light)':'#DBEAFE'};color:${l.type==='register'?'var(--success-text)':l.type==='edit'?'var(--warn-text)':'#1D4ED8'};">${l.type==='register'?'✅':l.type==='edit'?'✏️':'📌'} ${l.productName}</span>`).join('')}
         </div>`:''}
-        <div class="rec-memo-area" onclick="event.stopPropagation()">
+        <div class="rec-memo-area">
           ${memo
-            ?`<div class="rec-memo-display" onclick="openRecMemo('${r.id}')">📝 <span>${memo}</span></div>`
-            :`<button class="rec-memo-add-btn" onclick="openRecMemo('${r.id}')">+ 메모 추가</button>`
+            ?`<div class="rec-memo-display rec-memo-open" data-rec-id="${r.id}">📝 <span>${memo}</span></div>`
+            :`<button class="rec-memo-add-btn rec-memo-open" data-rec-id="${r.id}">+ 메모 추가</button>`
           }
           <div class="rec-memo-edit" id="rec-memo-edit-${r.id}" style="display:none;">
-            <textarea class="rec-memo-input" id="rec-memo-ta-${r.id}" placeholder="오늘 업무 메모를 입력하세요...">${memo}</textarea>
+            <textarea class="rec-memo-input rec-memo-ta" data-rec-id="${r.id}" placeholder="오늘 업무 메모를 입력하세요...">${memo}</textarea>
             <div style="display:flex;gap:6px;margin-top:6px;">
-              <button onclick="saveRecMemo('${r.id}')" class="rec-memo-save-btn">저장</button>
-              <button onclick="closeRecMemo('${r.id}')" class="rec-memo-cancel-btn">취소</button>
+              <button class="rec-memo-save-btn rec-memo-save" data-rec-id="${r.id}">저장</button>
+              <button class="rec-memo-cancel-btn rec-memo-cancel" data-rec-id="${r.id}">취소</button>
             </div>
           </div>
         </div>
@@ -1893,6 +1893,41 @@ function toggleReportSection(id){
   el.style.display=isOpen?'none':'block';
   if(arrow)arrow.textContent=isOpen?'▼ 펼치기':'▲ 접기';
 }
+
+// rec-memo 이벤트 위임 (근무 기록 메모)
+document.addEventListener('click', function(e){
+  // 열기
+  const openBtn = e.target.closest('.rec-memo-open');
+  if(openBtn){
+    const id = openBtn.dataset.recId;
+    const editDiv = document.getElementById('rec-memo-edit-'+id);
+    if(editDiv){ editDiv.style.display='block'; editDiv.querySelector('.rec-memo-ta')?.focus(); }
+    return;
+  }
+  // 저장
+  if(e.target.classList.contains('rec-memo-save')){
+    const id = e.target.dataset.recId;
+    const ta = document.querySelector('.rec-memo-ta[data-rec-id="'+id+'"]');
+    if(!ta) return;
+    const memo = ta.value.trim();
+    fsUpdate('attendance', id, {memo}).then(ok=>{
+      if(ok){
+        toast('메모 저장 완료 📝');
+        const idx = _myAllRecs.findIndex(r=>r.id===id);
+        if(idx>=0) _myAllRecs[idx].memo = memo;
+        renderSideList();
+      } else toast('저장 실패');
+    });
+    return;
+  }
+  // 취소
+  if(e.target.classList.contains('rec-memo-cancel')){
+    const id = e.target.dataset.recId;
+    const editDiv = document.getElementById('rec-memo-edit-'+id);
+    if(editDiv) editDiv.style.display='none';
+    return;
+  }
+});
 
 // del-prod-log-btn 이벤트 위임
 document.addEventListener('click',function(e){
