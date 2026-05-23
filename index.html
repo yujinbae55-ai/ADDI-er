@@ -100,6 +100,8 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 
 /* ── Login ── */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 24px;background:var(--bg);}
+/* 로그인 화면에서 하단 탭 숨김 */
+body.is-login .bottom-nav{display:none!important;}
 .login-inner{width:100%;max-width:420px;}
 .login-logo{font-size:48px;font-weight:800;letter-spacing:-2px;margin-bottom:8px;text-align:center;}
 .login-logo .brand{color:var(--brand);}
@@ -360,6 +362,13 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .home-left,.home-right{display:flex;flex-direction:column;gap:14px;}
 @media(max-width:900px){.home-grid{grid-template-columns:1fr;}}
 
+/* ── Home summary chips ── */
+.summary-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:700;background:var(--surface);border:1.5px solid var(--border);color:var(--text-muted);}
+.summary-chip.active{background:var(--brand-light);border-color:var(--brand-mid);color:var(--brand);}
+
+/* ── MyPage full-width calendar ── */
+@keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
 /* ── Gamification Card ── */
 .game-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:22px;box-shadow:var(--shadow);}
 .game-ring-wrap{position:relative;width:130px;height:130px;margin:0 auto 16px;}
@@ -396,6 +405,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 .mypage-cal-col,.mypage-side-col{display:flex;flex-direction:column;gap:0;}
 .mypage-side-col{gap:0;}
 .my-side-panel{display:flex;flex-direction:column;gap:10px;}
+/* 마이페이지 달력 전폭 */
 .my-side-tab{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;}
 .my-side-tab.active{background:var(--brand);color:white;box-shadow:0 2px 8px rgba(139,63,255,0.3);}
 /* day detail inline card */
@@ -422,6 +432,18 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 /* ── Report toggle card ── */
 .report-toggle-card{cursor:pointer;transition:box-shadow 0.15s,border-color 0.15s;}
 .report-toggle-card:hover{border-color:var(--brand-mid)!important;box-shadow:0 4px 16px rgba(139,63,255,0.12)!important;}
+
+/* ── Record / Log Memo ── */
+.rec-memo-area{padding:8px 14px 10px;border-top:1px solid var(--border);}
+.rec-memo-display{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--text-muted);cursor:pointer;line-height:1.5;padding:4px 0;}
+.rec-memo-display:hover{color:var(--brand);}
+.rec-memo-display span{flex:1;white-space:pre-wrap;word-break:break-word;}
+.rec-memo-add-btn{background:none;border:1.5px dashed var(--border);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--text-hint);cursor:pointer;font-family:inherit;width:100%;text-align:left;transition:all 0.15s;}
+.rec-memo-add-btn:hover{border-color:var(--brand-mid);color:var(--brand);background:var(--brand-light);}
+.rec-memo-input{width:100%;min-height:70px;padding:8px 10px;border-radius:8px;border:1.5px solid var(--brand-mid);font-size:12px;font-family:inherit;resize:vertical;outline:none;background:var(--bg);box-sizing:border-box;line-height:1.5;}
+.rec-memo-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(139,63,255,0.1);}
+.rec-memo-save-btn{padding:5px 14px;border-radius:8px;border:none;background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.rec-memo-cancel-btn{padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:12px;cursor:pointer;font-family:inherit;}
 
 /* ── Notice badge ── */
 .notice-badge-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#EF4444;margin-left:4px;vertical-align:middle;animation:pulse-dot 2s infinite;}
@@ -487,13 +509,24 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 
     <!-- HOME -->
     <div class="page active" id="page-home">
-      <div class="page-header">
-        <div class="page-title">안녕하세요, <span class="name" id="user-name-display">유진</span>님 👋</div>
-        <div class="page-sub" id="today-date"></div>
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div class="page-title">안녕하세요, <span class="name" id="user-name-display">유진</span>님 👋</div>
+          <div class="page-sub" id="today-date"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <a href="https://askedtech.com/" target="_blank"
+            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:700;color:var(--text);text-decoration:none;">
+            🏠 홈페이지
+          </a>
+          <a href="https://admin.askedtech.com/sign-in" target="_blank"
+            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--brand-mid);background:var(--brand-light);font-size:12px;font-weight:700;color:var(--brand);text-decoration:none;">
+            ⚙️ 어드민
+          </a>
+        </div>
       </div>
-      <!-- 2-col layout on desktop -->
       <div class="home-grid">
-        <!-- Left Column -->
+        <!-- Left: 출퇴근 -->
         <div class="home-left">
           <div class="status-card">
             <div class="status-row">
@@ -510,13 +543,11 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
               <button class="btn-action btn-checkout-inactive" id="checkout-btn" onclick="handleCheckOut()">퇴근하기</button>
             </div>
           </div>
-          <div class="section-label" style="margin-top:4px;">최근 기록</div>
           <div id="today-timeline" style="display:none;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:16px 18px;"></div>
-          <div id="record-list"><div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div></div>
+          <div id="record-list" style="display:none;"></div>
         </div>
-        <!-- Right Column: Gamification + Checklist -->
+        <!-- Right: 게임카드 + 체크리스트 -->
         <div class="home-right">
-          <!-- Gamification Card -->
           <div class="game-card" id="home-game-card">
             <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">🏆 이번 달 현황</div>
             <div class="game-ring-wrap">
@@ -538,8 +569,6 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
             </div>
             <div id="game-badges" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;"></div>
           </div>
-
-          <!-- Shared Checklist Card -->
           <div class="card-sm" style="margin-top:0;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
               <div class="section-label" style="margin-bottom:0;">📋 제품 체크리스트</div>
@@ -553,18 +582,14 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 
     <!-- 마이페이지 -->
     <div class="page" id="page-mypage">
-      <!-- Header -->
       <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
         <div><div class="page-title">내 기록</div><div class="page-sub">개인 근무 현황 및 제품 로그</div></div>
         <button onclick="openEmojiPicker()" style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-family:'Pretendard',sans-serif;font-size:14px;font-weight:600;">
           <span id="my-emoji-display" style="font-size:24px;">😊</span> 이모지 변경
         </button>
       </div>
-      <!-- 월 목표 카드 (full width) -->
       <div class="goal-card" id="goal-card"></div>
-      <!-- 2-col: 달력 | 사이드 패널 -->
       <div class="mypage-grid">
-        <!-- 왼쪽: 달력 -->
         <div class="mypage-cal-col">
           <div class="cal-wrap">
             <div class="cal-nav">
@@ -575,19 +600,16 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
             <div id="my-cal-body"></div>
           </div>
         </div>
-        <!-- 오른쪽: 사이드 패널 (근무내역 + 제품로그, 날짜 클릭 시 상세) -->
         <div class="mypage-side-col">
-          <!-- 상단 탭 (근무내역 / 제품로그) -->
           <div class="tabs" style="margin-bottom:14px;">
             <button class="my-side-tab active" data-tab="list" onclick="switchSideTab('list')">📋 근무내역</button>
             <button class="my-side-tab" data-tab="products" onclick="switchSideTab('products')">📦 제품로그</button>
           </div>
-          <!-- 날짜 선택 표시 -->
           <div id="my-date-indicator" style="display:none;margin-bottom:10px;padding:8px 14px;background:var(--brand-light);border-radius:10px;border:1px solid var(--brand-mid);display:flex;align-items:center;justify-content:space-between;">
             <span id="my-date-indicator-text" style="font-size:13px;font-weight:700;color:var(--brand);"></span>
             <button onclick="clearDateFilter()" style="background:none;border:none;font-size:13px;color:var(--brand);cursor:pointer;font-weight:700;font-family:inherit;">✕ 전체보기</button>
           </div>
-          <div id="my-side-list" class="my-side-panel active-panel"></div>
+          <div id="my-side-list" class="my-side-panel"></div>
           <div id="my-side-products" class="my-side-panel" style="display:none;"></div>
         </div>
       </div>
@@ -896,6 +918,7 @@ function logout(){
   currentUser=null;todayAttendance=null;todayAllRecs=[];_clearAuth();_allUsers=[];
   document.getElementById('main-app').style.display='none';
   document.getElementById('login-page').style.display='flex';
+  document.body.classList.add('is-login');
   ['login-name','login-phone'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('login-error').style.display='none';
   document.getElementById('login-btn').disabled=false;
@@ -919,6 +942,7 @@ function isPO(u){return u&&(u.isPO===true||u.isPO==='true');}
 function enterApp(){
   document.getElementById('login-page').style.display='none';
   document.getElementById('main-app').style.display='flex';
+  document.body.classList.remove('is-login');
   // sidebar
   document.getElementById('sb-name').textContent=currentUser.name;
   document.getElementById('sb-role').textContent=isAdm(currentUser)?'관리자':isPO(currentUser)?'PO':'팀원';
@@ -1047,6 +1071,7 @@ async function handleCheckOut(){
 async function loadRecentRecords(){
   const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
   const list=document.getElementById('record-list');
+  if(!list)return; // 홈에서 record-list 숨김 처리
   const sorted=recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||'')).slice(0,7);
   if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>기록이 없습니다</div>';return;}
   list.innerHTML=sorted.map(r=>`
@@ -1148,20 +1173,28 @@ async function loadMyPage(){
   renderSidePanel();
 }
 
+function getUserTargetH(){
+  return parseFloat(currentUser?.monthlyTargetH)||MONTHLY_TARGET_H;
+}
+
 function renderGoalCard(){
+  const targetH=getUserTargetH();
   const pfx=`${myCalYear}-${String(myCalMonth+1).padStart(2,'0')}`;
   const mr=_myAllRecs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
   const ml=_myAllLogs.filter(l=>l.date&&l.date.startsWith(pfx));
   const tot=mr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
   const totH=tot/60;
-  const pct=Math.min(100,Math.round(totH/MONTHLY_TARGET_H*100));
-  const remainH=Math.max(0,MONTHLY_TARGET_H-totH);
+  const pct=Math.min(100,Math.round(totH/targetH*100));
+  const remainH=Math.max(0,targetH-totH);
   const color=pct>=100?'#10B981':pct>=70?'var(--brand)':'#F59E0B';
   document.getElementById('goal-card').innerHTML=`
     <div class="goal-header">
       <div>
-        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">이번 달 목표 ${MONTHLY_TARGET_H}h</div>
-        <div style="font-size:28px;font-weight:800;letter-spacing:-1px;">${Math.floor(totH)}h ${Math.floor((totH%1)*60)}m <span style="font-size:14px;font-weight:500;color:var(--text-muted);">/ ${MONTHLY_TARGET_H}h</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;">이번 달 목표</span>
+          <button onclick="openTargetEditor()" style="display:inline-flex;align-items:center;gap:3px;padding:2px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;color:var(--brand);cursor:pointer;font-family:inherit;">${targetH}h ✏️</button>
+        </div>
+        <div style="font-size:28px;font-weight:800;letter-spacing:-1px;">${Math.floor(totH)}h ${Math.floor((totH%1)*60)}m <span style="font-size:14px;font-weight:500;color:var(--text-muted);">/ ${targetH}h</span></div>
       </div>
       <div style="text-align:right;">
         <div style="font-size:36px;font-weight:800;color:${color};">${pct}%</div>
@@ -1177,6 +1210,43 @@ function renderGoalCard(){
     </div>`;
 }
 
+function openTargetEditor(){
+  const cur=getUserTargetH();
+  const wrap=document.getElementById('goal-card');
+  const editBar=document.createElement('div');
+  editBar.id='goal-edit-bar';
+  editBar.style.cssText='margin-top:12px;padding:12px 16px;background:var(--brand-light);border-radius:12px;border:1px solid var(--brand-mid);display:flex;align-items:center;gap:8px;';
+  editBar.innerHTML=`
+    <span style="font-size:13px;font-weight:700;color:var(--brand);white-space:nowrap;">월 목표 시간</span>
+    <input id="target-h-input" type="number" min="1" max="300" value="${cur}"
+      style="width:70px;padding:7px 10px;border-radius:8px;border:1.5px solid var(--brand-mid);font-size:14px;font-weight:700;font-family:inherit;text-align:center;outline:none;"
+      onkeydown="if(event.key==='Enter')saveTargetH()"/>
+    <span style="font-size:13px;color:var(--text-muted);">h</span>
+    <button onclick="saveTargetH()" style="padding:7px 16px;border-radius:8px;border:none;background:var(--brand);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
+    <button onclick="document.getElementById('goal-edit-bar')?.remove()" style="padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:13px;cursor:pointer;font-family:inherit;">취소</button>
+  `;
+  // 기존 edit bar 있으면 제거
+  document.getElementById('goal-edit-bar')?.remove();
+  wrap.appendChild(editBar);
+  setTimeout(()=>document.getElementById('target-h-input')?.focus(),50);
+}
+
+async function saveTargetH(){
+  const input=document.getElementById('target-h-input');
+  if(!input)return;
+  const val=parseFloat(input.value);
+  if(!val||val<1||val>300){toast('1~300 사이 숫자를 입력해주세요');return;}
+  const ok=await fsUpdate('users',currentUser.id,{monthlyTargetH:val});
+  if(ok){
+    currentUser.monthlyTargetH=val;
+    localStorage.setItem('addi_user',JSON.stringify(currentUser));
+    document.getElementById('goal-edit-bar')?.remove();
+    toast(`월 목표 ${val}h 로 저장됐어요 🎯`);
+    renderGoalCard();
+    loadHomeGameStats();
+  }else toast('저장 실패');
+}
+
 function switchSideTab(tab){
   _mySideTab=tab;
   document.querySelectorAll('.my-side-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
@@ -1187,11 +1257,7 @@ function switchSideTab(tab){
 
 function selectCalDate(date){
   _mySelectedDate=date;
-  // 달력 하이라이트 갱신
-  document.querySelectorAll('.cal-cell').forEach(c=>{
-    c.classList.toggle('cal-selected', c.dataset.date===date);
-  });
-  // date indicator
+  document.querySelectorAll('.cal-cell').forEach(c=>c.classList.toggle('cal-selected',c.dataset.date===date));
   const ind=document.getElementById('my-date-indicator');
   const indText=document.getElementById('my-date-indicator-text');
   if(ind&&indText){
@@ -1215,6 +1281,7 @@ function renderSidePanel(){
 }
 
 function renderSideList(){
+  // 날짜 선택 시 → my-side-list, 전체 → my-all-list
   const el=document.getElementById('my-side-list');
   if(!el)return;
   let recs=_myAllRecs.filter(r=>r.status==='completed');
@@ -1246,7 +1313,8 @@ function renderSideList(){
     }
     for(const r of items){
       const dayLogs=_myAllLogs.filter(l=>l.date===r.date&&l.userId===currentUser.id);
-      html+=`<div class="side-rec${_mySelectedDate?' selected':''}">
+      const memo=r.memo||'';
+      html+=`<div class="side-rec${_mySelectedDate?' selected':''}" id="srec-${r.id}">
         <div class="side-rec-main" onclick="openEditModal('${r.id}','${r.checkIn}','${r.checkOut||''}','${r.date}')">
           <div class="side-date-box"><div class="side-date-day">${d0.getDate()}</div><div class="side-date-dow">${dow}</div></div>
           <div style="flex:1;">
@@ -1258,9 +1326,22 @@ function renderSideList(){
             <button class="icon-btn danger" onclick="event.stopPropagation();deleteRecord('${r.id}')" title="삭제">🗑️</button>
           </div>
         </div>
-        ${dayLogs.length?`<div style="padding:0 14px 10px;display:flex;flex-wrap:wrap;gap:6px;">
+        ${dayLogs.length?`<div style="padding:0 14px 8px;display:flex;flex-wrap:wrap;gap:6px;">
           ${dayLogs.map(l=>`<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px;background:${l.type==='register'?'var(--success-light)':l.type==='edit'?'var(--warn-light)':'#DBEAFE'};color:${l.type==='register'?'var(--success-text)':l.type==='edit'?'var(--warn-text)':'#1D4ED8'};">${l.type==='register'?'✅':l.type==='edit'?'✏️':'📌'} ${l.productName}</span>`).join('')}
         </div>`:''}
+        <div class="rec-memo-area" onclick="event.stopPropagation()">
+          ${memo
+            ?`<div class="rec-memo-display" onclick="openRecMemo('${r.id}')">📝 <span>${memo}</span></div>`
+            :`<button class="rec-memo-add-btn" onclick="openRecMemo('${r.id}')">+ 메모 추가</button>`
+          }
+          <div class="rec-memo-edit" id="rec-memo-edit-${r.id}" style="display:none;">
+            <textarea class="rec-memo-input" id="rec-memo-ta-${r.id}" placeholder="오늘 업무 메모를 입력하세요...">${memo}</textarea>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+              <button onclick="saveRecMemo('${r.id}')" class="rec-memo-save-btn">저장</button>
+              <button onclick="closeRecMemo('${r.id}')" class="rec-memo-cancel-btn">취소</button>
+            </div>
+          </div>
+        </div>
       </div>`;
     }
   }
@@ -1272,9 +1353,9 @@ function renderSideProducts(){
   if(!el)return;
   let logs=_myAllLogs;
   if(_mySelectedDate){
-    logs=logs.filter(l=>l.date===_mySelectedDate);
+    logs=logs.filter(function(l){return l.date===_mySelectedDate;});
   }else{
-    logs=logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||'')).slice(0,80);
+    logs=logs.slice().sort(function(a,b){return(b.timestamp||'').localeCompare(a.timestamp||'');}).slice(0,80);
   }
   if(!logs.length){
     el.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>'+(
@@ -1282,45 +1363,64 @@ function renderSideProducts(){
     )+'</div>';
     return;
   }
-  const sorted=logs.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
+  const sorted=logs.slice().sort(function(a,b){return(b.timestamp||'').localeCompare(a.timestamp||'');});
   const groups={};
   for(const l of sorted){const k=l.date||l.timestamp?.slice(0,10)||'';if(!groups[k])groups[k]=[];groups[k].push(l);}
   let html='';
-  for(const[date,items]of Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]))){
+  for(const[date,items] of Object.entries(groups).sort(function(a,b){return b[0].localeCompare(a[0]);})){
     if(!_mySelectedDate){
-      html+=`<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;padding:4px 2px 6px;">${date?new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):''}</div>`;
+      const dateLabel=date?new Date(date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):'';
+      html+='<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;padding:4px 2px 6px;">'+dateLabel+'</div>';
     }
-    html+=items.map(l=>`<div class="prod-log" id="plog-${l.id}">
-      <div class="prod-log-hd">
-        <div class="prod-log-icon ${l.type==='register'?'register':l.type==='edit'?'edit':'etc'}">${l.type==='register'?'✅':l.type==='edit'?'✏️':'📌'}</div>
-        <div style="flex:1;">
-          <div class="prod-log-name">${l.productName}</div>
-          <div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${l.type==='register'?'제품 등록':l.type==='edit'?'제품 수정':'기타 업무'} · ${fmtTime(l.timestamp)}</div>
-        </div>
-        <button class="icon-btn danger" onclick="deleteProductLog('${l.id}')" title="삭제">🗑️</button>
-      </div>
-      ${l.link
-        ?`<div class="prod-log-link"><span>🔗</span><a href="${l.link}" target="_blank" style="word-break:break-all;">${l.link}</a>
-           <button onclick="openEditLogLink('${l.id}','${(l.link||'').replace(/'/g,"\'")}')" style="margin-left:auto;background:none;border:none;font-size:11px;color:var(--text-hint);cursor:pointer;white-space:nowrap;">✏️ 수정</button>
-          </div>`
-        :`<div style="padding:8px 14px;background:#FFF9E6;border-top:1px solid #FEF3C7;">
-            <div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:5px;">🔗 ASKEDTECH 제품 링크 등록</div>
-            <div style="display:flex;gap:6px;">
-              <input id="link-input-${l.id}" type="url" placeholder="https://askedtech.com/product/..." 
-                style="flex:1;padding:7px 10px;border-radius:8px;border:1.5px solid #FCD34D;font-size:12px;font-family:inherit;outline:none;background:white;"
-                onkeydown="if(event.key==='Enter')saveProductLink('${l.id}')"/>
-              <button onclick="saveProductLink('${l.id}')" 
-                style="padding:7px 14px;border-radius:8px;border:none;background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">저장</button>
-            </div>
-          </div>`
+    for(const l of items){
+      const pmemo=l.memo||'';
+      const typeClass=l.type==='register'?'register':l.type==='edit'?'edit':'etc';
+      const typeIcon=l.type==='register'?'✅':l.type==='edit'?'✏️':'📌';
+      const typeLabel=l.type==='register'?'제품 등록':l.type==='edit'?'제품 수정':'기타 업무';
+      // 링크 영역
+      let linkHtml='';
+      if(l.link){
+        linkHtml='<div class="prod-log-link"><span>🔗</span><a href="'+l.link+'" target="_blank" style="word-break:break-all;">'+l.link+'</a>'
+          +'<button class="edit-link-btn" data-log-id="'+l.id+'" data-link="'+encodeURIComponent(l.link||'')+'" style="margin-left:auto;background:none;border:none;font-size:11px;color:var(--text-hint);cursor:pointer;white-space:nowrap;">✏️ 수정</button></div>';
+      }else{
+        linkHtml='<div style="padding:8px 14px;background:#FFF9E6;border-top:1px solid #FEF3C7;">'
+          +'<div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:5px;">🔗 ASKEDTECH 제품 링크 등록</div>'
+          +'<div style="display:flex;gap:6px;">'
+          +'<input id="link-input-'+l.id+'" class="link-quick-input" data-log-id="'+l.id+'" type="url" placeholder="https://askedtech.com/product/..." style="flex:1;padding:7px 10px;border-radius:8px;border:1.5px solid #FCD34D;font-size:12px;font-family:inherit;outline:none;background:white;" />'
+          +'<button class="link-save-btn" data-log-id="'+l.id+'" style="padding:7px 14px;border-radius:8px;border:none;background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">저장</button>'
+          +'</div></div>';
       }
-    </div>`).join('');
+      // 메모 영역 (data-* 이벤트 위임)
+      const memoHtml='<div class="rec-memo-area">'
+        +(pmemo
+          ?'<div class="rec-memo-display log-memo-open" data-log-id="'+l.id+'">📝 <span>'+pmemo+'</span></div>'
+          :'<button class="rec-memo-add-btn log-memo-open" data-log-id="'+l.id+'">+ 특이사항 메모</button>'
+        )
+        +'<div class="rec-memo-edit" id="log-memo-edit-'+l.id+'" style="display:none;">'
+        +'<textarea class="rec-memo-input log-memo-input" data-log-id="'+l.id+'" placeholder="제품 특이사항, 비고 등...">'+pmemo+'</textarea>'
+        +'<div style="display:flex;gap:6px;margin-top:6px;">'
+        +'<button class="rec-memo-save-btn log-memo-save" data-log-id="'+l.id+'">저장</button>'
+        +'<button class="rec-memo-cancel-btn log-memo-cancel" data-log-id="'+l.id+'">취소</button>'
+        +'</div></div></div>';
+      html+='<div class="prod-log" id="plog-'+l.id+'">'
+        +'<div class="prod-log-hd">'
+        +'<div class="prod-log-icon '+typeClass+'">'+typeIcon+'</div>'
+        +'<div style="flex:1;">'
+        +'<div class="prod-log-name">'+l.productName+'</div>'
+        +'<div style="font-size:11px;color:var(--text-hint);margin-top:2px;">'+typeLabel+' · '+fmtTime(l.timestamp)+'</div>'
+        +'</div>'
+        +'<button class="icon-btn danger del-prod-log-btn" data-log-id="'+l.id+'" title="삭제">🗑️</button>'
+        +'</div>'
+        +linkHtml
+        +memoHtml
+        +'</div>';
+    }
   }
   el.innerHTML=html;
 }
 
 async function saveProductLink(logId){
-  const input=document.getElementById(`link-input-${logId}`);
+  const input=document.getElementById('link-input-'+logId)||document.querySelector('[data-log-id="'+logId+'"].link-quick-input');
   if(!input){toast('입력창을 찾을 수 없습니다');return;}
   const link=input.value.trim();
   if(!link){toast('링크를 입력해주세요');return;}
@@ -1794,6 +1894,67 @@ function toggleReportSection(id){
   if(arrow)arrow.textContent=isOpen?'▼ 펼치기':'▲ 접기';
 }
 
+// del-prod-log-btn 이벤트 위임
+document.addEventListener('click',function(e){
+  const btn=e.target.closest('.del-prod-log-btn');
+  if(btn){e.stopPropagation();deleteProductLog(btn.dataset.logId);}
+});
+
+// log-memo 이벤트 위임
+document.addEventListener('click',function(e){
+  // 메모 열기
+  if(e.target.closest('.log-memo-open')){
+    const id=e.target.closest('.log-memo-open').dataset.logId;
+    if(id)openLogMemo(id);return;
+  }
+  // 메모 저장
+  if(e.target.classList.contains('log-memo-save')){
+    saveLogMemoFromData(e.target.dataset.logId);return;
+  }
+  // 메모 취소
+  if(e.target.classList.contains('log-memo-cancel')){
+    closeLogMemo(e.target.dataset.logId);return;
+  }
+});
+async function saveLogMemoFromData(logId){
+  const ta=document.querySelector('.log-memo-input[data-log-id="'+logId+'"]');
+  if(!ta)return;
+  const memo=ta.value.trim();
+  const ok=await fsUpdate('productLogs',logId,{memo});
+  if(ok){
+    toast('메모 저장 완료 📝');
+    const idx=_myAllLogs.findIndex(l=>l.id===logId);
+    if(idx>=0)_myAllLogs[idx].memo=memo;
+    renderSideProducts();
+  }else toast('저장 실패');
+}
+
+// link-save-btn 클릭 위임
+document.addEventListener('click',function(e){
+  if(e.target.classList.contains('link-save-btn')){
+    const logId=e.target.dataset.logId;
+    if(logId)saveProductLink(logId);
+  }
+});
+
+// link-quick-input Enter 이벤트 위임
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&e.target.classList.contains('link-quick-input')){
+    const logId=e.target.dataset.logId;
+    if(logId)saveProductLink(logId);
+  }
+});
+
+// edit-link-btn 이벤트 위임
+document.addEventListener('click',function(e){
+  const editBtn=e.target.closest('.edit-link-btn');
+  if(editBtn){
+    const logId=editBtn.dataset.logId;
+    const link=editBtn.dataset.link||'';
+    openEditLogLink(logId,link);
+  }
+});
+
 // report-content 클릭 이벤트 위임 (onclick 속성 대신)
 document.addEventListener('click',function(e){
   // 토글 카드 클릭
@@ -1893,9 +2054,46 @@ async function exportExcel(uid,name,month){
 
 async function deleteProductLog(id){
   if(!confirm('이 로그를 삭제할까요?'))return;
+  // 체크리스트에서 생성된 로그인지 확인 → 체크리스트 상태도 롤백
+  const logToDelete=_myAllLogs.find(l=>l.id===id);
   const ok=await fsDelete('productLogs',id);
-  if(ok){toast('로그가 삭제되었습니다 🗑️');_myAllLogs=_myAllLogs.filter(l=>l.id!==id);renderSidePanel();renderMyCalendar();}
-  else toast('삭제 실패');
+  if(!ok){toast('삭제 실패');return;}
+  // 로컬 캐시 업데이트
+  _myAllLogs=_myAllLogs.filter(l=>l.id!==id);
+  // 체크리스트 연결 롤백
+  if(logToDelete?.fromChecklist==='true'&&logToDelete?.checklistId){
+    const clItems=await fsQuery('checklist');
+    const clItem=clItems.find(i=>i.id===logToDelete.checklistId);
+    if(clItem){
+      const rawLogs=clItem.logs||'_none_';
+      const checkedUsers=rawLogs==='_none_'?[]:rawLogs.split('||').filter(u=>u&&u!=='_none_');
+      const newUsers=checkedUsers.filter(u=>u!==currentUser.name);
+      // logIds에서도 제거
+      const rawLogIds=clItem.logIds||'_none_';
+      const logIdMap={};
+      if(rawLogIds!=='_none_'){
+        rawLogIds.split('||').filter(Boolean).forEach(pair=>{
+          const[u,lid]=pair.split(':');if(u&&lid)logIdMap[u]=lid;
+        });
+      }
+      delete logIdMap[currentUser.name];
+      const newLogIds=Object.entries(logIdMap).map(([u,l])=>u+':'+l).join('||')||'_none_';
+      await fsUpdate('checklist',clItem.id,{
+        done:newUsers.length>0?'true':'false',
+        logs:newUsers.join('||')||'_none_',
+        logIds:newLogIds,
+        checkedBy:newUsers.length>0?newUsers[newUsers.length-1]:'_none_',
+        checkedAt:newUsers.length>0?clItem.checkedAt:'_none_'
+      });
+    }
+  }
+  toast('로그 삭제 완료 🗑️');
+  // 화면 갱신
+  renderSidePanel();
+  renderMyCalendar();
+  loadHomeChecklist();
+  if(document.getElementById('admin-checklist-panel')?.style.display==='block')loadChecklist();
+  loadHomeGameStats();
 }
 
 // ── 공지사항 ──
@@ -2001,6 +2199,29 @@ function switchPage(page){
   }
   if(page==='admin'){switchAdminTab('team-cal');}
   if(page==='po'){switchPOTab('po-report');}
+}
+
+// ── 홈 요약 칩 ──
+async function renderHomeSummaryChips(){
+  const wrap=document.getElementById('home-summary-chips');
+  if(!wrap)return;
+  const today=getToday();
+  const todayRecs=_myAllRecs||[];
+  const todayCompleted=todayRecs.filter(r=>r.date===today&&r.status==='completed');
+  const todayLogs=await fsQuery('productLogs',[['userId','EQUAL',currentUser.id],['date','EQUAL',today]]);
+  const totalMin=todayCompleted.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
+  const chips=[];
+  if(todayAttendance){
+    const h=Math.floor(totalMin/60),m=Math.floor(totalMin%60);
+    chips.push({icon:'⏱',label:totalMin>0?(h+'h '+m+'m 근무중'):'출근 완료',active:true});
+  }
+  if(todayLogs.length>0)chips.push({icon:'📦',label:'제품 로그 '+todayLogs.length+'건',active:true});
+  const pfx=today.slice(0,7);
+  const monthRecs=_myAllRecs?.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed')||[];
+  const monthH=(monthRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0)/60).toFixed(1);
+  const pct=Math.min(100,Math.round(parseFloat(monthH)/MONTHLY_TARGET_H*100));
+  chips.push({icon:'🎯',label:'이번달 '+pct+'% 달성',active:pct>=70});
+  wrap.innerHTML=chips.map(c=>`<div class="summary-chip${c.active?' active':''}">${c.icon} ${c.label}</div>`).join('');
 }
 
 // ── 게이미피케이션 ──
@@ -2247,9 +2468,38 @@ async function toggleChecklistItem(id,iMeCheckedStr){
 }
 
 async function deleteChecklistItem(id){
-  if(!confirm('이 항목을 삭제할까요?'))return;
+  if(!confirm('이 체크리스트 항목을 삭제하면 연결된 팀원 제품 로그도 함께 삭제됩니다. 계속할까요?'))return;
+  // 먼저 체크리스트 항목 조회해서 logIds 파악
+  const clItems=await fsQuery('checklist');
+  const clItem=clItems.find(i=>i.id===id);
+  // 연결된 productLog들 삭제
+  if(clItem){
+    const rawLogIds=clItem.logIds||'_none_';
+    if(rawLogIds!=='_none_'){
+      const pairs=rawLogIds.split('||').filter(Boolean);
+      for(const pair of pairs){
+        const parts=pair.split(':');
+        if(parts.length>=2){
+          const logId=parts[1];
+          await fsDelete('productLogs',logId);
+          _myAllLogs=_myAllLogs.filter(l=>l.id!==logId);
+        }
+      }
+    }
+  }
   const ok=await fsDelete('checklist',id);
-  if(ok){toast('삭제됨');loadChecklist();loadHomeChecklist();}else toast('삭제 실패');
+  if(ok){
+    toast('항목 및 연결 로그 삭제됨 🗑️');
+    loadChecklist();
+    loadHomeChecklist();
+    // 마이페이지 활성 시 갱신
+    if(document.getElementById('page-mypage')?.classList.contains('active')){
+      renderSidePanel();renderMyCalendar();
+    }
+    loadHomeGameStats();
+  }else{
+    toast('삭제 실패');
+  }
 }
 
 // ── PO 탭 ──
@@ -2420,6 +2670,7 @@ function stopPolling(){if(_pollInterval){clearInterval(_pollInterval);_pollInter
       enterApp();return;
     }catch(e){localStorage.removeItem('addi_user');}finally{showLoading(false);}
   }
+  document.body.classList.add('is-login');
   _getToken().then(()=>ensureAdminSeed()).catch(()=>{});
 })();
 
