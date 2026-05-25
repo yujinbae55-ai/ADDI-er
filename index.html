@@ -383,6 +383,10 @@ body.is-login .bottom-nav{display:none!important;}
 .game-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
 
 /* ── Checklist ── */
+.cl-drag-handle{cursor:grab;padding:0 8px 0 4px;color:var(--text-hint);font-size:16px;flex-shrink:0;user-select:none;touch-action:none;}
+.cl-drag-handle:active{cursor:grabbing;}
+.cl-item.dragging{opacity:0.4;border-style:dashed;}
+.cl-item.drag-over{border-color:var(--brand)!important;background:var(--brand-light)!important;box-shadow:0 0 0 2px rgba(139,63,255,0.2);}
 .cl-item{background:var(--surface);border-radius:var(--radius-sm);border:1.5px solid var(--border);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;transition:all 0.2s;}
 .cl-item.done{opacity:0.55;border-style:dashed;}
 .cl-item.type-register{border-left:3px solid var(--success);}
@@ -2254,7 +2258,7 @@ async function renderHomeSummaryChips(){
   const pfx=today.slice(0,7);
   const monthRecs=_myAllRecs?.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed')||[];
   const monthH=(monthRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0)/60).toFixed(1);
-  const pct=Math.min(100,Math.round(parseFloat(monthH)/MONTHLY_TARGET_H*100));
+  const pct=Math.min(100,Math.round(parseFloat(monthH)/getUserTargetH()*100));
   chips.push({icon:'🎯',label:'이번달 '+pct+'% 달성',active:pct>=70});
   wrap.innerHTML=chips.map(c=>`<div class="summary-chip${c.active?' active':''}">${c.icon} ${c.label}</div>`).join('');
 }
@@ -2268,7 +2272,7 @@ async function loadHomeGameStats(){
   const monthRecs=recs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
   const tot=monthRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
   const totH=tot/60;
-  const pct=Math.min(100,Math.round(totH/MONTHLY_TARGET_H*100));
+  const pct=Math.min(100,Math.round(totH/getUserTargetH()*100));
   const days=[...new Set(monthRecs.map(r=>r.date))].length;
 
   // streak 계산 (연속 출근일)
@@ -2316,6 +2320,77 @@ function clSelectType(t){
   });
 }
 
+// ── 체크리스트 드래그 앤 드롭 ──
+let _clDragSrc=null;
+
+function initChecklistDrag(){
+  const container=document.getElementById('cl-drag-container');
+  if(!container)return;
+  const items=container.querySelectorAll('.cl-item[draggable="true"]');
+  items.forEach(item=>{
+    item.addEventListener('dragstart',function(e){
+      _clDragSrc=this;
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain',this.dataset.clId||'');
+    });
+    item.addEventListener('dragend',function(){
+      this.classList.remove('dragging');
+      container.querySelectorAll('.cl-item').forEach(i=>i.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover',function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      if(this!==_clDragSrc){
+        container.querySelectorAll('.cl-item').forEach(i=>i.classList.remove('drag-over'));
+        this.classList.add('drag-over');
+      }
+    });
+    item.addEventListener('dragleave',function(){
+      this.classList.remove('drag-over');
+    });
+    item.addEventListener('drop',function(e){
+      e.preventDefault();
+      if(!_clDragSrc||this===_clDragSrc)return;
+      this.classList.remove('drag-over');
+      // DOM 순서 교체
+      const allItems=[...container.querySelectorAll('.cl-item[draggable="true"]')];
+      const srcIdx=allItems.indexOf(_clDragSrc);
+      const tgtIdx=allItems.indexOf(this);
+      if(srcIdx<tgtIdx){
+        container.insertBefore(_clDragSrc,this.nextSibling);
+      }else{
+        container.insertBefore(_clDragSrc,this);
+      }
+      // 새 순서 저장
+      saveChecklistOrder();
+    });
+    // 모바일 터치 지원
+    item.addEventListener('touchstart',function(e){
+      _clDragSrc=this;
+      this.classList.add('dragging');
+    },{passive:true});
+    item.addEventListener('touchend',function(){
+      this.classList.remove('dragging');
+    });
+  });
+}
+
+async function saveChecklistOrder(){
+  const container=document.getElementById('cl-drag-container');
+  if(!container)return;
+  const items=[...container.querySelectorAll('.cl-item[data-cl-id]')];
+  // 각 아이템의 새 order 값 저장 (병렬 업데이트)
+  const updates=items.map((el,idx)=>{
+    const id=el.dataset.clId;
+    return id?fsUpdate('checklist',id,{order:idx}):Promise.resolve(true);
+  });
+  await Promise.all(updates);
+  toast('순서 저장 완료 ✅');
+  // 홈 체크리스트도 갱신
+  loadHomeChecklist();
+}
+
 async function addChecklistItem(){
   const name=document.getElementById('cl-product-name').value.trim();
   const link=document.getElementById('cl-product-link').value.trim();
@@ -2342,16 +2417,26 @@ async function addChecklistItem(){
 
 async function loadChecklist(){
   const items=await fsQuery('checklist');
+  // order 필드 기반 정렬, 없으면 createdAt
   const sorted=items.sort((a,b)=>{
-    if(a.done===b.done||a.done==='false'===b.done==='false')return(a.createdAt||'').localeCompare(b.createdAt||'');
-    return(a.done===true||a.done==='true')?1:-1;
+    const ao=a.order!=null?Number(a.order):9999;
+    const bo=b.order!=null?Number(b.order):9999;
+    if(ao!==bo)return ao-bo;
+    return(a.createdAt||'').localeCompare(b.createdAt||'');
   });
   const el=document.getElementById('admin-checklist-list');
   if(!el)return;
   if(!sorted.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>등록된 항목이 없습니다</div>';return;}
   const done=sorted.filter(i=>i.done===true||i.done==='true').length;
-  el.innerHTML=`<div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">${sorted.length}개 항목 · ${done}개 완료</div>`+
-    sorted.map(item=>renderChecklistItem(item,true)).join('');
+  el.innerHTML=
+    `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="font-size:12px;font-weight:700;color:var(--text-muted);">${sorted.length}개 항목 · ${done}개 완료</span>
+      <span style="font-size:11px;color:var(--text-hint);">☰ 드래그로 순서 변경</span>
+    </div>`+
+    `<div id="cl-drag-container">`+
+    sorted.map(item=>renderChecklistItem(item,true)).join('')+
+    `</div>`;
+  initChecklistDrag();
 }
 
 async function loadHomeChecklist(){
@@ -2360,6 +2445,9 @@ async function loadHomeChecklist(){
     const aDone=a.done===true||a.done==='true';
     const bDone=b.done===true||b.done==='true';
     if(aDone!==bDone)return aDone?1:-1;
+    const ao=a.order!=null?Number(a.order):9999;
+    const bo=b.order!=null?Number(b.order):9999;
+    if(ao!==bo)return ao-bo;
     return(a.createdAt||'').localeCompare(b.createdAt||'');
   });
   const el=document.getElementById('home-checklist');
@@ -2383,7 +2471,10 @@ function renderChecklistItem(item,isAdmin){
   const checkIcon=iMeChecked?'✓':'';
   const checkTitle=iMeChecked?'내 완료 취소':'완료 처리 (제품 로그 자동 등록)';
   const checkStyle=iMeChecked?'background:var(--success-light);border-color:var(--success);color:var(--success-text);':'';
-  return`<div class="cl-item type-${type}${isDone?' done':''}" id="cl-item-${item.id}">
+  const dragAttrs=isAdmin?`draggable="true" data-cl-id="${item.id}"`:'';
+  const dragHandle=isAdmin?`<div class="cl-drag-handle" title="드래그로 순서 변경">☰</div>`:'';
+  return`<div class="cl-item type-${type}${isDone?' done':''}" id="cl-item-${item.id}" ${dragAttrs}>
+    ${dragHandle}
     <div class="cl-check" onclick="toggleChecklistItem('${item.id}','${iMeChecked}')" title="${checkTitle}" style="${checkStyle}">${checkIcon}</div>
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -2391,6 +2482,10 @@ function renderChecklistItem(item,isAdmin){
         <span class="cl-type-badge ${typeClass}">${typeLabel}</span>
       </div>
       ${item.link&&item.link!=='_none_'?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--brand);word-break:break-all;">${item.link}</a>`:''}
+      <a href="https://admin.askedtech.com/product/request-add-product" target="_blank"
+        style="display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:3px 10px;border-radius:8px;border:1px solid #E2D9F3;background:#F5F0FF;font-size:11px;font-weight:700;color:#7C3AED;text-decoration:none;">
+        ⚙️ 어드민 등록
+      </a>
       ${checkedUsers.length?`<div style="font-size:11px;color:var(--text-hint);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
         ${checkedUsers.map(u=>`<span style="display:inline-flex;align-items:center;gap:3px;background:var(--success-light);color:var(--success-text);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;">✓ ${u}</span>`).join('')}
       </div>`:''}
