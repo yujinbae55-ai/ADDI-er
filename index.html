@@ -10,12 +10,19 @@
 /* ── Reset & Base ── */
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
+  /* 브랜드 보라 */
   --brand:#8B3FFF;--brand-light:#F0E8FF;--brand-mid:#C9A0FF;--brand-dark:#5C1FCC;
-  --bg:#F4F2FA;--surface:#FFF;--border:rgba(139,63,255,0.10);
-  --text:#1A1A2E;--text-muted:#7A7A9A;--text-hint:#BABACE;
-  --success:#10B981;--success-light:#D1FAE5;--success-text:#065F46;
-  --warn-light:#FEF3C7;--warn-text:#92400E;
+  /* 네이비 텍스트 */
+  --text:#1A1A2E;--text-muted:#6B7280;--text-hint:#B0B8C8;
+  /* 배경/서피스 */
+  --bg:#F2F4F8;--surface:#FFFFFF;--border:rgba(139,63,255,0.10);
+  /* 하늘색 보조 */
+  --sky:#38BDF8;--sky-light:#E0F5FE;--sky-mid:#7DD3FC;--sky-dark:#0369A1;
+  /* 상태 컬러 - 무채색 기반으로 중화 */
+  --success:#10B981;--success-light:#E6FAF4;--success-text:var(--success-text);
+  --warn-light:#F0EBFF;--warn-text:#5B21B6;
   --danger:#EF4444;--danger-light:#FEE2E2;
+  /* 레이아웃 */
   --radius:20px;--radius-sm:14px;--radius-xs:10px;
   --shadow:0 4px 24px rgba(139,63,255,0.09);
   --sidebar:260px;
@@ -150,7 +157,7 @@ body.is-login .bottom-nav{display:none!important;}
 .status-label-text{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;}
 .status-badge{font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;}
 .badge-active{background:var(--success-light);color:var(--success-text);}
-.badge-done{background:var(--warn-light);color:var(--warn-text);}
+.badge-done{background:var(--sky-light);color:var(--sky-dark);}
 .badge-none{background:#F0EFF6;color:#8884A3;}
 .time-row{display:flex;gap:36px;margin-bottom:22px;}
 .time-item .tl{font-size:11px;font-weight:600;color:var(--text-hint);}
@@ -166,7 +173,7 @@ body.is-login .bottom-nav{display:none!important;}
 .btn-checkout-active{background:#1A1A2E;color:white;}
 .btn-checkout-active:hover{background:#2D2D44;transform:translateY(-1px);}
 .btn-checkout-inactive{background:#EAE8F0;color:#A09DC0;cursor:not-allowed;}
-.btn-checkout-done{background:var(--warn-light);color:var(--warn-text);cursor:default;}
+.btn-checkout-done{background:var(--sky-light);color:var(--sky-dark);cursor:default;}
 
 /* ── Records ── */
 .record-list{display:flex;flex-direction:column;gap:10px;}
@@ -174,7 +181,7 @@ body.is-login .bottom-nav{display:none!important;}
 .record-date{font-size:14px;font-weight:700;margin-bottom:3px;}
 .record-times{font-size:12px;color:var(--text-muted);}
 .record-dur{font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-light);padding:5px 12px;border-radius:20px;border:1px solid var(--brand-mid);white-space:nowrap;}
-.record-dur.active{background:var(--success-light);color:var(--success-text);border-color:#6EE7B7;}
+.record-dur.active{background:var(--success-light);color:var(--success-text);border-color:#34D399;}
 .icon-btn{background:none;border:none;cursor:pointer;font-size:16px;padding:5px;border-radius:8px;transition:background 0.15s;}
 .icon-btn:hover{background:#F0EFF6;}
 .icon-btn.danger:hover{background:var(--danger-light);}
@@ -203,7 +210,7 @@ body.is-login .bottom-nav{display:none!important;}
 .cal-cell.today{border-color:var(--brand)!important;border-width:2px;}
 .cal-day{font-size:12px;font-weight:600;text-align:center;margin-bottom:3px;}
 .cal-dots{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;}
-.cal-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.cal-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;}
 .cal-dur-text{font-size:10px;font-weight:700;color:var(--brand);text-align:center;}
 /* Team cal */
 .team-cal-cell{min-height:72px;}
@@ -265,7 +272,7 @@ body.is-login .bottom-nav{display:none!important;}
 .prod-log-hd{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
 .prod-log-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .prod-log-icon.register{background:var(--success-light);}
-.prod-log-icon.edit{background:var(--warn-light);}
+.prod-log-icon.edit{background:var(--brand-light);}
 .prod-log-name{font-size:15px;font-weight:700;flex:1;}
 .prod-log-link{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg);}
 .prod-log-link a{font-size:12px;color:var(--brand);text-decoration:none;word-break:break-all;flex:1;}
@@ -323,7 +330,7 @@ body.is-login .bottom-nav{display:none!important;}
 .month-sel-row select{border:none;background:none;font-family:'Pretendard',sans-serif;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;outline:none;flex:1;}
 
 /* AI report box */
-.ai-box{background:linear-gradient(135deg,#1A1A2E,#2D1F5E);border-radius:var(--radius-sm);padding:22px;}
+.ai-box{background:linear-gradient(135deg,#0F172A,#1A1A4E);border-radius:var(--radius-sm);padding:22px;}
 .ai-box-title{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
 .ai-box-title span{font-size:14px;font-weight:700;color:white;}
 .ai-text{font-size:14px;color:rgba(255,255,255,0.85);line-height:1.9;white-space:pre-wrap;}
@@ -347,7 +354,7 @@ body.is-login .bottom-nav{display:none!important;}
 
 /* badge */
 .badge-active{background:var(--success-light);color:var(--success-text);}
-.badge-done{background:var(--warn-light);color:var(--warn-text);}
+.badge-done{background:var(--sky-light);color:var(--sky-dark);}
 .badge-none{background:#F0EFF6;color:#8884A3;}
 .badge-active-btn{background:var(--success-light);color:var(--success-text);}
 .a-tab-btn{flex:1;padding:9px 6px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;white-space:nowrap;}
@@ -404,8 +411,8 @@ body.is-login .bottom-nav{display:none!important;}
 .cl-item.done .cl-name{text-decoration:line-through;color:var(--text-muted);}
 .cl-type-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0;}
 .cl-type-register{background:var(--success-light);color:var(--success-text);}
-.cl-type-edit{background:var(--warn-light);color:var(--warn-text);}
-.cl-type-etc{background:#DBEAFE;color:#1D4ED8;}
+.cl-type-edit{background:var(--brand-light);color:var(--brand);}
+.cl-type-etc{background:var(--sky-light);color:var(--sky-dark);}
 .cl-log-expand{font-size:11px;color:var(--text-hint);cursor:pointer;background:none;border:none;padding:3px 6px;border-radius:6px;font-family:inherit;}
 .cl-log-expand:hover{background:var(--bg);color:var(--text-muted);}
 
@@ -442,8 +449,8 @@ body.is-login .bottom-nav{display:none!important;}
 .urgent-badge{display:inline-flex;align-items:center;gap:3px;background:#FEE2E2;color:#DC2626;border-radius:6px;padding:1px 7px;font-size:10px;font-weight:800;}
 
 /* ── PO tabs ── */
-.po-tab-btn{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;white-space:nowrap;}
-.po-tab-btn.active{background:var(--brand);color:white;box-shadow:0 2px 8px rgba(139,63,255,0.3);}
+.po-tab-btn{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--sky-dark);transition:all 0.15s;white-space:nowrap;}
+.po-tab-btn.active{background:var(--sky-dark);color:white;box-shadow:0 2px 8px rgba(3,105,161,0.25);}
 /* ── Report toggle card ── */
 .report-toggle-card{cursor:pointer;transition:box-shadow 0.15s,border-color 0.15s;}
 .report-toggle-card:hover{border-color:var(--brand-mid)!important;box-shadow:0 4px 16px rgba(139,63,255,0.12)!important;}
@@ -531,11 +538,11 @@ body.is-login .bottom-nav{display:none!important;}
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <a href="https://askedtech.com/" target="_blank"
-            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:700;color:var(--text);text-decoration:none;">
+            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid rgba(26,26,46,0.15);background:var(--surface);font-size:12px;font-weight:700;color:var(--text);text-decoration:none;">
             🏠 홈페이지
           </a>
           <a href="https://admin.askedtech.com/sign-in" target="_blank"
-            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--brand-mid);background:var(--brand-light);font-size:12px;font-weight:700;color:var(--brand);text-decoration:none;">
+            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--sky-mid);background:var(--sky-light);font-size:12px;font-weight:700;color:var(--sky-dark);text-decoration:none;">
             ⚙️ 어드민
           </a>
         </div>
@@ -564,17 +571,17 @@ body.is-login .bottom-nav{display:none!important;}
               <span style="font-size:16px;flex-shrink:0;">☕</span>
               <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:#5B21B6;">주별회의</div><div style="font-size:10px;color:#7C3AED;">1시간</div></div>
             </button>
-            <button onclick="quickAddWork(60,'monthly_remote','📋 월별회의(비대면)')" class="quick-action-btn" style="background:#EEF2FF;border:1.5px solid #C7D2FE;padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
+            <button onclick="quickAddWork(60,'monthly_remote','📋 월별회의(비대면)')" class="quick-action-btn" style="background:var(--sky-light);border:1.5px solid var(--sky-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
               <span style="font-size:16px;flex-shrink:0;">💻</span>
-              <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:#3730A3;">월별회의 비대면</div><div style="font-size:10px;color:#4F46E5;">1시간</div></div>
+              <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:var(--sky-dark);">월별회의 비대면</div><div style="font-size:10px;color:var(--sky-dark);">1시간</div></div>
             </button>
-            <button onclick="quickAddWork(180,'monthly_onsite','📋 월별회의(대면)')" class="quick-action-btn" style="background:#DBEAFE;border:1.5px solid #BFDBFE;padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
+            <button onclick="quickAddWork(180,'monthly_onsite','📋 월별회의(대면)')" class="quick-action-btn" style="background:var(--sky-light);border:1.5px solid var(--sky-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
               <span style="font-size:16px;flex-shrink:0;">🏢</span>
-              <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:#1E40AF;">월별회의 대면</div><div style="font-size:10px;color:#2563EB;">3시간</div></div>
+              <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:var(--sky-dark);">월별회의 대면</div><div style="font-size:10px;color:var(--sky-dark);">3시간</div></div>
             </button>
-            <button onclick="quickAddWork(60,'minutes','📝 회의록 작성')" class="quick-action-btn" style="background:#DCFCE7;border:1.5px solid #A7F3D0;padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
+            <button onclick="quickAddWork(60,'minutes','📝 회의록 작성')" class="quick-action-btn" style="background:var(--brand-light);border:1.5px solid var(--brand-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
               <span style="font-size:16px;flex-shrink:0;">📝</span>
-              <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:#166534;">회의록 작성</div><div style="font-size:10px;color:#15803D;">1시간</div></div>
+              <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:var(--brand-dark);">회의록 작성</div><div style="font-size:10px;color:var(--brand);">1시간</div></div>
             </button>
           </div>
           <!-- 근무 직접 추가 -->
@@ -722,7 +729,7 @@ body.is-login .bottom-nav{display:none!important;}
 
       <!-- 실적 리포트 -->
       <div class="admin-tab-panel" data-panel="report" id="admin-report" style="display:none;">
-        <div style="background:linear-gradient(135deg,#1A1A2E,#2D1F5E);border-radius:var(--radius-sm);padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+        <div style="background:linear-gradient(135deg,#0F172A,#1A1A4E);border-radius:var(--radius-sm);padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
           <span style="font-size:28px;">✨</span>
           <div><div style="font-size:17px;font-weight:800;color:white;">AI 월별 실적 리포트</div><div style="font-size:12px;color:rgba(255,255,255,0.5);">팀 데이터 기반 자동 분석</div></div>
         </div>
@@ -810,7 +817,7 @@ body.is-login .bottom-nav{display:none!important;}
 
         <!-- PO 실적 -->
         <div class="po-tab-panel" data-panel="po-report" id="po-panel-report" style="display:none;">
-          <div style="background:linear-gradient(135deg,#0F172A,#1E1B4B);border-radius:var(--radius-sm);padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+          <div style="background:linear-gradient(135deg,#0F172A,#0C4A6E);border-radius:var(--radius-sm);padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
             <span style="font-size:28px;">🎯</span>
             <div><div style="font-size:17px;font-weight:800;color:white;">PO 월별 실적 리포트</div><div style="font-size:12px;color:rgba(255,255,255,0.5);">팀 데이터 기반 집계</div></div>
           </div>
@@ -886,7 +893,7 @@ function getReportBaseMonth(){
   return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 }
 const MEMBER_COLORS = ['#8B3FFF','#10B981','#F59E0B','#EF4444','#3B82F6','#EC4899','#14B8A6','#F97316'];
-const MEMBER_BG     = ['#F0E8FF','#D1FAE5','#FEF3C7','#FEE2E2','#DBEAFE','#FCE7F3','#CCFBF1','#FFEDD5'];
+const MEMBER_BG     = ['#F0E8FF','var(--success-light)','var(--brand-mid)','#FEE2E2','var(--sky-light)','#FCE7F3','#CCFBF1','#FFEDD5'];
 const DEFAULT_EMOJIS= ['🦄','🐬','🦊','🐼','🦁','🐙','🦋','🐸'];
 const EMOJI_POOL    = ['🦄','🐬','🦊','🐼','🦁','🐙','🦋','🐸','🐳','🦅','🦉','🐺','🦝','🐨','🦒','🐘','🦓','🐯','🦜','🐧','🦩','🐝','🦋','🌟','⭐','🔮','💎','🎯','🚀','🌙','☀️','🎸','🎨','🏆','🎪'];
 
@@ -1198,7 +1205,7 @@ function openMonthlyMeetingModal(){
     </div>
     <div style="display:flex;gap:10px;">
       <button onclick="closeModal()" style="flex:1;padding:14px;border-radius:10px;border:1.5px solid #E8E6F0;background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">취소</button>
-      <button onclick="saveMonthlyMeeting()" style="flex:2;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">기록하기</button>
+      <button onclick="saveMonthlyMeeting()" style="flex:2;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,#0369A1,#7C3AED);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">기록하기</button>
     </div>`;
   document.getElementById('modal').classList.add('open');
 }
@@ -1600,7 +1607,7 @@ function renderSideList(){
       const dayLogs=_myAllLogs.filter(l=>l.date===r.date&&l.userId===currentUser.id);
       const memo=r.memo||'';
       const meetingBadge=r.type==='meeting'
-        ?`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${r.meetingType==='weekly'?'#EDE9FF':'#EEF2FF'};color:${r.meetingType==='weekly'?'#5B21B6':'#3730A3'};">${r.meetingType==='weekly'?'☕ 주별회의':'📋 월별회의'}</span>`
+        ?`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${r.meetingType==='weekly'?'var(--brand-light)':'var(--sky-light)'};color:${r.meetingType==='weekly'?'var(--brand-dark)':'var(--sky-dark)'};">${r.meetingType==='weekly'?'☕ 주별회의':'📋 월별회의'}</span>`
         :'';
       html+=`<div class="side-rec${_mySelectedDate?' selected':''}" id="srec-${r.id}">
         <div class="side-rec-main" onclick="openEditModal('${r.id}','${r.checkIn}','${r.checkOut||''}','${r.date}')">
@@ -1613,12 +1620,12 @@ function renderSideList(){
             <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${r.checkOut?'총 '+calcDur(r.checkIn,r.checkOut):'🟢 근무중'}</div>
           </div>
           <div style="display:flex;align-items:center;gap:4px;">
-            ${r.checkOut?`<span style="font-size:12px;font-weight:800;color:var(--brand);background:var(--brand-light);padding:4px 10px;border-radius:20px;">${calcDur(r.checkIn,r.checkOut)}</span>`:'<span style="font-size:12px;font-weight:700;color:#10B981;background:#D1FAE5;padding:4px 10px;border-radius:20px;">근무중</span>'}
+            ${r.checkOut?`<span style="font-size:12px;font-weight:800;color:var(--brand);background:var(--brand-light);padding:4px 10px;border-radius:20px;">${calcDur(r.checkIn,r.checkOut)}</span>`:'<span style="font-size:12px;font-weight:700;color:#10B981;background:var(--success-light);padding:4px 10px;border-radius:20px;">근무중</span>'}
             <button class="icon-btn danger" onclick="event.stopPropagation();deleteRecord('${r.id}')" title="삭제">🗑️</button>
           </div>
         </div>
         ${dayLogs.length?`<div style="padding:0 14px 8px;display:flex;flex-wrap:wrap;gap:6px;">
-          ${dayLogs.map(l=>`<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px;background:${l.type==='register'?'var(--success-light)':l.type==='edit'?'var(--warn-light)':'#DBEAFE'};color:${l.type==='register'?'var(--success-text)':l.type==='edit'?'var(--warn-text)':'#1D4ED8'};">${l.type==='register'?'✅':l.type==='edit'?'✏️':'📌'} ${l.productName}</span>`).join('')}
+          ${dayLogs.map(l=>`<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px;background:${l.type==='register'?'var(--success-light)':l.type==='edit'?'var(--brand-light)':'var(--sky-light)'};color:${l.type==='register'?'var(--success-text)':l.type==='edit'?'var(--brand)':'var(--sky-dark)'};">${l.type==='register'?'✅':l.type==='edit'?'✏️':'📌'} ${l.productName}</span>`).join('')}
         </div>`:''}
         <div class="rec-memo-area">
           ${memo
@@ -1674,10 +1681,10 @@ function renderSideProducts(){
         linkHtml='<div class="prod-log-link"><span>🔗</span><a href="'+l.link+'" target="_blank" style="word-break:break-all;">'+l.link+'</a>'
           +'<button class="edit-link-btn" data-log-id="'+l.id+'" data-link="'+encodeURIComponent(l.link||'')+'" style="margin-left:auto;background:none;border:none;font-size:11px;color:var(--text-hint);cursor:pointer;white-space:nowrap;">✏️ 수정</button></div>';
       }else{
-        linkHtml='<div style="padding:8px 14px;background:#FFF9E6;border-top:1px solid #FEF3C7;">'
-          +'<div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:5px;">🔗 ASKEDTECH 제품 링크 등록</div>'
+        linkHtml='<div style="padding:8px 14px;background:var(--brand-light);border-top:1px solid var(--brand-mid);">'
+          +'<div style="font-size:11px;font-weight:700;color:var(--brand-dark);margin-bottom:5px;">🔗 ASKEDTECH 제품 링크 등록</div>'
           +'<div style="display:flex;gap:6px;">'
-          +'<input id="link-input-'+l.id+'" class="link-quick-input" data-log-id="'+l.id+'" type="url" placeholder="https://askedtech.com/product/..." style="flex:1;padding:7px 10px;border-radius:8px;border:1.5px solid #FCD34D;font-size:12px;font-family:inherit;outline:none;background:white;" />'
+          +'<input id="link-input-'+l.id+'" class="link-quick-input" data-log-id="'+l.id+'" type="url" placeholder="https://askedtech.com/product/..." style="flex:1;padding:7px 10px;border-radius:8px;border:1.5px solid var(--brand-mid);font-size:12px;font-family:inherit;outline:none;background:white;" />'
           +'<button class="link-save-btn" data-log-id="'+l.id+'" style="padding:7px 14px;border-radius:8px;border:none;background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">저장</button>'
           +'</div></div>';
       }
@@ -1840,7 +1847,8 @@ function switchAdminTab(tab){
 
 // ── 팀 달력 ──
 async function loadTeamCal(){
-  _allUsers=await fsQuery('users');
+  const allU=await fsQuery('users');
+  _allUsers=allU; // 전체 캐시 유지 (다른 곳에서 사용)
   teamCalYear=new Date().getFullYear();teamCalMonth=new Date().getMonth();
   renderTeamCal();
 }
@@ -1854,9 +1862,12 @@ async function renderTeamCal(){
   for(const r of filtered){if(!byDate[r.date])byDate[r.date]=[];byDate[r.date].push(r);}
   const firstDay=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
 
+  // PO 제외한 팀원 목록
+  const teamUsers=_allUsers.filter(u=>!isPO(u)||isAdm(u));
+
   // legend
   let legend='<div class="team-legend" id="team-legend">';
-  _allUsers.forEach((u,i)=>{
+  teamUsers.forEach((u,i)=>{
     const color=MEMBER_COLORS[i%MEMBER_COLORS.length];
     const bg=MEMBER_BG[i%MEMBER_BG.length];
     const emoji=u.emoji||DEFAULT_EMOJIS[i%DEFAULT_EMOJIS.length];
@@ -1873,15 +1884,23 @@ async function renderTeamCal(){
     const isToday=ds===getToday();
     const dow=new Date(ds+'T00:00:00').getDay();
     const dc=dow===0?'color:#EF4444':dow===6?'color:#3B82F6':'';
-    const dots=dayRecs.map(r=>{
-      const ui=_allUsers.findIndex(u=>u.id===r.userId);
+    // 출근한 유저 중복 제거 (유저당 이모지 1개)
+    const seenUsers=new Set();
+    const dots=dayRecs.filter(r=>{
+      const u=teamUsers.find(u=>u.id===r.userId);
+      if(!u)return false; // PO/없는 유저 제외
+      if(seenUsers.has(r.userId))return false; // 중복 제거
+      seenUsers.add(r.userId);
+      return true;
+    }).map(r=>{
+      const ui=teamUsers.findIndex(u=>u.id===r.userId);
       const color=MEMBER_COLORS[ui%MEMBER_COLORS.length]||'#8B3FFF';
       const bg=MEMBER_BG[ui%MEMBER_BG.length]||'#F0E8FF';
-      const u=_allUsers[ui];
+      const u=teamUsers[ui];
       const emoji=u?.emoji||DEFAULT_EMOJIS[ui%DEFAULT_EMOJIS.length]||'😊';
-      return`<div class="cal-dot" style="background:${bg};color:${color};" title="${u?.name||''}">${emoji}</div>`;
+      return`<div class="cal-dot" style="background:${bg};color:${color};font-size:18px;width:28px;height:28px;" title="${u?.name||''}">${emoji}</div>`;
     }).join('');
-    html+=`<div class="cal-cell team-cal-cell${isToday?' today':''}" onclick="showTeamDayDetail('${ds}')" style="${dayRecs.length?'border-color:rgba(139,63,255,0.15);':''}" >
+    html+=`<div class="cal-cell team-cal-cell${isToday?' today':''}" onclick="showTeamDayDetail('${ds}')" style="${seenUsers.size?'border-color:rgba(139,63,255,0.15);':''}" >
       <div class="cal-day" style="${dc}">${d}</div>
       <div class="cal-dots">${dots}</div>
     </div>`;
@@ -2135,7 +2154,7 @@ async function loadAdminReport(){
 
   document.getElementById('report-content').innerHTML=`
     <!-- 실적 요약 박스 -->
-    <div style="background:linear-gradient(135deg,#1A1A2E,#2D1F5E);border-radius:var(--radius-sm);padding:22px;margin-bottom:16px;">
+    <div style="background:linear-gradient(135deg,#0F172A,#1A1A4E);border-radius:var(--radius-sm);padding:22px;margin-bottom:16px;">
       <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">📊 업무 주요 실적 사항</div>
       <div style="font-size:14px;color:rgba(255,255,255,0.88);line-height:2;">
         <div style="margin-bottom:8px;">• 지난 ${mKo}월 한 달 동안 에디터 팀(${users.map(u=>u.name).join(', ')})은 총 <b style="color:#C9A0FF;">${totH}시간</b> 근무하였습니다. ${hDiff!==null?`(전월比 <b style="color:${hDiff>=0?'#10B981':'#EF4444'}">${hDiff>=0?'+':''}${hDiff}%</b>)`:''}
@@ -2162,7 +2181,7 @@ async function loadAdminReport(){
       </div>
       ${renderLogToggle('register',regLogs,'제품 등록 ✅','✅','var(--success-light)','var(--success-text)')}
       ${renderLogToggle('edit',editLogs,'제품 수정 ✏️','✏️','var(--warn-light)','var(--warn-text)')}
-      ${etc>0?renderLogToggle('etc',etcLogs,'기타 업무 📌','📌','#DBEAFE','#1D4ED8'):''}
+      ${etc>0?renderLogToggle('etc',etcLogs,'기타 업무 📌','📌','var(--sky-light)','var(--sky-dark)'):''}
     </div>
 
     <!-- 팀원별 기여 -->
@@ -2603,10 +2622,10 @@ async function loadHomeGameStats(){
 
   // badges
   const badges=[];
-  if(streak>=3)badges.push({icon:'🔥',label:`${streak}일 연속`,color:'#FEF3C7',text:'#92400E'});
-  if(pct>=100)badges.push({icon:'🏆',label:'목표 달성!',color:'#D1FAE5',text:'#065F46'});
+  if(streak>=3)badges.push({icon:'🔥',label:`${streak}일 연속`,color:'var(--brand-mid)',text:'var(--brand-dark)'});
+  if(pct>=100)badges.push({icon:'🏆',label:'목표 달성!',color:'var(--success-light)',text:'var(--success-text)'});
   if(pct>=50&&pct<100)badges.push({icon:'⚡',label:'순항중',color:'var(--brand-light)',text:'var(--brand)'});
-  if(days>=10)badges.push({icon:'💎',label:'근무왕',color:'#DBEAFE',text:'#1D4ED8'});
+  if(days>=10)badges.push({icon:'💎',label:'근무왕',color:'var(--sky-light)',text:'var(--sky-dark)'});
   const badgeWrap=document.getElementById('game-badges');
   if(badgeWrap)badgeWrap.innerHTML=badges.map(b=>`<span class="game-badge" style="background:${b.color};color:${b.text};">${b.icon} ${b.label}</span>`).join('');
 
@@ -2650,14 +2669,14 @@ async function loadHomeGameStats(){
         </div>
         <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">${doneH}h 완료 / 이번주 목표 ${weekTarget}h</div>`;
     }else{
-      weekEl.style.cssText='display:block;margin-bottom:10px;padding:12px 16px;background:linear-gradient(135deg,#D1FAE5,#A7F3D0);border-radius:12px;border:1.5px solid #6EE7B7;';
-      weekEl.innerHTML=`<div style="font-size:10px;font-weight:800;color:#065F46;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;">🎉 이번주 목표 달성!</div>
+      weekEl.style.cssText='display:block;margin-bottom:10px;padding:12px 16px;background:linear-gradient(135deg,var(--success-light),#A7F3D0);border-radius:12px;border:1.5px solid #34D399;';
+      weekEl.innerHTML=`<div style="font-size:10px;font-weight:800;color:var(--success-text);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;">🎉 이번주 목표 달성!</div>
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <div>
             <span style="font-size:22px;font-weight:900;color:#10B981;">${doneH}<span style="font-size:13px;">h</span></span>
-            <span style="font-size:12px;color:#065F46;margin-left:4px;">기록 완료 ✓</span>
+            <span style="font-size:12px;color:var(--success-text);margin-left:4px;">기록 완료 ✓</span>
           </div>
-          <span style="font-size:12px;font-weight:700;color:#065F46;background:white;padding:4px 10px;border-radius:20px;">🏆 이번주 클리어!</span>
+          <span style="font-size:12px;font-weight:700;color:var(--success-text);background:white;padding:4px 10px;border-radius:20px;">🏆 이번주 클리어!</span>
         </div>`;
     }
   }
@@ -3210,11 +3229,11 @@ async function loadPOReport(){
   });
   const el=document.getElementById('po-report-content');if(!el)return;
   el.innerHTML=`
-    <div style="background:linear-gradient(135deg,#0F172A,#1E1B4B);border-radius:var(--radius-sm);padding:22px;margin-bottom:16px;">
+    <div style="background:linear-gradient(135deg,#0F172A,#0C4A6E);border-radius:var(--radius-sm);padding:22px;margin-bottom:16px;">
       <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">📊 ${parseInt(m)}월 업무 현황</div>
       <div style="font-size:14px;color:rgba(255,255,255,0.88);line-height:2;">
         <div>• 총 근무시간 <b style="color:#C9A0FF;">${totH}h</b></div>
-        <div>• 제품 등록 <b style="color:#6EE7B7;">${reg}개</b> · 수정 <b style="color:#FCD34D;">${edit}개</b> · 기타 <b style="color:#93C5FD;">${etc}건</b></div>
+        <div>• 제품 등록 <b style="color:#34D399;">${reg}개</b> · 수정 <b style="color:var(--brand-mid);">${edit}개</b> · 기타 <b style="color:#93C5FD;">${etc}건</b></div>
       </div>
     </div>
     <div class="grid-2" style="margin-bottom:16px;">
