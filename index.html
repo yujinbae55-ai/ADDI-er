@@ -10,21 +10,40 @@
 /* ── Reset & Base ── */
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  /* 브랜드 보라 */
-  --brand:#8B3FFF;--brand-light:#F0E8FF;--brand-mid:#C9A0FF;--brand-dark:#5C1FCC;
-  /* 네이비 텍스트 */
-  --text:#1A1A2E;--text-muted:#6B7280;--text-hint:#B0B8C8;
-  /* 배경/서피스 */
-  --bg:#F2F4F8;--surface:#FFFFFF;--border:rgba(139,63,255,0.10);
-  /* 하늘색 보조 */
-  --sky:#38BDF8;--sky-light:#E0F5FE;--sky-mid:#7DD3FC;--sky-dark:#0369A1;
-  /* 상태 컬러 - 무채색 기반으로 중화 */
-  --success:#10B981;--success-light:#E6FAF4;--success-text:var(--success-text);
-  --warn-light:#F0EBFF;--warn-text:#5B21B6;
-  --danger:#EF4444;--danger-light:#FEE2E2;
-  /* 레이아웃 */
+  /* ── 브랜드 보라 — 메인 액션 ── */
+  --brand:#8B3FFF;
+  --brand-light:#E7C5FF;
+  --brand-mid:#C8B6FE;
+  --brand-dark:#5C1FCC;
+
+  /* ── 텍스트 ── */
+  --text:#1A1A2E;
+  --text-muted:#6B6B8A;
+  --text-hint:#B8B8D0;
+
+  /* ── 배경/서피스 ── */
+  --bg:#F5F0FF;
+  --surface:#FFFFFF;
+  --border:rgba(200,182,254,0.28);
+
+  /* ── 하늘 보조 (#BDCFFF/#B8C0FF 계열) ── */
+  --sky:#7B8CFF;
+  --sky-light:#E8ECFF;
+  --sky-mid:#B8C0FF;
+  --sky-dark:#4A54CC;
+
+  /* ── 상태 ── */
+  --success:#10B981;
+  --success-light:#E6FAF4;
+  --success-text:#065F46;
+  --warn-light:#EDE9FF;
+  --warn-text:#5B21B6;
+  --danger:#EF4444;
+  --danger-light:#FEE2E2;
+
+  /* ── 레이아웃 ── */
   --radius:20px;--radius-sm:14px;--radius-xs:10px;
-  --shadow:0 4px 24px rgba(139,63,255,0.09);
+  --shadow:0 4px 24px rgba(200,182,254,0.22);
   --sidebar:260px;
 }
 html,body{height:100%;background:var(--bg);}
@@ -36,7 +55,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 /* ── Sidebar (desktop) ── */
 .sidebar{
   width:var(--sidebar);flex-shrink:0;
-  background:var(--surface);border-right:1px solid var(--border);
+  background:linear-gradient(180deg,#FDFBFF 0%,#F8F4FF 100%);border-right:1px solid var(--border);
   display:flex;flex-direction:column;
   position:sticky;top:0;height:100vh;overflow:hidden;
 }
@@ -382,7 +401,7 @@ body.is-login .bottom-nav{display:none!important;}
 @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 
 /* ── Gamification Card ── */
-.game-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:22px;box-shadow:var(--shadow);}
+.game-card{background:linear-gradient(145deg,#FFFFFF,#FBF7FF);border-radius:var(--radius);border:1px solid var(--border);padding:22px;box-shadow:var(--shadow);}
 .game-ring-wrap{position:relative;width:130px;height:130px;margin:0 auto 16px;}
 .game-ring{width:130px;height:130px;}
 .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
@@ -538,7 +557,7 @@ body.is-login .bottom-nav{display:none!important;}
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <a href="https://askedtech.com/" target="_blank"
-            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid rgba(26,26,46,0.15);background:var(--surface);font-size:12px;font-weight:700;color:var(--text);text-decoration:none;">
+            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--sky-mid);background:var(--sky-light);font-size:12px;font-weight:700;color:var(--sky-dark);text-decoration:none;">
             🏠 홈페이지
           </a>
           <a href="https://admin.askedtech.com/sign-in" target="_blank"
@@ -567,7 +586,7 @@ body.is-login .bottom-nav{display:none!important;}
           </div>
           <!-- 빠른 업무 등록 -->
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
-            <button onclick="quickAddWork(60,'weekly','☕ 주별회의')" class="quick-action-btn" style="background:#EDE9FF;border:1.5px solid #DDD6FE;padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
+            <button onclick="quickAddWork(60,'weekly','☕ 주별회의')" class="quick-action-btn" style="background:var(--brand-light);border:1.5px solid var(--brand-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
               <span style="font-size:16px;flex-shrink:0;">☕</span>
               <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:#5B21B6;">주별회의</div><div style="font-size:10px;color:#7C3AED;">1시간</div></div>
             </button>
