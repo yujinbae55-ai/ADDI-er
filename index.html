@@ -362,6 +362,11 @@ body.is-login .bottom-nav{display:none!important;}
 .home-left,.home-right{display:flex;flex-direction:column;gap:14px;}
 @media(max-width:900px){.home-grid{grid-template-columns:1fr;}}
 
+/* ── Quick action buttons ── */
+.quick-action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:12px 8px;border-radius:14px;border:none;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.quick-action-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.12);}
+.quick-action-btn:active{transform:translateY(0);}
+
 /* ── Home summary chips ── */
 .summary-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:700;background:var(--surface);border:1.5px solid var(--border);color:var(--text-muted);}
 .summary-chip.active{background:var(--brand-light);border-color:var(--brand-mid);color:var(--brand);}
@@ -429,6 +434,12 @@ body.is-login .bottom-nav{display:none!important;}
   .mypage-grid{grid-template-columns:1fr;}
   .mypage-side-col{order:-1;}
 }
+
+/* ── PO 2-col checklist grid ── */
+.po-cl-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+@media(max-width:900px){.po-cl-grid{grid-template-columns:1fr;}}
+.cl-item.urgent{border-left:4px solid #EF4444!important;background:linear-gradient(to right,#FEF2F2,var(--surface))!important;}
+.urgent-badge{display:inline-flex;align-items:center;gap:3px;background:#FEE2E2;color:#DC2626;border-radius:6px;padding:1px 7px;font-size:10px;font-weight:800;}
 
 /* ── PO tabs ── */
 .po-tab-btn{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;white-space:nowrap;}
@@ -547,13 +558,44 @@ body.is-login .bottom-nav{display:none!important;}
               <button class="btn-action btn-checkout-inactive" id="checkout-btn" onclick="handleCheckOut()">퇴근하기</button>
             </div>
           </div>
+          <!-- 빠른 업무 등록 -->
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+            <button onclick="quickAddWork(60,'weekly','☕ 주별회의')" class="quick-action-btn" style="background:linear-gradient(135deg,#EDE9FF,#DDD6FE);">
+              <span style="font-size:18px;">☕</span>
+              <span style="font-size:11px;font-weight:700;color:#5B21B6;">주별회의</span>
+              <span style="font-size:10px;color:#7C3AED;">1시간</span>
+            </button>
+            <button onclick="quickAddWork(60,'monthly_remote','📋 월별회의(비대면)')" class="quick-action-btn" style="background:linear-gradient(135deg,#EEF2FF,#C7D2FE);">
+              <span style="font-size:18px;">💻</span>
+              <span style="font-size:11px;font-weight:700;color:#3730A3;">월별회의 비대면</span>
+              <span style="font-size:10px;color:#4F46E5;">1시간</span>
+            </button>
+            <button onclick="quickAddWork(180,'monthly_onsite','📋 월별회의(대면)')" class="quick-action-btn" style="background:linear-gradient(135deg,#EFF6FF,#BFDBFE);">
+              <span style="font-size:18px;">🏢</span>
+              <span style="font-size:11px;font-weight:700;color:#1E40AF;">월별회의 대면</span>
+              <span style="font-size:10px;color:#2563EB;">3시간</span>
+            </button>
+            <button onclick="quickAddWork(60,'minutes','📝 회의록 작성')" class="quick-action-btn" style="background:linear-gradient(135deg,#F0FDF4,#DCFCE7);">
+              <span style="font-size:18px;">📝</span>
+              <span style="font-size:11px;font-weight:700;color:#166534;">회의록 작성</span>
+              <span style="font-size:10px;color:#15803D;">1시간</span>
+            </button>
+          </div>
+          <!-- 근무 직접 추가 -->
+          <button onclick="openAddRecordModal()" style="width:100%;padding:10px;border-radius:12px;border:1.5px dashed var(--border);background:transparent;font-size:12px;font-weight:700;color:var(--text-muted);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
+            ➕ 근무 기록 직접 추가 (소급 입력)
+          </button>
           <div id="today-timeline" style="display:none;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:16px 18px;"></div>
           <div id="record-list" style="display:none;"></div>
         </div>
         <!-- Right: 게임카드 + 체크리스트 -->
         <div class="home-right">
           <div class="game-card" id="home-game-card">
-            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">🏆 이번 달 현황</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;">🏆 이번 달 현황</div>
+              <div id="motivation-msg" style="font-size:11px;font-weight:700;color:var(--brand);background:var(--brand-light);padding:3px 10px;border-radius:20px;"></div>
+            </div>
+            <div id="weekly-recommend" style="font-size:11px;color:var(--text-muted);margin-bottom:10px;padding:8px 12px;background:var(--bg);border-radius:10px;display:none;"></div>
             <div class="game-ring-wrap">
               <svg class="game-ring" viewBox="0 0 120 120">
                 <circle cx="60" cy="60" r="50" fill="none" stroke="#EAE8F0" stroke-width="10"/>
@@ -578,7 +620,18 @@ body.is-login .bottom-nav{display:none!important;}
               <div class="section-label" style="margin-bottom:0;">📋 제품 체크리스트</div>
               <span style="font-size:11px;color:var(--text-hint);" id="cl-count-label"></span>
             </div>
-            <div id="home-checklist"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:24px;">📦</div>항목이 없습니다</div></div>
+            <!-- 미완료 항목 (높이 제한) -->
+            <div id="home-checklist" style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:0;">
+              <div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:24px;">📦</div>항목이 없습니다</div>
+            </div>
+            <!-- 최근 완료 항목 (접기/펼치기) -->
+            <div id="home-checklist-done-wrap" style="display:none;margin-top:10px;border-top:1px dashed var(--border);padding-top:10px;">
+              <button onclick="toggleDoneChecklist()" id="done-toggle-btn"
+                style="width:100%;background:none;border:none;font-size:11px;font-weight:700;color:var(--text-hint);cursor:pointer;font-family:inherit;text-align:left;padding:2px 0;display:flex;align-items:center;gap:4px;">
+                ▶ 최근 완료된 제품 <span id="done-count-label"></span>
+              </button>
+              <div id="home-checklist-done" style="display:none;max-height:200px;overflow-y:auto;margin-top:8px;"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -707,15 +760,60 @@ body.is-login .bottom-nav{display:none!important;}
       <div class="page" id="page-po">
         <div class="page-header">
           <div class="page-title">🎯 PO 대시보드</div>
-          <div class="page-sub">제품 현황 및 팀 실적 조회</div>
+          <div class="page-sub">제품 현황 및 팀 체크리스트 관리</div>
         </div>
         <div class="tabs" style="flex-wrap:wrap;">
-          <button class="po-tab-btn active" data-tab="po-report" onclick="switchPOTab('po-report')">✨ 실적 리포트</button>
-          <button class="po-tab-btn" data-tab="po-monthly" onclick="switchPOTab('po-monthly')">📊 월간 현황</button>
-          <button class="po-tab-btn" data-tab="po-checklist" onclick="switchPOTab('po-checklist')">✅ 체크리스트</button>
+          <button class="po-tab-btn active" data-tab="po-checklist" onclick="switchPOTab('po-checklist')">✅ 체크리스트</button>
+          <button class="po-tab-btn" data-tab="po-notice" onclick="switchPOTab('po-notice')">📢 공지사항</button>
+          <button class="po-tab-btn" data-tab="po-report" onclick="switchPOTab('po-report')">✨ 실적</button>
+          <button class="po-tab-btn" data-tab="po-monthly" onclick="switchPOTab('po-monthly')">📊 월간</button>
         </div>
+
+        <!-- PO 체크리스트 (2컬럼: 팀 현황 | PO 등록) -->
+        <div class="po-tab-panel" data-panel="po-checklist" id="po-panel-checklist">
+          <div class="po-cl-grid">
+            <!-- 왼쪽: 팀원 체크리스트 현황 -->
+            <div>
+              <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                👥 팀원 작업 현황 <span id="po-cl-team-count" style="font-size:11px;color:var(--text-muted);font-weight:600;"></span>
+              </div>
+              <div id="po-checklist-list" style="max-height:520px;overflow-y:auto;display:flex;flex-direction:column;gap:0;"></div>
+            </div>
+            <!-- 오른쪽: PO 직접 등록 -->
+            <div>
+              <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px;">🎯 PO 우선순위 등록</div>
+              <div class="card-sm" style="margin-bottom:12px;">
+                <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+                  <label class="radio-label selected" id="po-cl-label-register" onclick="poClSelectType('register')" style="flex:unset;padding:6px 12px;font-size:12px;">
+                    <input type="radio" name="po-cl-type" value="register" checked/>✅ 등록
+                  </label>
+                  <label class="radio-label" id="po-cl-label-edit" onclick="poClSelectType('edit')" style="flex:unset;padding:6px 12px;font-size:12px;">
+                    <input type="radio" name="po-cl-type" value="edit"/>✏️ 수정
+                  </label>
+                </div>
+                <input id="po-cl-name" class="popup-input" type="text" placeholder="제품명" style="margin-bottom:8px;font-size:13px;padding:10px 14px;"/>
+                <input id="po-cl-link" class="popup-input" type="url" placeholder="제품 링크 (선택)" style="margin-bottom:10px;font-size:13px;padding:10px 14px;"/>
+                <!-- 긴급 체크 -->
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:var(--bg);cursor:pointer;margin-bottom:10px;">
+                  <input type="checkbox" id="po-cl-urgent" style="width:16px;height:16px;accent-color:#EF4444;"/>
+                  <span style="font-size:13px;font-weight:700;color:#DC2626;">🚨 긴급</span>
+                  <span style="font-size:11px;color:var(--text-muted);">우선순위 최상단 고정</span>
+                </label>
+                <button onclick="addPOChecklistItem()" style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;">+ 항목 추가</button>
+              </div>
+              <!-- PO 등록 항목 목록 -->
+              <div id="po-my-checklist" style="max-height:320px;overflow-y:auto;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PO 공지사항 -->
+        <div class="po-tab-panel" data-panel="po-notice" id="po-panel-notice" style="display:none;">
+          <div id="po-notice-list"><div class="empty-state"><div class="empty-icon">📢</div>공지가 없습니다</div></div>
+        </div>
+
         <!-- PO 실적 -->
-        <div class="po-tab-panel" data-panel="po-report" id="po-panel-report">
+        <div class="po-tab-panel" data-panel="po-report" id="po-panel-report" style="display:none;">
           <div style="background:linear-gradient(135deg,#0F172A,#1E1B4B);border-radius:var(--radius-sm);padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
             <span style="font-size:28px;">🎯</span>
             <div><div style="font-size:17px;font-weight:800;color:white;">PO 월별 실적 리포트</div><div style="font-size:12px;color:rgba(255,255,255,0.5);">팀 데이터 기반 집계</div></div>
@@ -727,10 +825,6 @@ body.is-login .bottom-nav{display:none!important;}
         <div class="po-tab-panel" data-panel="po-monthly" id="po-panel-monthly" style="display:none;">
           <div class="month-sel-row"><span>📅</span><select id="po-month-select" onchange="loadPOMonthly()"></select></div>
           <div id="po-monthly-list" style="margin-top:14px;display:flex;flex-direction:column;gap:12px;"></div>
-        </div>
-        <!-- PO 체크리스트 조회 -->
-        <div class="po-tab-panel" data-panel="po-checklist" id="po-panel-checklist" style="display:none;">
-          <div id="po-checklist-list"></div>
         </div>
       </div>
 
@@ -783,6 +877,18 @@ const AUTH_URL  = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key
 const REFRESH_URL = `https://securetoken.googleapis.com/v1/token?key=${API_KEY}`;
 const SEED_ADMIN = { name:"배유진", phoneLast4:"1734" };
 const MONTHLY_TARGET_H = 24;
+const REPORT_CUTOFF_DAY = 5; // 매달 5일까지는 전달 실적
+
+function getReportBaseMonth(){
+  // 오늘이 5일 이하면 전달 실적 기준
+  const now=new Date();
+  const day=now.getDate();
+  if(day<=REPORT_CUTOFF_DAY){
+    const prev=new Date(now.getFullYear(),now.getMonth()-1,1);
+    return `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}`;
+  }
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+}
 const MEMBER_COLORS = ['#8B3FFF','#10B981','#F59E0B','#EF4444','#3B82F6','#EC4899','#14B8A6','#F97316'];
 const MEMBER_BG     = ['#F0E8FF','#D1FAE5','#FEF3C7','#FEE2E2','#DBEAFE','#FCE7F3','#CCFBF1','#FFEDD5'];
 const DEFAULT_EMOJIS= ['🦄','🐬','🦊','🐼','🦁','🐙','🦋','🐸'];
@@ -936,7 +1042,8 @@ function logout(){
   document.getElementById('nav-po').style.display='none';
   document.getElementById('sb-po').style.display='none';
   // PO 전용으로 숨겼던 탭들 다시 표시 (다음 로그인 유저를 위해)
-  ['nav-home','nav-mypage','nav-notice','sb-home','sb-mypage','sb-notice'].forEach(id=>{
+  ['nav-home','nav-mypage','nav-notice','nav-po','nav-admin',
+   'sb-home','sb-mypage','sb-notice','sb-po','sb-admin'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.style.display='';
   });
 }
@@ -960,12 +1067,15 @@ function enterApp(){
     document.getElementById('sb-admin').style.display='flex';
   }
   if(poOnly){
-    // PO 전용: 홈/마이페이지/공지사항 완전 숨김, PO 대시보드만 노출
-    ['nav-home','nav-mypage','nav-notice','sb-home','sb-mypage','sb-notice'].forEach(id=>{
+    // PO 전용: 홈/마이페이지 숨김, 공지사항+PO 대시보드 노출
+    ['nav-home','nav-mypage','sb-home','sb-mypage'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
     document.getElementById('nav-po').style.display='flex';
     document.getElementById('sb-po').style.display='flex';
+    // 공지사항은 PO에게도 노출
+    document.getElementById('nav-notice').style.display='flex';
+    document.getElementById('sb-notice').style.display='flex';
     const fab=document.getElementById('fab-product');if(fab)fab.style.display='none';
   }
   // [FIX 1] 이름이 올바른지 화면 즉시 반영
@@ -1038,6 +1148,158 @@ function renderTodayTimeline(){
       <div style="flex:1;font-size:13px;">출근 <b>${fmtTime(r.checkIn)}</b>${r.checkOut?` → 퇴근 <b>${fmtTime(r.checkOut)}</b>`:' → <span style="color:var(--success);font-weight:700;">근무중</span>'}</div>
       ${r.checkOut?`<div style="font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-light);padding:3px 9px;border-radius:20px;">${calcDur(r.checkIn,r.checkOut)}</div>`:''}
     </div>`).join('')}`;
+}
+
+// ── 주별회의 / 월별회의 / 근무 직접 추가 ──
+
+async function quickAddWork(durationMin,meetingType,label){
+  const btn=event?.currentTarget;
+  if(btn)btn.disabled=true;
+  const now=new Date();
+  const checkIn=now.toISOString();
+  const checkOut=new Date(now.getTime()+durationMin*60*1000).toISOString();
+  const today=getToday();
+  const id=await fsAdd('attendance',{
+    userId:currentUser.id,date:today,checkIn,checkOut,
+    status:'completed',type:'meeting',meetingType,memo:label
+  });
+  if(btn)btn.disabled=false;
+  if(id){
+    const h=Math.floor(durationMin/60),m2=durationMin%60;
+    const durStr=h>0?(h+'시간'+(m2?m2+'분':'')):(m2+'분');
+    toast(label+' '+durStr+' 기록 완료 ✅');
+    _myAllRecs.push({id,userId:currentUser.id,date:today,checkIn,checkOut,status:'completed',type:'meeting',meetingType,memo:label});
+    loadTodayAttendance();loadHomeGameStats();
+    if(document.getElementById('page-mypage')?.classList.contains('active')){renderSidePanel();renderMyCalendar();}
+  }else toast('기록 실패');
+}
+
+function openMonthlyMeetingModal(){
+  const now=new Date();
+  const todayStr=now.toISOString().slice(0,16); // datetime-local format
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">📋 월별회의 기록</div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>회의 시작 시간</label>
+      <input type="datetime-local" id="meeting-start" value="${todayStr}"
+        style="padding:13px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:15px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;"/>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>회의 시간 (분)</label>
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+        ${[30,60,90,120].map(m=>`<button onclick="setMeetingDuration(${m})" class="dur-preset-btn" id="dur-${m}"
+          style="padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
+          ${m>=60?(m/60)+'시간'+(m%60?m%60+'분':''):m+'분'}
+        </button>`).join('')}
+      </div>
+      <input type="number" id="meeting-duration" min="10" max="480" value="60" placeholder="분 단위 입력"
+        style="margin-top:10px;padding:13px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:15px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;"/>
+    </div>
+    <div class="field" style="margin-bottom:22px;">
+      <label>메모 (선택)</label>
+      <input type="text" id="meeting-memo" placeholder="예: 5월 월별 팀 리뷰" value="월별회의"
+        style="padding:13px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:14px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;margin-top:6px;"/>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeModal()" style="flex:1;padding:14px;border-radius:10px;border:1.5px solid #E8E6F0;background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">취소</button>
+      <button onclick="saveMonthlyMeeting()" style="flex:2;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">기록하기</button>
+    </div>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function setMeetingDuration(min){
+  document.getElementById('meeting-duration').value=min;
+  document.querySelectorAll('.dur-preset-btn').forEach(b=>{
+    b.style.background=b.id==='dur-'+min?'var(--brand)':'var(--surface)';
+    b.style.color=b.id==='dur-'+min?'white':'';
+    b.style.borderColor=b.id==='dur-'+min?'var(--brand)':'var(--border)';
+  });
+}
+
+async function saveMonthlyMeeting(){
+  const startVal=document.getElementById('meeting-start').value;
+  const dur=parseInt(document.getElementById('meeting-duration').value)||60;
+  const memo=document.getElementById('meeting-memo').value.trim()||'월별회의';
+  if(!startVal){toast('시작 시간을 입력해주세요');return;}
+  if(dur<10||dur>480){toast('10분~480분 사이로 입력해주세요');return;}
+  const checkIn=new Date(startVal).toISOString();
+  const checkOut=new Date(new Date(startVal).getTime()+dur*60*1000).toISOString();
+  const date=startVal.slice(0,10);
+  const id=await fsAdd('attendance',{
+    userId:currentUser.id,
+    date,
+    checkIn,
+    checkOut,
+    status:'completed',
+    type:'meeting',
+    meetingType:'monthly',
+    memo
+  });
+  if(id){
+    const rec={id,userId:currentUser.id,date,checkIn,checkOut,status:'completed',type:'meeting',meetingType:'monthly',memo};
+    _myAllRecs.push(rec);
+    closeModal();
+    toast(`월별회의 ${dur>=60?(dur/60)+'시간'+(dur%60?dur%60+'분':''):dur+'분'} 기록 완료 📋`);
+    loadTodayAttendance();
+    loadHomeGameStats();
+    if(document.getElementById('page-mypage')?.classList.contains('active')){renderSidePanel();renderMyCalendar();}
+  }else toast('기록 실패');
+}
+
+function openAddRecordModal(){
+  const now=new Date();
+  const todayStr=now.toISOString().slice(0,16);
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">➕ 근무 기록 추가</div>
+    <div style="font-size:12px;color:var(--text-hint);margin-bottom:16px;background:var(--bg);padding:10px 14px;border-radius:10px;">
+      출퇴근을 깜빡했거나 소급 입력이 필요할 때 사용하세요
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>출근 시간</label>
+      <input type="datetime-local" id="add-checkin" value="${todayStr}"
+        style="padding:13px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:15px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;"/>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>퇴근 시간 <span style="font-size:11px;color:var(--text-hint);">(선택 — 비우면 근무중 상태)</span></label>
+      <input type="datetime-local" id="add-checkout"
+        style="padding:13px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:15px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;"/>
+    </div>
+    <div class="field" style="margin-bottom:22px;">
+      <label>메모 (선택)</label>
+      <input type="text" id="add-memo" placeholder="예: 재택근무, 외근 등"
+        style="padding:13px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:14px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;margin-top:6px;"/>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeModal()" style="flex:1;padding:14px;border-radius:10px;border:1.5px solid #E8E6F0;background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">취소</button>
+      <button onclick="saveAddRecord()" style="flex:2;padding:14px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">추가하기</button>
+    </div>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+async function saveAddRecord(){
+  const ciVal=document.getElementById('add-checkin').value;
+  const coVal=document.getElementById('add-checkout').value;
+  const memo=document.getElementById('add-memo').value.trim();
+  if(!ciVal){toast('출근 시간을 입력해주세요');return;}
+  const checkIn=new Date(ciVal).toISOString();
+  const checkOut=coVal?new Date(coVal).toISOString():null;
+  if(checkOut&&new Date(checkOut)<=new Date(checkIn)){toast('퇴근 시간은 출근 이후여야 합니다');return;}
+  const date=ciVal.slice(0,10);
+  const payload={userId:currentUser.id,date,checkIn,status:checkOut?'completed':'active'};
+  if(checkOut)payload.checkOut=checkOut;
+  if(memo)payload.memo=memo;
+  const id=await fsAdd('attendance',payload);
+  if(id){
+    const rec={...payload,id};
+    _myAllRecs.push(rec);
+    if(date===getToday()){todayAllRecs.push(rec);todayAttendance=rec;}
+    closeModal();
+    const durText=checkOut?(' · '+calcDur(checkIn,checkOut)):'';
+    toast('근무 기록 추가 완료 ✅'+durText);
+    loadTodayAttendance();
+    loadHomeGameStats();
+    if(document.getElementById('page-mypage')?.classList.contains('active')){renderSidePanel();renderMyCalendar();}
+  }else toast('추가 실패');
 }
 
 async function handleCheckIn(){
@@ -1318,11 +1580,17 @@ function renderSideList(){
     for(const r of items){
       const dayLogs=_myAllLogs.filter(l=>l.date===r.date&&l.userId===currentUser.id);
       const memo=r.memo||'';
+      const meetingBadge=r.type==='meeting'
+        ?`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${r.meetingType==='weekly'?'#EDE9FF':'#EEF2FF'};color:${r.meetingType==='weekly'?'#5B21B6':'#3730A3'};">${r.meetingType==='weekly'?'☕ 주별회의':'📋 월별회의'}</span>`
+        :'';
       html+=`<div class="side-rec${_mySelectedDate?' selected':''}" id="srec-${r.id}">
         <div class="side-rec-main" onclick="openEditModal('${r.id}','${r.checkIn}','${r.checkOut||''}','${r.date}')">
           <div class="side-date-box"><div class="side-date-day">${d0.getDate()}</div><div class="side-date-dow">${dow}</div></div>
           <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;">${fmtTime(r.checkIn)} → ${r.checkOut?fmtTime(r.checkOut):'근무중'}</div>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span style="font-size:13px;font-weight:700;">${fmtTime(r.checkIn)} → ${r.checkOut?fmtTime(r.checkOut):'근무중'}</span>
+              ${meetingBadge}
+            </div>
             <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${r.checkOut?'총 '+calcDur(r.checkIn,r.checkOut):'🟢 근무중'}</div>
           </div>
           <div style="display:flex;align-items:center;gap:4px;">
@@ -1713,12 +1981,17 @@ function populateReportSelect(){
   const sel=document.getElementById('report-month-select');
   if(sel.options.length>0)return;
   const now=new Date();
+  const baseMonth=getReportBaseMonth();
   for(let i=0;i<12;i++){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     const val=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
     const opt=document.createElement('option');
-    opt.value=val;opt.textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월`;
-    if(i===0)opt.selected=true;sel.appendChild(opt);
+    opt.value=val;
+    const isCurrent=val===`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const isBase=val===baseMonth;
+    opt.textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월`+(isBase&&!isCurrent?' ⭐ 실적 기준':'');
+    if(isBase)opt.selected=true;
+    sel.appendChild(opt);
   }
 }
 
@@ -1931,6 +2204,12 @@ document.addEventListener('click', function(e){
     if(editDiv) editDiv.style.display='none';
     return;
   }
+});
+
+// del-cl-btn 이벤트 위임 (PO 체크리스트 삭제)
+document.addEventListener('click',function(e){
+  const btn=e.target.closest('.del-cl-btn');
+  if(btn){e.stopPropagation();deleteChecklistItem(btn.dataset.clId);}
 });
 
 // del-prod-log-btn 이벤트 위임
@@ -2237,7 +2516,7 @@ function switchPage(page){
     loadNotice();
   }
   if(page==='admin'){switchAdminTab('team-cal');}
-  if(page==='po'){switchPOTab('po-report');}
+  if(page==='po'){switchPOTab('po-checklist');}
 }
 
 // ── 홈 요약 칩 ──
@@ -2308,6 +2587,37 @@ async function loadHomeGameStats(){
   if(days>=10)badges.push({icon:'💎',label:'근무왕',color:'#DBEAFE',text:'#1D4ED8'});
   const badgeWrap=document.getElementById('game-badges');
   if(badgeWrap)badgeWrap.innerHTML=badges.map(b=>`<span class="game-badge" style="background:${b.color};color:${b.text};">${b.icon} ${b.label}</span>`).join('');
+
+  // [6] 동기부여 메시지
+  const motivMsgs=[
+    [100,'🎉 이번달 목표 달성!'],
+    [80,'🔥 거의 다 왔어요!'],
+    [60,'💪 순항 중! 계속 달려봐요'],
+    [40,'⚡ 반환점 돌파!'],
+    [20,'🌱 시작이 반이에요'],
+    [0,'🚀 오늘도 파이팅!']
+  ];
+  const motivEl=document.getElementById('motivation-msg');
+  if(motivEl){
+    const msg=motivMsgs.find(([t])=>pct>=t);
+    motivEl.textContent=msg?msg[1]:'🚀 오늘도 파이팅!';
+  }
+  // 주간 권장 시간 계산
+  const weekEl=document.getElementById('weekly-recommend');
+  if(weekEl){
+    const target=getUserTargetH();
+    const weekNum=Math.ceil(now.getDate()/7);
+    const weekTarget=Math.round(target/4);
+    const doneH=Math.round(totH*10)/10;
+    const needed=Math.max(0,weekTarget*weekNum-doneH);
+    if(needed>0){
+      weekEl.style.display='block';
+      weekEl.innerHTML=`📅 이번주 권장 근무 <b style="color:var(--brand);">${weekTarget}h</b> · 추가 필요 <b style="color:#F59E0B;">${needed.toFixed(1)}h</b>`;
+    }else{
+      weekEl.style.display='block';
+      weekEl.innerHTML=`✅ 이번주 권장 목표 달성! 현재 <b style="color:#10B981;">${doneH}h</b> 기록 중`;
+    }
+  }
 }
 
 // ── 공유 체크리스트 ──
@@ -2437,26 +2747,75 @@ async function loadChecklist(){
     sorted.map(item=>renderChecklistItem(item,true)).join('')+
     `</div>`;
   initChecklistDrag();
+  // 담당자 드롭다운 채우기
+  if(_allUsers&&_allUsers.length>0){
+    fillAssignSelects(_allUsers);
+  }else{
+    fsQuery('users').then(users=>{_allUsers=users;fillAssignSelects(users);});
+  }
+}
+
+function fillAssignSelects(users){
+  document.querySelectorAll('.assign-select').forEach(sel=>{
+    const clId=sel.dataset.clId;
+    // 기존 옵션 유지하면서 유저 옵션만 교체
+    const currentVal=sel.value;
+    while(sel.options.length>1)sel.remove(1);
+    users.filter(u=>!isPO(u)).forEach(u=>{
+      const opt=document.createElement('option');
+      opt.value=u.name;
+      opt.textContent=(u.emoji||'👤')+' '+u.name;
+      sel.appendChild(opt);
+    });
+    // 기존 담당자 있으면 복원 (checklist item의 assignee 필드)
+    const item=document.getElementById('cl-item-'+clId);
+    if(item&&item.dataset.assignee)sel.value=item.dataset.assignee;
+  });
 }
 
 async function loadHomeChecklist(){
   const items=await fsQuery('checklist');
-  const sorted=items.sort((a,b)=>{
-    const aDone=a.done===true||a.done==='true';
-    const bDone=b.done===true||b.done==='true';
-    if(aDone!==bDone)return aDone?1:-1;
+  const byOrder=(a,b)=>{
     const ao=a.order!=null?Number(a.order):9999;
     const bo=b.order!=null?Number(b.order):9999;
     if(ao!==bo)return ao-bo;
     return(a.createdAt||'').localeCompare(b.createdAt||'');
-  });
+  };
+  const pending=items.filter(i=>!(i.done===true||i.done==='true')).sort(byOrder);
+  const done=items.filter(i=>i.done===true||i.done==='true')
+    .sort((a,b)=>(b.checkedAt||b.createdAt||'').localeCompare(a.checkedAt||a.createdAt||''))
+    .slice(0,10); // 최근 10개만
   const el=document.getElementById('home-checklist');
   if(!el)return;
-  const done=sorted.filter(i=>i.done===true||i.done==='true').length;
   const countEl=document.getElementById('cl-count-label');
-  if(countEl)countEl.textContent=`${done}/${sorted.length} 완료`;
-  if(!sorted.length){el.innerHTML='<div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:24px;">📦</div>항목이 없습니다</div>';return;}
-  el.innerHTML=sorted.map(item=>renderChecklistItem(item,false)).join('');
+  if(countEl)countEl.textContent=`${done.length}/${items.length} 완료`;
+  if(!pending.length&&!done.length){
+    el.innerHTML='<div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:24px;">📦</div>항목이 없습니다</div>';
+    return;
+  }
+  el.innerHTML=pending.length
+    ? pending.map(item=>renderChecklistItem(item,false)).join('')
+    : '<div style="padding:12px;text-align:center;font-size:12px;color:var(--text-muted);">🎉 모든 항목 완료!</div>';
+  // 완료 섹션
+  const doneWrap=document.getElementById('home-checklist-done-wrap');
+  const doneEl=document.getElementById('home-checklist-done');
+  const doneCountEl=document.getElementById('done-count-label');
+  if(doneWrap&&done.length>0){
+    doneWrap.style.display='block';
+    if(doneCountEl)doneCountEl.textContent='('+done.length+'개)';
+    if(doneEl)doneEl.innerHTML=done.map(item=>renderChecklistItem(item,false)).join('');
+  }else if(doneWrap){
+    doneWrap.style.display='none';
+  }
+}
+
+function toggleDoneChecklist(){
+  const el=document.getElementById('home-checklist-done');
+  const btn=document.getElementById('done-toggle-btn');
+  if(!el)return;
+  const isOpen=el.style.display!=='none';
+  el.style.display=isOpen?'none':'block';
+  if(btn)btn.innerHTML=(isOpen?'▶':'▼')+' 최근 완료된 제품 <span id="done-count-label">'+document.getElementById('done-count-label')?.textContent+'</span>';
 }
 
 function renderChecklistItem(item,isAdmin){
@@ -2471,15 +2830,20 @@ function renderChecklistItem(item,isAdmin){
   const checkIcon=iMeChecked?'✓':'';
   const checkTitle=iMeChecked?'내 완료 취소':'완료 처리 (제품 로그 자동 등록)';
   const checkStyle=iMeChecked?'background:var(--success-light);border-color:var(--success);color:var(--success-text);':'';
-  const dragAttrs=isAdmin?`draggable="true" data-cl-id="${item.id}"`:'';
+  const dragAttrs=isAdmin?`draggable="true" data-cl-id="${item.id}" data-assignee="${item.assignee||''}"`:(!isAdmin?`data-cl-id="${item.id}"`:'');
   const dragHandle=isAdmin?`<div class="cl-drag-handle" title="드래그로 순서 변경">☰</div>`:'';
-  return`<div class="cl-item type-${type}${isDone?' done':''}" id="cl-item-${item.id}" ${dragAttrs}>
+  const isUrgent=item.urgent==='true'||item.urgent===true;
+  const urgentBadge=isUrgent?`<span class="urgent-badge">🚨 긴급</span>`:''
+  const assigneeBadge=item.assignee&&item.assignee!=='_none_'?`<span style="font-size:10px;font-weight:700;background:#EDE9FF;color:#5B21B6;border-radius:8px;padding:1px 7px;">👤 ${item.assignee}</span>`:'';
+  return`<div class="cl-item type-${type}${isDone?' done':''}${isUrgent?' urgent':''}" id="cl-item-${item.id}" ${dragAttrs}>
     ${dragHandle}
     <div class="cl-check" onclick="toggleChecklistItem('${item.id}','${iMeChecked}')" title="${checkTitle}" style="${checkStyle}">${checkIcon}</div>
     <div style="flex:1;min-width:0;">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        ${urgentBadge}
         <span class="cl-name">${item.name}</span>
         <span class="cl-type-badge ${typeClass}">${typeLabel}</span>
+        ${assigneeBadge}
       </div>
       ${item.link&&item.link!=='_none_'?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--brand);word-break:break-all;">${item.link}</a>`:''}
       <a href="https://admin.askedtech.com/product/request-add-product" target="_blank"
@@ -2491,7 +2855,15 @@ function renderChecklistItem(item,isAdmin){
       </div>`:''}
       ${item.checkedAt&&item.checkedAt!=='_none_'?`<div style="font-size:10px;color:var(--text-hint);margin-top:2px;">마지막 완료: ${new Date(item.checkedAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`:''}
     </div>
-    ${isAdmin?`<button class="icon-btn danger" onclick="deleteChecklistItem('${item.id}')" title="삭제">🗑️</button>`:''}
+    ${isAdmin?`
+      <div style="display:flex;align-items:center;gap:4px;">
+        <select class="assign-select" data-cl-id="${item.id}" onchange="assignChecklistItem('${item.id}',this.value)"
+          style="padding:4px 8px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-weight:600;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer;max-width:90px;">
+          <option value="">담당자</option>
+        </select>
+        <button class="icon-btn danger" onclick="deleteChecklistItem('${item.id}')" title="삭제">🗑️</button>
+      </div>
+    `:''}
   </div>`;
 }
 
@@ -2597,6 +2969,17 @@ async function toggleChecklistItem(id,iMeCheckedStr){
   loadHomeGameStats();
 }
 
+async function assignChecklistItem(id,assignee){
+  if(!assignee)return;
+  const ok=await fsUpdate('checklist',id,{assignee});
+  if(ok){
+    toast('담당자: '+assignee+' 지정 ✅');
+    // 홈/PO 체크리스트도 갱신
+    loadHomeChecklist();
+    if(document.getElementById('po-panel-checklist')?.style.display==='block')loadPOChecklist();
+  }else toast('지정 실패');
+}
+
 async function deleteChecklistItem(id){
   if(!confirm('이 체크리스트 항목을 삭제하면 연결된 팀원 제품 로그도 함께 삭제됩니다. 계속할까요?'))return;
   // 먼저 체크리스트 항목 조회해서 logIds 파악
@@ -2636,20 +3019,113 @@ async function deleteChecklistItem(id){
 function switchPOTab(tab){
   document.querySelectorAll('.po-tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   document.querySelectorAll('.po-tab-panel').forEach(el=>el.style.display=el.dataset.panel===tab?'block':'none');
+  if(tab==='po-checklist'){loadPOChecklist();loadPOMyChecklist();}
+  if(tab==='po-notice')loadPONotice();
   if(tab==='po-report'){populatePOReportSelect();loadPOReport();}
   if(tab==='po-monthly'){populatePOMonthSelect();loadPOMonthly();}
-  if(tab==='po-checklist')loadPOChecklist();
+}
+
+function poClSelectType(t){
+  ['register','edit'].forEach(v=>{
+    const lbl=document.getElementById('po-cl-label-'+v);
+    if(lbl)lbl.classList.toggle('selected',t===v);
+    const inp=document.querySelector('input[name="po-cl-type"][value="'+v+'"]');
+    if(inp)inp.checked=(t===v);
+  });
+}
+
+async function addPOChecklistItem(){
+  const name=document.getElementById('po-cl-name').value.trim();
+  const link=document.getElementById('po-cl-link').value.trim();
+  const typeInput=document.querySelector('input[name="po-cl-type"]:checked');
+  const type=typeInput?typeInput.value:'register';
+  const urgent=document.getElementById('po-cl-urgent').checked;
+  if(!name){toast('제품명을 입력해주세요');return;}
+  const payload={name,link:link||'_none_',type,done:'false',
+    createdBy:currentUser.name,createdAt:new Date().toISOString(),
+    checkedBy:'_none_',checkedAt:'_none_',logs:'_none_',
+    urgent:urgent?'true':'false',
+    order:urgent?-1:9999
+  };
+  const id=await fsAdd('checklist',payload);
+  if(id){
+    toast(urgent?'🚨 긴급 항목 추가됨!':'항목 추가 ✅');
+    document.getElementById('po-cl-name').value='';
+    document.getElementById('po-cl-link').value='';
+    document.getElementById('po-cl-urgent').checked=false;
+    loadPOChecklist();loadPOMyChecklist();loadHomeChecklist();
+    if(document.getElementById('admin-checklist-panel')?.style.display==='block')loadChecklist();
+  }else toast('추가 실패');
+}
+
+async function loadPOChecklist(){
+  const items=await fsQuery('checklist');
+  const sorted=items.sort((a,b)=>{
+    // 긴급 항목 최상단
+    const au=a.urgent==='true'||a.urgent===true;
+    const bu=b.urgent==='true'||b.urgent===true;
+    if(au!==bu)return au?-1:1;
+    const aDone=a.done===true||a.done==='true';
+    const bDone=b.done===true||b.done==='true';
+    if(aDone!==bDone)return aDone?1:-1;
+    const ao=a.order!=null?Number(a.order):9999;
+    const bo=b.order!=null?Number(b.order):9999;
+    return ao-bo;
+  });
+  const el=document.getElementById('po-checklist-list');if(!el)return;
+  const done=sorted.filter(i=>i.done===true||i.done==='true').length;
+  const countEl=document.getElementById('po-cl-team-count');
+  if(countEl)countEl.textContent='('+sorted.length+'개 · '+done+'개 완료)';
+  if(!sorted.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>항목 없음</div>';return;}
+  el.innerHTML=sorted.map(item=>renderChecklistItem(item,false)).join('');
+}
+
+async function loadPOMyChecklist(){
+  const items=await fsQuery('checklist',[['createdBy','EQUAL',currentUser.name]]);
+  const el=document.getElementById('po-my-checklist');if(!el)return;
+  if(!items.length){el.innerHTML='<div style="font-size:12px;color:var(--text-hint);padding:8px;">등록한 항목이 없습니다</div>';return;}
+  const sorted=items.sort((a,b)=>{
+    const au=a.urgent==='true';const bu=b.urgent==='true';
+    if(au!==bu)return au?-1:1;
+    return(b.createdAt||'').localeCompare(a.createdAt||'');
+  });
+  el.innerHTML=sorted.map(item=>{
+    const isUrgent=item.urgent==='true'||item.urgent===true;
+    const isDone=item.done===true||item.done==='true';
+    return '<div class="cl-item type-'+(item.type||'register')+(isDone?' done':'')+(isUrgent?' urgent':'')+'">'+
+      (isUrgent?'<span class="urgent-badge">🚨 긴급</span>':'')+
+      '<span class="cl-name" style="flex:1;">'+item.name+'</span>'+
+      '<span class="cl-type-badge cl-type-'+(item.type||'register')+'">'+(item.type==='register'?'등록':item.type==='edit'?'수정':'기타')+'</span>'+
+      '<button class="del-cl-btn icon-btn danger" data-cl-id="'+item.id+'" title="삭제">🗑️</button>'
+      '</div>';
+  }).join('');
+}
+
+async function loadPONotice(){
+  const el=document.getElementById('po-notice-list');if(!el)return;
+  const notices=await fsQuery('notices');
+  if(!notices.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📢</div>공지가 없습니다</div>';return;}
+  const sorted=notices.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  el.innerHTML=sorted.map(n=>`<div class="notice-card">
+    <div class="notice-title">${n.title||'(제목 없음)'}</div>
+    <div class="notice-body">${n.body||''}</div>
+    ${n.link?`<a href="${n.link}" target="_blank" class="notice-link">🔗 ${n.link}</a>`:''}
+    <div class="notice-meta">${n.author||''} · ${n.createdAt?new Date(n.createdAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric'}):''}</div>
+  </div>`).join('');
 }
 
 function populatePOReportSelect(){
   const sel=document.getElementById('po-report-month');
   if(!sel||sel.options.length>0)return;
   const now=new Date();
+  const baseMonth=getReportBaseMonth();
   for(let i=0;i<12;i++){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     const val=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    const opt=document.createElement('option');opt.value=val;opt.textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월`;
-    if(i===0)opt.selected=true;sel.appendChild(opt);
+    const opt=document.createElement('option');opt.value=val;
+    opt.textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월`+(val===baseMonth&&val!==`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`?' ⭐':'');
+    if(val===baseMonth)opt.selected=true;
+    sel.appendChild(opt);
   }
 }
 
