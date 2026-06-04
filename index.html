@@ -910,6 +910,17 @@ function getReportBaseMonth(){
   }
   return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 }
+
+function getReportPeriod(monthStr){
+  // 실적 기간: 해당 월 6일 ~ 다음달 5일
+  const [y,m]=monthStr.split('-').map(Number);
+  const start=`${y}-${String(m).padStart(2,'0')}-06`;
+  const nextMonth=new Date(y,m,1); // m은 이미 1기반이라 new Date(y,m,1)이 다음달 1일
+  const ny=nextMonth.getFullYear();
+  const nm=String(nextMonth.getMonth()+1).padStart(2,'0');
+  const end=`${ny}-${nm}-05`;
+  return {start,end};
+}
 const MEMBER_COLORS = ['#8B3FFF','#10B981','#F59E0B','#EF4444','#3B82F6','#EC4899','#14B8A6','#F97316'];
 const MEMBER_BG     = ['#F0E8FF','var(--success-light)','var(--brand-mid)','#FEE2E2','var(--sky-light)','#FCE7F3','#CCFBF1','#FFEDD5'];
 const DEFAULT_EMOJIS= ['🦄','🐬','🦊','🐼','🦁','🐙','🦋','🐸'];
@@ -1496,8 +1507,9 @@ function renderGoalCard(){
   const pfx=`${myCalYear}-${String(myCalMonth+1).padStart(2,'0')}`;
   const now=new Date();
   const isCurrentMonth=(myCalYear===now.getFullYear()&&myCalMonth===now.getMonth());
-  const mr=_myAllRecs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
-  const ml=_myAllLogs.filter(l=>l.date&&l.date.startsWith(pfx));
+  const {start:gStart,end:gEnd}=getReportPeriod(pfx);
+  const mr=_myAllRecs.filter(r=>r.date&&r.date>=gStart&&r.date<=gEnd&&r.status==='completed');
+  const ml=_myAllLogs.filter(l=>l.date&&l.date>=gStart&&l.date<=gEnd);
   const tot=mr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
   const totH=tot/60;
   const pct=Math.min(100,Math.round(totH/targetH*100));
@@ -1978,7 +1990,7 @@ function populateMonthSelect(){
 async function loadMonthlyData(){
   const month=document.getElementById('month-select').value;
   const[y,m]=month.split('-');
-  const start=`${y}-${m}-01`,end=`${y}-${m}-31`;
+  const {start,end}=getReportPeriod(month);
   const[allUsers,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
   _allUsers=allUsers;
   const users=allUsers.filter(u=>!isPO(u)||isAdm(u));
@@ -2063,10 +2075,10 @@ async function loadAdminReport(){
   if(!month)return;
   document.getElementById('report-content').innerHTML='<div class="empty-state"><div class="spinner-dark" style="margin:0 auto 12px;"></div>집계 중...</div>';
   const[y,m]=month.split('-');
-  const start=`${y}-${m}-01`,end=`${y}-${m}-31`;
+  const {start,end}=getReportPeriod(month);
   const prevDate=new Date(parseInt(y),parseInt(m)-2,1);
   const py=prevDate.getFullYear(),pm=String(prevDate.getMonth()+1).padStart(2,'0');
-  const pStart=`${py}-${pm}-01`,pEnd=`${py}-${pm}-31`;
+  const {start:pStart,end:pEnd}=getReportPeriod(prevMonth);
 
   const[allUsers,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
   _allUsers=allUsers;
@@ -2649,7 +2661,8 @@ async function renderHomeSummaryChips(){
   }
   if(todayLogs.length>0)chips.push({icon:'📦',label:'제품 로그 '+todayLogs.length+'건',active:true});
   const pfx=getReportBaseMonth(); // 5일 이전이면 전달 기준
-  const monthRecs=_myAllRecs?.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed')||[];
+  const {start:cStart,end:cEnd}=getReportPeriod(pfx);
+  const monthRecs=_myAllRecs?.filter(r=>r.date&&r.date>=cStart&&r.date<=cEnd&&r.status==='completed')||[];
   const monthH=(monthRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0)/60).toFixed(1);
   const pct=Math.min(100,Math.round(parseFloat(monthH)/getUserTargetH()*100));
   chips.push({icon:'🎯',label:'이번달 '+pct+'% 달성',active:pct>=70});
@@ -2663,7 +2676,8 @@ async function loadHomeGameStats(){
   const [by,bm]=basePfx.split('-').map(Number);
   const pfx=basePfx;
   const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
-  const monthRecs=recs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
+  const {start:gStart,end:gEnd}=getReportPeriod(pfx);
+  const monthRecs=recs.filter(r=>r.date&&r.date>=gStart&&r.date<=gEnd&&r.status==='completed');
   const tot=monthRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
   const totH=tot/60;
   const pct=Math.min(100,Math.round(totH/getUserTargetH()*100));
@@ -3365,7 +3379,7 @@ async function loadPOReport(){
   const sel=document.getElementById('po-report-month');if(!sel)return;
   const month=sel.value;
   const[y,m]=month.split('-');
-  const start=`${y}-${m}-01`,end=`${y}-${m}-31`;
+  const {start,end}=getReportPeriod(month);
   const[allUsers,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
   _allUsers=allUsers;
   const users=allUsers.filter(u=>!isPO(u)||isAdm(u)); // PO 제외
@@ -3426,7 +3440,7 @@ async function loadPOMonthly(){
   const sel=document.getElementById('po-month-select');if(!sel)return;
   const month=sel.value;
   const[y,m]=month.split('-');
-  const start=`${y}-${m}-01`,end=`${y}-${m}-31`;
+  const {start,end}=getReportPeriod(month);
   const[allUsers,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
   _allUsers=allUsers;
   const users=allUsers.filter(u=>!isPO(u)||isAdm(u));
