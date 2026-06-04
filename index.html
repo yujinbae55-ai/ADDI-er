@@ -10,40 +10,40 @@
 /* ── Reset & Base ── */
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  /* ── 브랜드 보라 — 메인 액션 ── */
+  /* 브랜드 */
   --brand:#8B3FFF;
-  --brand-light:#E7C5FF;
+  --brand-light:#F3EEFF;
   --brand-mid:#C8B6FE;
   --brand-dark:#5C1FCC;
 
-  /* ── 텍스트 ── */
+  /* 텍스트 */
   --text:#1A1A2E;
-  --text-muted:#6B6B8A;
-  --text-hint:#B8B8D0;
+  --text-muted:#8A8AA0;
+  --text-hint:#C0C0D0;
 
-  /* ── 배경/서피스 ── */
-  --bg:#F5F0FF;
+  /* 배경 — 거의 화이트 */
+  --bg:#F8F7FA;
   --surface:#FFFFFF;
-  --border:rgba(200,182,254,0.28);
+  --border:rgba(0,0,0,0.07);
 
-  /* ── 하늘 보조 (#BDCFFF/#B8C0FF 계열) ── */
+  /* 하늘 보조 */
   --sky:#7B8CFF;
-  --sky-light:#E8ECFF;
+  --sky-light:#F0F2FF;
   --sky-mid:#B8C0FF;
   --sky-dark:#4A54CC;
 
-  /* ── 상태 ── */
+  /* 상태 */
   --success:#10B981;
-  --success-light:#E6FAF4;
+  --success-light:#F0FDF8;
   --success-text:#065F46;
-  --warn-light:#EDE9FF;
+  --warn-light:#F3EEFF;
   --warn-text:#5B21B6;
   --danger:#EF4444;
-  --danger-light:#FEE2E2;
+  --danger-light:#FFF0F0;
 
-  /* ── 레이아웃 ── */
+  /* 레이아웃 */
   --radius:20px;--radius-sm:14px;--radius-xs:10px;
-  --shadow:0 4px 24px rgba(200,182,254,0.22);
+  --shadow:0 2px 12px rgba(0,0,0,0.06);
   --sidebar:260px;
 }
 html,body{height:100%;background:var(--bg);}
@@ -55,7 +55,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--text);min-hei
 /* ── Sidebar (desktop) ── */
 .sidebar{
   width:var(--sidebar);flex-shrink:0;
-  background:linear-gradient(180deg,#FDFBFF 0%,#F8F4FF 100%);border-right:1px solid var(--border);
+  background:#FFFFFF;border-right:1px solid var(--border);
   display:flex;flex-direction:column;
   position:sticky;top:0;height:100vh;overflow:hidden;
 }
@@ -401,14 +401,14 @@ body.is-login .bottom-nav{display:none!important;}
 @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 
 /* ── Gamification Card ── */
-.game-card{background:linear-gradient(145deg,#FFFFFF,#FBF7FF);border-radius:var(--radius);border:1px solid var(--border);padding:22px;box-shadow:var(--shadow);}
+.game-card{background:#FFFFFF;border-radius:var(--radius);border:1px solid var(--border);padding:22px;box-shadow:var(--shadow);}
 .game-ring-wrap{position:relative;width:130px;height:130px;margin:0 auto 16px;}
 .game-ring{width:130px;height:130px;}
 .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
 .ring-pct{font-size:26px;font-weight:800;color:var(--brand);line-height:1;letter-spacing:-1px;}
 .ring-label{font-size:11px;font-weight:600;color:var(--text-muted);margin-top:2px;}
 .game-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.game-stat{background:var(--bg);border-radius:10px;padding:10px 6px;text-align:center;}
+.game-stat{background:#F8F7FA;border-radius:10px;padding:10px 6px;text-align:center;border:1px solid var(--border);}
 .game-stat-val{font-size:18px;font-weight:800;color:var(--brand);}
 .game-stat-label{font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;}
 .game-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
@@ -429,9 +429,9 @@ body.is-login .bottom-nav{display:none!important;}
 .cl-name{font-size:14px;font-weight:600;flex:1;}
 .cl-item.done .cl-name{text-decoration:line-through;color:var(--text-muted);}
 .cl-type-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0;}
-.cl-type-register{background:var(--success-light);color:var(--success-text);}
-.cl-type-edit{background:var(--brand-light);color:var(--brand);}
-.cl-type-etc{background:var(--sky-light);color:var(--sky-dark);}
+.cl-type-register{background:#F0FDF8;color:#059669;}
+.cl-type-edit{background:var(--brand-light);color:var(--brand-dark);}
+.cl-type-etc{background:#F4F4F6;color:var(--text-muted);}
 .cl-log-expand{font-size:11px;color:var(--text-hint);cursor:pointer;background:none;border:none;padding:3px 6px;border-radius:6px;font-family:inherit;}
 .cl-log-expand:hover{background:var(--bg);color:var(--text-muted);}
 
@@ -450,7 +450,7 @@ body.is-login .bottom-nav{display:none!important;}
 .day-detail-v{font-size:22px;font-weight:800;line-height:1;}
 /* side record item */
 .side-rec{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);overflow:hidden;transition:all 0.15s;}
-.side-rec:hover{border-color:var(--brand-mid);box-shadow:0 2px 12px rgba(139,63,255,0.08);}
+.side-rec:hover{border-color:var(--brand-mid);box-shadow:0 2px 8px rgba(0,0,0,0.05);}
 .side-rec.selected{border-color:var(--brand);box-shadow:0 0 0 2px rgba(139,63,255,0.15);}
 .side-rec-main{display:flex;align-items:center;padding:12px 14px;gap:12px;cursor:pointer;}
 .side-date-box{width:40px;height:40px;background:var(--brand-light);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
@@ -465,7 +465,7 @@ body.is-login .bottom-nav{display:none!important;}
 .po-cl-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
 @media(max-width:900px){.po-cl-grid{grid-template-columns:1fr;}}
 .cl-item.urgent{border-left:4px solid #EF4444!important;background:linear-gradient(to right,#FEF2F2,var(--surface))!important;}
-.urgent-badge{display:inline-flex;align-items:center;gap:3px;background:#FEE2E2;color:#DC2626;border-radius:6px;padding:1px 7px;font-size:10px;font-weight:800;}
+.urgent-badge{display:inline-flex;align-items:center;gap:3px;background:#FFF0F0;color:#DC2626;border-radius:6px;padding:1px 7px;font-size:10px;font-weight:700;}
 
 /* ── PO tabs ── */
 .po-tab-btn{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--sky-dark);transition:all 0.15s;white-space:nowrap;}
@@ -475,12 +475,12 @@ body.is-login .bottom-nav{display:none!important;}
 .report-toggle-card:hover{border-color:var(--brand-mid)!important;box-shadow:0 4px 16px rgba(139,63,255,0.12)!important;}
 
 /* ── Record / Log Memo ── */
-.rec-memo-area{padding:8px 14px 10px;border-top:1px solid var(--border);}
+.rec-memo-area{padding:8px 14px 10px;border-top:1px dashed var(--border);}
 .rec-memo-display{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--text-muted);cursor:pointer;line-height:1.5;padding:4px 0;}
 .rec-memo-display:hover{color:var(--brand);}
 .rec-memo-display span{flex:1;white-space:pre-wrap;word-break:break-word;}
 .rec-memo-add-btn{background:none;border:1.5px dashed var(--border);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--text-hint);cursor:pointer;font-family:inherit;width:100%;text-align:left;transition:all 0.15s;}
-.rec-memo-add-btn:hover{border-color:var(--brand-mid);color:var(--brand);background:var(--brand-light);}
+.rec-memo-add-btn:hover{border-color:var(--brand-mid);color:var(--brand);background:#FAFAFA;}
 .rec-memo-input{width:100%;min-height:70px;padding:8px 10px;border-radius:8px;border:1.5px solid var(--brand-mid);font-size:12px;font-family:inherit;resize:vertical;outline:none;background:var(--bg);box-sizing:border-box;line-height:1.5;}
 .rec-memo-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(139,63,255,0.1);}
 .rec-memo-save-btn{padding:5px 14px;border-radius:8px;border:none;background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
@@ -557,13 +557,9 @@ body.is-login .bottom-nav{display:none!important;}
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <a href="https://askedtech.com/" target="_blank"
-            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--sky-mid);background:var(--sky-light);font-size:12px;font-weight:700;color:var(--sky-dark);text-decoration:none;">
-            🏠 홈페이지
-          </a>
+            style=display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:#FFFFFF;font-size:12px;font-weight:600;color:var(--text-muted);text-decoration:none;">🏠 홈페이지</a>
           <a href="https://admin.askedtech.com/sign-in" target="_blank"
-            style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--sky-mid);background:var(--sky-light);font-size:12px;font-weight:700;color:var(--sky-dark);text-decoration:none;">
-            ⚙️ 어드민
-          </a>
+            style=display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:10px;border:1px solid var(--brand-mid);background:var(--brand-light);font-size:12px;font-weight:600;color:var(--brand-dark);text-decoration:none;">⚙️ 어드민</a>
         </div>
       </div>
       <div class="home-grid">
@@ -586,19 +582,19 @@ body.is-login .bottom-nav{display:none!important;}
           </div>
           <!-- 빠른 업무 등록 -->
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
-            <button onclick="quickAddWork(60,'weekly','☕ 주별회의')" class="quick-action-btn" style="background:var(--brand-light);border:1.5px solid var(--brand-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
+            <button onclick="quickAddWork(60,'weekly','☕ 주별회의')" class="quick-action-btn" style="background:#FFFFFF;border:1.5px solid var(--brand-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
               <span style="font-size:16px;flex-shrink:0;">☕</span>
               <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:#5B21B6;">주별회의</div><div style="font-size:10px;color:#7C3AED;">1시간</div></div>
             </button>
-            <button onclick="quickAddWork(60,'monthly_remote','📋 월별회의(비대면)')" class="quick-action-btn" style="background:var(--sky-light);border:1.5px solid var(--sky-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
+            <button onclick="quickAddWork(60,'monthly_remote','📋 월별회의(비대면)')" class="quick-action-btn" style="background:#FFFFFF;border:1.5px solid var(--sky-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
               <span style="font-size:16px;flex-shrink:0;">💻</span>
               <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:var(--sky-dark);">월별회의 비대면</div><div style="font-size:10px;color:var(--sky-dark);">1시간</div></div>
             </button>
-            <button onclick="quickAddWork(180,'monthly_onsite','📋 월별회의(대면)')" class="quick-action-btn" style="background:var(--sky-light);border:1.5px solid var(--sky-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
+            <button onclick="quickAddWork(180,'monthly_onsite','📋 월별회의(대면)')" class="quick-action-btn" style="background:#FFFFFF;border:1.5px solid var(--sky-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
               <span style="font-size:16px;flex-shrink:0;">🏢</span>
               <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:var(--sky-dark);">월별회의 대면</div><div style="font-size:10px;color:var(--sky-dark);">3시간</div></div>
             </button>
-            <button onclick="quickAddWork(60,'minutes','📝 회의록 작성')" class="quick-action-btn" style="background:var(--brand-light);border:1.5px solid var(--brand-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
+            <button onclick="quickAddWork(60,'minutes','📝 회의록 작성')" class="quick-action-btn" style="background:#FFFFFF;border:1.5px solid var(--brand-mid);padding:8px 6px;flex-direction:row;justify-content:flex-start;gap:8px;">
               <span style="font-size:16px;flex-shrink:0;">📝</span>
               <div style="text-align:left;"><div style="font-size:11px;font-weight:700;color:var(--brand-dark);">회의록 작성</div><div style="font-size:10px;color:var(--brand);">1시간</div></div>
             </button>
@@ -614,7 +610,7 @@ body.is-login .bottom-nav{display:none!important;}
         <div class="home-right">
           <div class="game-card" id="home-game-card">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;">🏆 이번 달 현황</div>
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;">🏆 <span id="game-month-label">이번 달</span> 현황</div>
               <div id="motivation-msg" style="font-size:11px;font-weight:700;color:var(--brand);background:var(--brand-light);padding:3px 10px;border-radius:20px;"></div>
             </div>
             <div id="weekly-recommend" style="display:none;margin-bottom:12px;"></div>
@@ -782,40 +778,33 @@ body.is-login .bottom-nav{display:none!important;}
       <div class="page" id="page-po">
         <div class="page-header">
           <div class="page-title">🎯 PO 대시보드</div>
-          <div class="page-sub">제품 현황 및 팀 체크리스트 관리</div>
+          <div class="page-sub">체크리스트 · 팀달력 · 월간 · 실적</div>
         </div>
         <div class="tabs" style="flex-wrap:wrap;">
           <button class="po-tab-btn active" data-tab="po-checklist" onclick="switchPOTab('po-checklist')">✅ 체크리스트</button>
-          <button class="po-tab-btn" data-tab="po-notice" onclick="switchPOTab('po-notice')">📢 공지사항</button>
-          <button class="po-tab-btn" data-tab="po-report" onclick="switchPOTab('po-report')">✨ 실적</button>
+          <button class="po-tab-btn" data-tab="po-teamcal" onclick="switchPOTab('po-teamcal')">📅 팀달력</button>
           <button class="po-tab-btn" data-tab="po-monthly" onclick="switchPOTab('po-monthly')">📊 월간</button>
+          <button class="po-tab-btn" data-tab="po-report" onclick="switchPOTab('po-report')">✨ 실적</button>
         </div>
 
-        <!-- PO 체크리스트 (2컬럼: 팀 현황 | PO 등록) -->
+        <!-- PO 체크리스트 (2컬럼) -->
         <div class="po-tab-panel" data-panel="po-checklist" id="po-panel-checklist">
           <div class="po-cl-grid">
-            <!-- 왼쪽: 팀원 체크리스트 현황 -->
             <div>
               <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
                 👥 팀원 작업 현황 <span id="po-cl-team-count" style="font-size:11px;color:var(--text-muted);font-weight:600;"></span>
               </div>
               <div id="po-checklist-list" style="max-height:520px;overflow-y:auto;display:flex;flex-direction:column;gap:0;"></div>
             </div>
-            <!-- 오른쪽: PO 직접 등록 -->
             <div>
               <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px;">🎯 PO 우선순위 등록</div>
               <div class="card-sm" style="margin-bottom:12px;">
                 <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-                  <label class="radio-label selected" id="po-cl-label-register" onclick="poClSelectType('register')" style="flex:unset;padding:6px 12px;font-size:12px;">
-                    <input type="radio" name="po-cl-type" value="register" checked/>✅ 등록
-                  </label>
-                  <label class="radio-label" id="po-cl-label-edit" onclick="poClSelectType('edit')" style="flex:unset;padding:6px 12px;font-size:12px;">
-                    <input type="radio" name="po-cl-type" value="edit"/>✏️ 수정
-                  </label>
+                  <label class="radio-label selected" id="po-cl-label-register" onclick="poClSelectType('register')" style="flex:unset;padding:6px 12px;font-size:12px;"><input type="radio" name="po-cl-type" value="register" checked/>✅ 등록</label>
+                  <label class="radio-label" id="po-cl-label-edit" onclick="poClSelectType('edit')" style="flex:unset;padding:6px 12px;font-size:12px;"><input type="radio" name="po-cl-type" value="edit"/>✏️ 수정</label>
                 </div>
                 <input id="po-cl-name" class="popup-input" type="text" placeholder="제품명" style="margin-bottom:8px;font-size:13px;padding:10px 14px;"/>
                 <input id="po-cl-link" class="popup-input" type="url" placeholder="제품 링크 (선택)" style="margin-bottom:10px;font-size:13px;padding:10px 14px;"/>
-                <!-- 긴급 체크 -->
                 <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:var(--bg);cursor:pointer;margin-bottom:10px;">
                   <input type="checkbox" id="po-cl-urgent" style="width:16px;height:16px;accent-color:#EF4444;"/>
                   <span style="font-size:13px;font-weight:700;color:#DC2626;">🚨 긴급</span>
@@ -823,30 +812,40 @@ body.is-login .bottom-nav{display:none!important;}
                 </label>
                 <button onclick="addPOChecklistItem()" style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;">+ 항목 추가</button>
               </div>
-              <!-- PO 등록 항목 목록 -->
               <div id="po-my-checklist" style="max-height:320px;overflow-y:auto;"></div>
             </div>
           </div>
         </div>
 
-        <!-- PO 공지사항 -->
-        <div class="po-tab-panel" data-panel="po-notice" id="po-panel-notice" style="display:none;">
-          <div id="po-notice-list"><div class="empty-state"><div class="empty-icon">📢</div>공지가 없습니다</div></div>
+        <!-- PO 팀달력 (관리자 팀달력 재사용) -->
+        <div class="po-tab-panel" data-panel="po-teamcal" id="po-panel-teamcal" style="display:none;">
+          <div id="po-team-legend-wrap"></div>
+          <div class="cal-wrap">
+            <div class="cal-nav">
+              <button class="cal-nav-btn" onclick="poTeamPrevMonth()">‹</button>
+              <div class="cal-title" id="po-team-cal-title"></div>
+              <button class="cal-nav-btn" onclick="poTeamNextMonth()">›</button>
+            </div>
+            <div id="po-team-cal-body"></div>
+          </div>
         </div>
 
-        <!-- PO 실적 -->
+        <!-- PO 월간 (기준월 자동 적용) -->
+        <div class="po-tab-panel" data-panel="po-monthly" id="po-panel-monthly" style="display:none;">
+          <div id="po-monthly-base-notice" style="margin-bottom:10px;padding:10px 14px;background:var(--sky-light);border-radius:10px;border:1px solid var(--sky-mid);font-size:12px;font-weight:600;color:var(--sky-dark);display:none;"></div>
+          <div class="month-sel-row"><span>📅</span><select id="po-month-select" onchange="loadPOMonthly()"></select></div>
+          <div id="po-monthly-list" style="margin-top:14px;display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
+
+        <!-- PO 실적 (기준월 자동 적용) -->
         <div class="po-tab-panel" data-panel="po-report" id="po-panel-report" style="display:none;">
           <div style="background:linear-gradient(135deg,#0F172A,#0C4A6E);border-radius:var(--radius-sm);padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
             <span style="font-size:28px;">🎯</span>
-            <div><div style="font-size:17px;font-weight:800;color:white;">PO 월별 실적 리포트</div><div style="font-size:12px;color:rgba(255,255,255,0.5);">팀 데이터 기반 집계</div></div>
+            <div><div style="font-size:17px;font-weight:800;color:white;">PO 월별 실적 리포트</div><div style="font-size:12px;color:rgba(255,255,255,0.5);">매달 5일까지 전달 실적 자동 기준</div></div>
           </div>
+          <div id="po-report-base-notice" style="margin-bottom:10px;padding:10px 14px;background:var(--sky-light);border-radius:10px;border:1px solid var(--sky-mid);font-size:12px;font-weight:600;color:var(--sky-dark);display:none;"></div>
           <div class="month-sel-row" style="margin-bottom:4px;"><span>📅</span><select id="po-report-month" onchange="loadPOReport()"></select></div>
           <div id="po-report-content"><div class="empty-state"><div class="empty-icon">📊</div>월을 선택하면 리포트가 생성됩니다</div></div>
-        </div>
-        <!-- PO 월간 -->
-        <div class="po-tab-panel" data-panel="po-monthly" id="po-panel-monthly" style="display:none;">
-          <div class="month-sel-row"><span>📅</span><select id="po-month-select" onchange="loadPOMonthly()"></select></div>
-          <div id="po-monthly-list" style="margin-top:14px;display:flex;flex-direction:column;gap:12px;"></div>
         </div>
       </div>
 
@@ -1470,7 +1469,10 @@ function closeModalOverlay(e){if(e.target===document.getElementById('modal'))clo
 let _myAllRecs=[], _myAllLogs=[], _mySelectedDate=null, _mySideTab='list';
 
 async function loadMyPage(){
-  myCalYear=new Date().getFullYear();myCalMonth=new Date().getMonth();
+  // 5일 이전이면 전달 기준월로 달력 초기화
+  const _basePfx=getReportBaseMonth();
+  const [_by,_bm]=_basePfx.split('-').map(Number);
+  myCalYear=_by; myCalMonth=_bm-1;
   _mySelectedDate=null;
   document.getElementById('my-emoji-display').textContent=currentUser.emoji||'😊';
   // 전체 데이터 한 번에 로드
@@ -1491,6 +1493,8 @@ function getUserTargetH(){
 function renderGoalCard(){
   const targetH=getUserTargetH();
   const pfx=`${myCalYear}-${String(myCalMonth+1).padStart(2,'0')}`;
+  const now=new Date();
+  const isCurrentMonth=(myCalYear===now.getFullYear()&&myCalMonth===now.getMonth());
   const mr=_myAllRecs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
   const ml=_myAllLogs.filter(l=>l.date&&l.date.startsWith(pfx));
   const tot=mr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
@@ -1502,7 +1506,7 @@ function renderGoalCard(){
     <div class="goal-header">
       <div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <span style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;">이번 달 목표</span>
+          <span style="font-size:12px;font-weight:700;color:${isCurrentMonth?'var(--text-muted)':' var(--sky-dark)'};text-transform:uppercase;letter-spacing:0.8px;">${isCurrentMonth?'이번 달 목표':`${myCalMonth+1}월 목표 ⭐`}</span>
           <button onclick="openTargetEditor()" style="display:inline-flex;align-items:center;gap:3px;padding:2px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;color:var(--brand);cursor:pointer;font-family:inherit;">${targetH}h ✏️</button>
         </div>
         <div style="font-size:28px;font-weight:800;letter-spacing:-1px;">${Math.floor(totH)}h ${Math.floor((totH%1)*60)}m <span style="font-size:14px;font-weight:500;color:var(--text-muted);">/ ${targetH}h</span></div>
@@ -2594,7 +2598,7 @@ async function renderHomeSummaryChips(){
     chips.push({icon:'⏱',label:totalMin>0?(h+'h '+m+'m 근무중'):'출근 완료',active:true});
   }
   if(todayLogs.length>0)chips.push({icon:'📦',label:'제품 로그 '+todayLogs.length+'건',active:true});
-  const pfx=today.slice(0,7);
+  const pfx=getReportBaseMonth(); // 5일 이전이면 전달 기준
   const monthRecs=_myAllRecs?.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed')||[];
   const monthH=(monthRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0)/60).toFixed(1);
   const pct=Math.min(100,Math.round(parseFloat(monthH)/getUserTargetH()*100));
@@ -2605,8 +2609,9 @@ async function renderHomeSummaryChips(){
 // ── 게이미피케이션 ──
 async function loadHomeGameStats(){
   const now=new Date();
-  const y=now.getFullYear(),m=now.getMonth();
-  const pfx=`${y}-${String(m+1).padStart(2,'0')}`;
+  const basePfx=getReportBaseMonth(); // 5일 이전이면 전달 기준
+  const [by,bm]=basePfx.split('-').map(Number);
+  const pfx=basePfx;
   const recs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id]]);
   const monthRecs=recs.filter(r=>r.date&&r.date.startsWith(pfx)&&r.status==='completed');
   const tot=monthRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
@@ -2648,6 +2653,19 @@ async function loadHomeGameStats(){
   const badgeWrap=document.getElementById('game-badges');
   if(badgeWrap)badgeWrap.innerHTML=badges.map(b=>`<span class="game-badge" style="background:${b.color};color:${b.text};">${b.icon} ${b.label}</span>`).join('');
 
+  // 기준월 레이블 업데이트
+  const isBaseMonth=(by===now.getFullYear()&&bm-1===now.getMonth());
+  const monthLabelEl=document.getElementById('game-month-label');
+  if(monthLabelEl){
+    if(!isBaseMonth){
+      monthLabelEl.textContent=`${bm}월`;
+      monthLabelEl.style.color='var(--sky-dark)';
+    }else{
+      monthLabelEl.textContent='이번 달';
+      monthLabelEl.style.color='';
+    }
+  }
+
   // [6] 동기부여 메시지
   const motivMsgs=[
     [100,'🎉 이번달 목표 달성!'],
@@ -2674,7 +2692,7 @@ async function loadHomeGameStats(){
     if(needed>0){
       const boosters=['💪 조금만 더!','🚀 달려볼까요?','⚡ 지금이 기회!','🔥 불태워요!','🎯 목표까지 파이팅!'];
       const booster=boosters[Math.floor(Math.random()*boosters.length)];
-      weekEl.style.cssText='display:block;margin-bottom:10px;padding:12px 16px;background:linear-gradient(135deg,var(--brand-light),#EDE9FF);border-radius:12px;border:1.5px solid var(--brand-mid);';
+      weekEl.style.cssText='display:block;margin-bottom:10px;padding:12px 16px;background:linear-gradient(135deg,var(--brand-light),var(--brand-light));border-radius:12px;border:1.5px solid var(--brand-mid);';
       weekEl.innerHTML=`<div style="font-size:10px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;">📅 이번주 권장 근무</div>
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <div>
@@ -2915,7 +2933,7 @@ function renderChecklistItem(item,isAdmin){
   const dragHandle=isAdmin?`<div class="cl-drag-handle" title="드래그로 순서 변경">☰</div>`:'';
   const isUrgent=item.urgent==='true'||item.urgent===true;
   const urgentBadge=isUrgent?`<span class="urgent-badge">🚨 긴급</span>`:''
-  const assigneeBadge=item.assignee&&item.assignee!=='_none_'?`<span style="font-size:10px;font-weight:700;background:#EDE9FF;color:#5B21B6;border-radius:8px;padding:1px 7px;">👤 ${item.assignee}</span>`:'';
+  const assigneeBadge=item.assignee&&item.assignee!=='_none_'?`<span style="font-size:10px;font-weight:700;background:var(--brand-light);color:#5B21B6;border-radius:8px;padding:1px 7px;">👤 ${item.assignee}</span>`:'';
   return`<div class="cl-item type-${type}${isDone?' done':''}${isUrgent?' urgent':''}" id="cl-item-${item.id}" ${dragAttrs}>
     ${dragHandle}
     <div class="cl-check" onclick="toggleChecklistItem('${item.id}','${iMeChecked}')" title="${checkTitle}" style="${checkStyle}">${checkIcon}</div>
@@ -2928,7 +2946,7 @@ function renderChecklistItem(item,isAdmin){
       </div>
       ${item.link&&item.link!=='_none_'?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--brand);word-break:break-all;">${item.link}</a>`:''}
       <a href="https://admin.askedtech.com/product/request-add-product" target="_blank"
-        style="display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:3px 10px;border-radius:8px;border:1px solid #E2D9F3;background:#F5F0FF;font-size:11px;font-weight:700;color:#7C3AED;text-decoration:none;">
+        style="display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:3px 10px;border-radius:8px;border:1px solid #E2D9F3;background:var(--bg);font-size:11px;font-weight:700;color:#7C3AED;text-decoration:none;">
         ⚙️ 어드민 등록
       </a>
       ${checkedUsers.length?`<div style="font-size:11px;color:var(--text-hint);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
@@ -3102,9 +3120,80 @@ function switchPOTab(tab){
   document.querySelectorAll('.po-tab-panel').forEach(el=>el.style.display=el.dataset.panel===tab?'block':'none');
   if(tab==='po-checklist'){loadPOChecklist();loadPOMyChecklist();}
   if(tab==='po-notice')loadPONotice();
-  if(tab==='po-report'){populatePOReportSelect();loadPOReport();}
-  if(tab==='po-monthly'){populatePOMonthSelect();loadPOMonthly();}
+  if(tab==='po-teamcal')loadPOTeamCal();
+  if(tab==='po-report'){populatePOReportSelect();loadPOReport();showBaseMonthNotice('po-report-base-notice');}
+  if(tab==='po-monthly'){populatePOMonthSelect();loadPOMonthly();showBaseMonthNotice('po-monthly-base-notice');}
 }
+
+function showBaseMonthNotice(elId){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  const now=new Date();
+  if(now.getDate()<=REPORT_CUTOFF_DAY&&now.getMonth()>0){
+    const prevM=new Date(now.getFullYear(),now.getMonth()-1,1);
+    el.style.display='block';
+    el.innerHTML=`📅 현재 <b>${now.getMonth()+1}월 ${now.getDate()}일</b>은 마감일(${REPORT_CUTOFF_DAY}일) 이전이므로 <b>${prevM.getMonth()+1}월 실적</b>이 기준으로 자동 선택되었습니다.`;
+  }else{
+    el.style.display='none';
+  }
+}
+
+// PO 팀달력 (관리자 팀달력 공유, 별도 nav state)
+let _poTeamCalYear=new Date().getFullYear(), _poTeamCalMonth=new Date().getMonth();
+async function loadPOTeamCal(){
+  if(!_allUsers||_allUsers.length===0)_allUsers=await fsQuery('users');
+  _poTeamCalYear=new Date().getFullYear();_poTeamCalMonth=new Date().getMonth();
+  renderPOTeamCal();
+}
+async function renderPOTeamCal(){
+  const y=_poTeamCalYear,m=_poTeamCalMonth;
+  document.getElementById('po-team-cal-title').textContent=`${y}년 ${m+1}월`;
+  const pfx=`${y}-${String(m+1).padStart(2,'0')}`;
+  const recs=await fsQuery('attendance');
+  const filtered=recs.filter(r=>r.date&&r.date.startsWith(pfx));
+  const byDate={};
+  for(const r of filtered){if(!byDate[r.date])byDate[r.date]=[];byDate[r.date].push(r);}
+  const firstDay=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
+  const teamUsers=_allUsers.filter(u=>!isPO(u)||isAdm(u));
+  let legend='<div class="team-legend">';
+  teamUsers.forEach((u,i)=>{
+    const color=MEMBER_COLORS[i%MEMBER_COLORS.length];
+    const bg=MEMBER_BG[i%MEMBER_BG.length];
+    const emoji=u.emoji||DEFAULT_EMOJIS[i%DEFAULT_EMOJIS.length];
+    legend+=`<div class="team-legend-item" style="background:${bg};color:${color};">${emoji} ${u.name}</div>`;
+  });
+  legend+='</div>';
+  document.getElementById('po-team-legend-wrap').innerHTML=legend;
+  let html='<div class="cal-grid"><div class="cal-header" style="color:#EF4444;">일</div><div class="cal-header">월</div><div class="cal-header">화</div><div class="cal-header">수</div><div class="cal-header">목</div><div class="cal-header">금</div><div class="cal-header" style="color:#3B82F6;">토</div>';
+  for(let i=0;i<firstDay;i++)html+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=days;d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayRecs=byDate[ds]||[];
+    const isToday=ds===getToday();
+    const dow=new Date(ds+'T00:00:00').getDay();
+    const dc=dow===0?'color:#EF4444':dow===6?'color:#3B82F6':'';
+    const seenUsers=new Set();
+    const dots=dayRecs.filter(r=>{
+      const u=teamUsers.find(u=>u.id===r.userId);
+      if(!u||seenUsers.has(r.userId))return false;
+      seenUsers.add(r.userId);return true;
+    }).map(r=>{
+      const ui=teamUsers.findIndex(u=>u.id===r.userId);
+      const bg=MEMBER_BG[ui%MEMBER_BG.length]||'#F0E8FF';
+      const color=MEMBER_COLORS[ui%MEMBER_COLORS.length]||'#8B3FFF';
+      const emoji=teamUsers[ui]?.emoji||DEFAULT_EMOJIS[ui%DEFAULT_EMOJIS.length];
+      return`<div class="cal-dot" style="background:${bg};color:${color};font-size:18px;width:28px;height:28px;" title="${teamUsers[ui]?.name||''}">${emoji}</div>`;
+    }).join('');
+    html+=`<div class="cal-cell team-cal-cell${isToday?' today':''}" style="${seenUsers.size?'border-color:rgba(139,63,255,0.15);':''}">
+      <div class="cal-day" style="${dc}">${d}</div>
+      <div class="cal-dots">${dots}</div>
+    </div>`;
+  }
+  html+='</div>';
+  document.getElementById('po-team-cal-body').innerHTML=html;
+}
+function poTeamPrevMonth(){_poTeamCalMonth--;if(_poTeamCalMonth<0){_poTeamCalMonth=11;_poTeamCalYear--;}renderPOTeamCal();}
+function poTeamNextMonth(){_poTeamCalMonth++;if(_poTeamCalMonth>11){_poTeamCalMonth=0;_poTeamCalYear++;}renderPOTeamCal();}
 
 function poClSelectType(t){
   ['register','edit'].forEach(v=>{
