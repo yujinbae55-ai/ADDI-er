@@ -560,22 +560,22 @@ body.is-login .bottom-nav{display:none!important;}
           </div>
           <!-- 빠른 업무 등록 -->
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
-            <button onclick="quickAddWork(60,'weekly','☕ 주별회의')" class="quick-action-btn" style="background:linear-gradient(135deg,#EDE9FF,#DDD6FE);">
+            <button onclick="quickAddWork(60,'weekly','☕ 주별회의')" class="quick-action-btn" style="background:#EDE9FF;border:1.5px solid #DDD6FE;">
               <span style="font-size:18px;">☕</span>
               <span style="font-size:11px;font-weight:700;color:#5B21B6;">주별회의</span>
               <span style="font-size:10px;color:#7C3AED;">1시간</span>
             </button>
-            <button onclick="quickAddWork(60,'monthly_remote','📋 월별회의(비대면)')" class="quick-action-btn" style="background:linear-gradient(135deg,#EEF2FF,#C7D2FE);">
+            <button onclick="quickAddWork(60,'monthly_remote','📋 월별회의(비대면)')" class="quick-action-btn" style="background:#EEF2FF;border:1.5px solid #C7D2FE;">
               <span style="font-size:18px;">💻</span>
               <span style="font-size:11px;font-weight:700;color:#3730A3;">월별회의 비대면</span>
               <span style="font-size:10px;color:#4F46E5;">1시간</span>
             </button>
-            <button onclick="quickAddWork(180,'monthly_onsite','📋 월별회의(대면)')" class="quick-action-btn" style="background:linear-gradient(135deg,#EFF6FF,#BFDBFE);">
+            <button onclick="quickAddWork(180,'monthly_onsite','📋 월별회의(대면)')" class="quick-action-btn" style="background:#DBEAFE;border:1.5px solid #BFDBFE;">
               <span style="font-size:18px;">🏢</span>
               <span style="font-size:11px;font-weight:700;color:#1E40AF;">월별회의 대면</span>
               <span style="font-size:10px;color:#2563EB;">3시간</span>
             </button>
-            <button onclick="quickAddWork(60,'minutes','📝 회의록 작성')" class="quick-action-btn" style="background:linear-gradient(135deg,#F0FDF4,#DCFCE7);">
+            <button onclick="quickAddWork(60,'minutes','📝 회의록 작성')" class="quick-action-btn" style="background:#DCFCE7;border:1.5px solid #A7F3D0;">
               <span style="font-size:18px;">📝</span>
               <span style="font-size:11px;font-weight:700;color:#166534;">회의록 작성</span>
               <span style="font-size:10px;color:#15803D;">1시간</span>
@@ -1917,8 +1917,9 @@ async function loadMonthlyData(){
   const month=document.getElementById('month-select').value;
   const[y,m]=month.split('-');
   const start=`${y}-${m}-01`,end=`${y}-${m}-31`;
-  const[users,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
-  _allUsers=users;
+  const[allUsers,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
+  _allUsers=allUsers;
+  const users=allUsers.filter(u=>!isPO(u)||isAdm(u));
   const fr=recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
   const fl=logs.filter(l=>l.date&&l.date>=start&&l.date<=end);
   const grouped={},lgrouped={};
@@ -2005,8 +2006,10 @@ async function loadAdminReport(){
   const py=prevDate.getFullYear(),pm=String(prevDate.getMonth()+1).padStart(2,'0');
   const pStart=`${py}-${pm}-01`,pEnd=`${py}-${pm}-31`;
 
-  const[users,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
-  _allUsers=users;
+  const[allUsers,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
+  _allUsers=allUsers;
+  // PO는 실적 대상에서 제외
+  const users=allUsers.filter(u=>!isPO(u)||isAdm(u));
 
   const fr=recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
   const fl=logs.filter(l=>l.date&&l.date>=start&&l.date<=end);
@@ -3146,8 +3149,9 @@ async function loadPOReport(){
   const month=sel.value;
   const[y,m]=month.split('-');
   const start=`${y}-${m}-01`,end=`${y}-${m}-31`;
-  const[users,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
-  _allUsers=users;
+  const[allUsers,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
+  _allUsers=allUsers;
+  const users=allUsers.filter(u=>!isPO(u)||isAdm(u)); // PO 제외
   const fr=recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
   const fl=logs.filter(l=>l.date&&l.date>=start&&l.date<=end);
   const tot=fr.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0);
