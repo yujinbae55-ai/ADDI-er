@@ -3335,6 +3335,16 @@ async function loadPOReport(){
     const emoji=u.emoji||DEFAULT_EMOJIS[i%DEFAULT_EMOJIS.length];
     return{name:u.name,emoji,days:ur.length,hours:uh,reg:ul.filter(l=>l.type==='register').length,edit:ul.filter(l=>l.type==='edit').length,etc:ul.filter(l=>l.type==='etc').length,total:ul.length,pct,color};
   });
+  // 토글용 로그 캐시 저장 (exportReportCSV 공유)
+  const regLogs=fl.filter(l=>l.type==='register');
+  const editLogs=fl.filter(l=>l.type==='edit');
+  const etcLogs=fl.filter(l=>l.type==='etc');
+  window._reportLogsCache={month,users,regLogs,editLogs,etcLogs,fl};
+
+  // diff 헬퍼 (PO 리포트용 — 전달 비교 없으므로 빈 문자열)
+  const diff=()=>'';
+  const pReg=0,pEdit=0,pEtc=0;
+
   const el=document.getElementById('po-report-content');if(!el)return;
   el.innerHTML=`
     <div style="background:linear-gradient(135deg,#0F172A,#0C4A6E);border-radius:var(--radius-sm);padding:22px;margin-bottom:16px;">
@@ -3344,11 +3354,15 @@ async function loadPOReport(){
         <div>• 제품 등록 <b style="color:#34D399;">${reg}개</b> · 수정 <b style="color:var(--brand-mid);">${edit}개</b> · 기타 <b style="color:#93C5FD;">${etc}건</b></div>
       </div>
     </div>
+    <div style="margin-bottom:6px;font-size:11px;color:var(--text-hint);text-align:right;">💡 카드 클릭 시 상세 목록 펼침</div>
     <div class="grid-2" style="margin-bottom:16px;">
       <div class="stat-card"><div class="stat-val">${totH}<span style="font-size:16px;font-weight:600;">h</span></div><div class="stat-label">총 근무시간</div></div>
-      <div class="stat-card"><div class="stat-val">${reg+edit+etc}</div><div class="stat-label">총 작업 건수</div></div>
-      <div class="stat-card"><div class="stat-val">${reg}</div><div class="stat-label">제품 등록 ✅</div></div>
-      <div class="stat-card"><div class="stat-val">${edit}</div><div class="stat-label">제품 수정 ✏️</div></div>
+      <div class="stat-card"><div class="stat-val">${reg+edit+etc}</div><div class="stat-label">총 작업 건수</div>
+        <div style="margin-top:10px;"><button onclick="exportReportCSV('all')" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--brand-light);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 전체 CSV</button></div>
+      </div>
+      ${renderLogToggle('register',regLogs,'제품 등록 ✅','✅','var(--success-light)','var(--success-text)')}
+      ${renderLogToggle('edit',editLogs,'제품 수정 ✏️','✏️','var(--brand-light)','var(--brand-dark)')}
+      ${etc>0?renderLogToggle('etc',etcLogs,'기타 업무 📌','📌','var(--sky-light)','var(--sky-dark)'):''}
     </div>
     <div class="card-sm">
       <div class="section-label" style="margin-bottom:14px;">팀원별 현황</div>
@@ -3368,8 +3382,9 @@ async function loadPOMonthly(){
   const month=sel.value;
   const[y,m]=month.split('-');
   const start=`${y}-${m}-01`,end=`${y}-${m}-31`;
-  const[users,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
-  _allUsers=users;
+  const[allUsers,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
+  _allUsers=allUsers;
+  const users=allUsers.filter(u=>!isPO(u)||isAdm(u));
   const fr=recs.filter(r=>r.date>=start&&r.date<=end&&r.status==='completed');
   const fl=logs.filter(l=>l.date&&l.date>=start&&l.date<=end);
   const list=document.getElementById('po-monthly-list');if(!list)return;
