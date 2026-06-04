@@ -1088,10 +1088,11 @@ function enterApp(){
     document.getElementById('sb-admin').style.display='flex';
   }
   if(poOnly){
-    // PO 전용: 홈/마이페이지 숨김, 공지사항+PO 대시보드 노출
-    ['nav-home','nav-mypage','sb-home','sb-mypage'].forEach(id=>{
+    // PO 전용: 홈/마이페이지/관리자 숨김, 공지+PO만 노출
+    ['nav-home','nav-mypage','sb-home','sb-mypage','nav-admin','sb-admin'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
+    document.getElementById('admin-badge').style.display='none';
     document.getElementById('nav-po').style.display='flex';
     document.getElementById('sb-po').style.display='flex';
     // 공지사항은 PO에게도 노출
@@ -2226,6 +2227,55 @@ async function loadAdminReport(){
     </div>`;
 }
 
+// ── PO 실적 토글 (전역 독립 함수 — 클로저 의존성 없음) ──
+function renderPOLogToggle(type,logs,users,label,icon,bgColor,textColor){
+  if(!logs.length)return '<div class="stat-card" style="opacity:0.5;cursor:default;"><div class="stat-val">0</div><div class="stat-label">'+label+'</div></div>';
+  const id='report-toggle-'+type;
+  const byUser={};
+  logs.forEach(function(l){
+    const u=users.find(function(uu){return uu.id===l.userId;});
+    const uname=u?u.name:'알 수 없음';
+    if(!byUser[uname])byUser[uname]=[];
+    byUser[uname].push(l);
+  });
+  let rows='';
+  Object.entries(byUser).forEach(function(entry){
+    const uname=entry[0];const items=entry[1];
+    items.forEach(function(l){
+      const linkCell=l.link?('<a href="'+l.link+'" target="_blank" style="color:var(--brand);">'+l.link+'</a>'):'-';
+      rows+='<tr>'
+        +'<td style="padding:8px 10px;font-size:13px;font-weight:600;white-space:nowrap;">'+uname+'</td>'
+        +'<td style="padding:8px 10px;font-size:13px;">'+(l.date||'')+'</td>'
+        +'<td style="padding:8px 10px;font-size:13px;font-weight:600;">'+(l.productName||'')+'</td>'
+        +'<td style="padding:8px 10px;font-size:12px;">'+linkCell+'</td>'
+        +'</tr>';
+    });
+  });
+  const thStyle='padding:8px 10px;font-size:11px;font-weight:700;text-align:left;white-space:nowrap;color:'+textColor+';';
+  return '<div class="stat-card report-toggle-card" data-toggle-id="'+id+'" style="cursor:pointer;position:relative;">'
+    +'<div style="position:absolute;top:10px;right:12px;font-size:12px;color:var(--text-hint);" id="'+id+'-arrow">▼ 펼치기</div>'
+    +'<div class="stat-val" style="color:'+textColor+';">'+logs.length+'</div>'
+    +'<div class="stat-label">'+label+'</div>'
+    +'<div id="'+id+'" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+        +'<span style="font-size:11px;font-weight:700;color:var(--text-muted);">'+icon+' '+label+' 상세</span>'
+        +'<button data-export-type="'+type+'" class="report-csv-btn" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 CSV</button>'
+      +'</div>'
+      +'<div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border);">'
+        +'<table style="width:100%;border-collapse:collapse;background:var(--surface);">'
+          +'<thead><tr style="background:'+bgColor+';">'
+            +'<th style="'+thStyle+'">팀원</th>'
+            +'<th style="'+thStyle+'">날짜</th>'
+            +'<th style="'+thStyle+'">제품명</th>'
+            +'<th style="'+thStyle+'">링크</th>'
+          +'</tr></thead>'
+          +'<tbody>'+rows+'</tbody>'
+        +'</table>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+}
+
 function toggleReportSection(id){
   const el=document.getElementById(id);
   const arrow=document.getElementById(id+'-arrow');
@@ -3335,15 +3385,10 @@ async function loadPOReport(){
     const emoji=u.emoji||DEFAULT_EMOJIS[i%DEFAULT_EMOJIS.length];
     return{name:u.name,emoji,days:ur.length,hours:uh,reg:ul.filter(l=>l.type==='register').length,edit:ul.filter(l=>l.type==='edit').length,etc:ul.filter(l=>l.type==='etc').length,total:ul.length,pct,color};
   });
-  // 토글용 로그 캐시 저장 (exportReportCSV 공유)
   const regLogs=fl.filter(l=>l.type==='register');
   const editLogs=fl.filter(l=>l.type==='edit');
   const etcLogs=fl.filter(l=>l.type==='etc');
   window._reportLogsCache={month,users,regLogs,editLogs,etcLogs,fl};
-
-  // diff 헬퍼 (PO 리포트용 — 전달 비교 없으므로 빈 문자열)
-  const diff=()=>'';
-  const pReg=0,pEdit=0,pEtc=0;
 
   const el=document.getElementById('po-report-content');if(!el)return;
   el.innerHTML=`
@@ -3360,9 +3405,9 @@ async function loadPOReport(){
       <div class="stat-card"><div class="stat-val">${reg+edit+etc}</div><div class="stat-label">총 작업 건수</div>
         <div style="margin-top:10px;"><button onclick="exportReportCSV('all')" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--brand-light);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 전체 CSV</button></div>
       </div>
-      ${renderLogToggle('register',regLogs,'제품 등록 ✅','✅','var(--success-light)','var(--success-text)')}
-      ${renderLogToggle('edit',editLogs,'제품 수정 ✏️','✏️','var(--brand-light)','var(--brand-dark)')}
-      ${etc>0?renderLogToggle('etc',etcLogs,'기타 업무 📌','📌','var(--sky-light)','var(--sky-dark)'):''}
+      ${renderPOLogToggle('register',regLogs,users,'제품 등록 ✅','✅','var(--success-light)','var(--success-text)')}
+      ${renderPOLogToggle('edit',editLogs,users,'제품 수정 ✏️','✏️','var(--brand-light)','var(--brand-dark)')}
+      ${etc>0?renderPOLogToggle('etc',etcLogs,users,'기타 업무 📌','📌','var(--sky-light)','var(--sky-dark)'):''}
     </div>
     <div class="card-sm">
       <div class="section-label" style="margin-bottom:14px;">팀원별 현황</div>
