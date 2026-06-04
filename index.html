@@ -2098,6 +2098,7 @@ async function loadAdminReport(){
   const {start,end}=getReportPeriod(month);
   const prevDate=new Date(parseInt(y),parseInt(m)-2,1);
   const py=prevDate.getFullYear(),pm=String(prevDate.getMonth()+1).padStart(2,'0');
+  const prevMonth=`${py}-${pm}`;
   const {start:pStart,end:pEnd}=getReportPeriod(prevMonth);
 
   const[allUsers,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
