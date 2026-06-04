@@ -2468,7 +2468,7 @@ async function loadAdminMembers(){
     return`<div class="manage-card">
       <div class="member-card-top">
         <div class="m-avatar" style="font-size:24px;background:${MEMBER_BG[i%MEMBER_BG.length]};">${emoji}</div>
-        <div class="m-info"><div class="m-name">${u.name}${isSelf?'<span style="font-size:11px;color:var(--text-muted);margin-left:6px;">(나)</span>':''}</div><div class="m-sub">****${u.phoneLast4}</div></div>
+        <div class="m-info"><div class="m-name">${u.name}${isSelf?'<span style="font-size:11px;color:var(--text-muted);margin-left:6px;">(나)</span>':''}</div><div class="m-sub">${isAdm(u)?'관리자':isPO(u)?'PO':'팀원'}</div></div>
       </div>
       <div class="manage-actions">
         <span class="toggle-label">관리자 ${isAdm(u)?'<span style="color:var(--brand);font-weight:700;">활성화 ✓</span>':'<span style="color:var(--text-hint);">미부여</span>'}</span>
