@@ -488,6 +488,10 @@ body.is-login .bottom-nav{display:none!important;}
 .rec-memo-save-btn{padding:5px 14px;border-radius:8px;border:none;background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
 .rec-memo-cancel-btn{padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:12px;cursor:pointer;font-family:inherit;}
 
+/* ── Lounge ── */
+.lounge-post{transition:box-shadow 0.15s;}
+.lounge-post:hover{box-shadow:var(--shadow);}
+
 /* ── Notice badge ── */
 .notice-badge-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#EF4444;margin-left:4px;vertical-align:middle;animation:pulse-dot 2s infinite;}
 @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.8);}}
@@ -525,6 +529,7 @@ body.is-login .bottom-nav{display:none!important;}
       <button class="sidebar-item active" id="sb-home" onclick="switchPage('home')"><span class="si-icon">🏠</span>홈</button>
       <button class="sidebar-item" id="sb-mypage" onclick="switchPage('mypage')"><span class="si-icon">👤</span>마이페이지</button>
       <button class="sidebar-item" id="sb-notice" onclick="switchPage('notice')"><span class="si-icon">📢</span>공지사항<span id="notice-badge-sb" style="display:none;margin-left:auto;background:#EF4444;color:white;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;min-width:18px;text-align:center;"></span></button>
+      <button class="sidebar-item" id="sb-lounge" onclick="switchPage('lounge')" style="position:relative;display:none;"><span class="si-icon">💬</span>팀 라운지<span id="lounge-badge-sb" style="display:none;margin-left:auto;background:#EF4444;color:white;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;min-width:18px;text-align:center;"></span></button>
       <button class="sidebar-item" id="sb-admin" onclick="switchPage('admin')" style="display:none;"><span class="si-icon">📊</span>관리자</button>
       <button class="sidebar-item" id="sb-po" onclick="switchPage('po')" style="display:none;"><span class="si-icon">🎯</span>PO 대시보드</button>
     </div>
@@ -721,6 +726,25 @@ body.is-login .bottom-nav{display:none!important;}
       <div id="notice-list"><div class="empty-state"><div class="empty-icon">📢</div>등록된 공지가 없습니다</div></div>
     </div>
 
+    <!-- 팀 라운지 -->
+    <div class="page" id="page-lounge">
+      <div class="page-header">
+        <div class="page-title">💬 팀 라운지</div>
+        <div class="page-sub">팀원끼리 자유롭게 메모·논의·질문</div>
+      </div>
+      <!-- 글쓰기 -->
+      <div class="card-sm" style="margin-bottom:16px;">
+        <textarea id="lounge-input" placeholder="논의할 내용, 궁금한 점, 공유하고 싶은 거 뭐든 남겨요 💬"
+          style="width:100%;min-height:80px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);font-size:14px;font-family:'Pretendard',sans-serif;resize:vertical;outline:none;background:var(--bg);box-sizing:border-box;line-height:1.6;"
+          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+          <button onclick="postLounge()" style="padding:9px 22px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">남기기 ✉️</button>
+        </div>
+      </div>
+      <!-- 글 목록 -->
+      <div id="lounge-list"><div class="empty-state"><div class="empty-icon">💬</div>아직 글이 없어요</div></div>
+    </div>
+
     <!-- ADMIN -->
     <div class="page" id="page-admin">
       <div class="page-header">
@@ -878,6 +902,7 @@ body.is-login .bottom-nav{display:none!important;}
   <button class="nav-btn active" id="nav-home" onclick="switchPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></button>
   <button class="nav-btn" id="nav-mypage" onclick="switchPage('mypage')"><span class="nav-icon">👤</span><span class="nav-label">마이페이지</span></button>
   <button class="nav-btn" id="nav-notice" onclick="switchPage('notice')" style="position:relative;"><span class="nav-icon">📢</span><span class="nav-label">공지</span><span id="notice-badge-nav" style="display:none;position:absolute;top:4px;right:12px;background:#EF4444;color:white;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:800;min-width:16px;text-align:center;"></span></button>
+  <button class="nav-btn" id="nav-lounge" onclick="switchPage('lounge')" style="position:relative;display:none;"><span class="nav-icon">💬</span><span class="nav-label">라운지</span><span id="lounge-badge-nav" style="display:none;position:absolute;top:4px;right:8px;background:#EF4444;color:white;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:800;min-width:16px;text-align:center;"></span></button>
   <button class="nav-btn" id="nav-admin" onclick="switchPage('admin')" style="display:none;"><span class="nav-icon">📊</span><span class="nav-label">관리자</span></button>
   <button class="nav-btn" id="nav-po" onclick="switchPage('po')" style="display:none;"><span class="nav-icon">🎯</span><span class="nav-label">PO</span></button>
 </div>
@@ -1109,8 +1134,8 @@ function logout(){
   document.getElementById('nav-po').style.display='none';
   document.getElementById('sb-po').style.display='none';
   // PO 전용으로 숨겼던 탭들 다시 표시 (다음 로그인 유저를 위해)
-  ['nav-home','nav-mypage','nav-notice','nav-po','nav-admin',
-   'sb-home','sb-mypage','sb-notice','sb-po','sb-admin'].forEach(id=>{
+  ['nav-home','nav-mypage','nav-notice','nav-po','nav-admin','nav-lounge',
+   'sb-home','sb-mypage','sb-notice','sb-po','sb-admin','sb-lounge'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.style.display='';
   });
 }
@@ -1135,7 +1160,7 @@ function enterApp(){
   }
   if(poOnly){
     // PO 전용: 홈/마이페이지/관리자 숨김, 공지+PO만 노출
-    ['nav-home','nav-mypage','sb-home','sb-mypage','nav-admin','sb-admin'].forEach(id=>{
+    ['nav-home','nav-mypage','sb-home','sb-mypage','nav-admin','sb-admin','nav-lounge','sb-lounge'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
     document.getElementById('admin-badge').style.display='none';
@@ -1150,8 +1175,13 @@ function enterApp(){
   document.getElementById('user-name-display').textContent=currentUser.name;
   switchPage(poOnly?'po':'home');
   if(!poOnly){loadTodayAttendance();loadRecentRecords();loadHomeGameStats();loadHomeChecklist();}
-  // 공지 알림 뱃지 초기 체크 + 폴링 시작
-  setTimeout(()=>{updateNoticeBadge();startPolling();},1500);
+  // PO에게는 라운지 숨김
+  if(!poOnly){
+    document.getElementById('sb-lounge').style.display='flex';
+    document.getElementById('nav-lounge').style.display='flex';
+  }
+  // 공지 + 라운지 알림 뱃지 초기 체크 + 폴링 시작
+  setTimeout(()=>{updateNoticeBadge();updateLoungeBadge();startPolling();},1500);
 }
 
 // ── Attendance ──
@@ -2762,6 +2792,7 @@ function switchPage(page){
   const fab=document.getElementById('fab-product');
   if(fab)fab.style.display=page==='home'&&!isPO(currentUser)?'flex':'none';
   if(page==='mypage')loadMyPage();
+  if(page==='lounge'){loadLounge();markLoungeRead();return;}
   if(page==='notice'){
     // 공지 읽음 처리
     fsQuery('notices').then(notices=>{
@@ -2800,6 +2831,181 @@ async function renderHomeSummaryChips(){
   chips.push({icon:'🎯',label:'이번달 '+pct+'% 달성',active:pct>=70});
   wrap.innerHTML=chips.map(c=>`<div class="summary-chip${c.active?' active':''}">${c.icon} ${c.label}</div>`).join('');
 }
+
+// ── 팀 라운지 ──
+async function loadLounge(){
+  const posts=await fsQuery('lounge');
+  const sorted=posts.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const el=document.getElementById('lounge-list');if(!el)return;
+  if(!sorted.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div>아직 글이 없어요. 첫 번째로 남겨보세요!</div>';return;}
+  el.innerHTML=sorted.map(p=>{
+    const isMe=p.userId===currentUser.id;
+    const time=p.createdAt?new Date(p.createdAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    const replies=p.replies||'_none_';
+    const replyList=replies==='_none_'?[]:replies.split('|||').filter(Boolean);
+    const reactions=p.reactions||'_none_';
+    const reactionMap={};
+    if(reactions!=='_none_')reactions.split('||').filter(Boolean).forEach(r=>{const[e,names]=r.split(':');if(e)reactionMap[e]=names?names.split(','):[]; });
+    const reactionHtml=Object.entries(reactionMap).map(([e,names])=>
+      `<button onclick="toggleReaction('${p.id}','${e}')"
+        style="padding:3px 9px;border-radius:20px;border:1.5px solid ${names.includes(currentUser.name)?'var(--brand)':'var(--border)'};background:${names.includes(currentUser.name)?'var(--brand-light)':'transparent'};font-size:12px;cursor:pointer;font-family:inherit;color:${names.includes(currentUser.name)?'var(--brand)':'var(--text-muted)'};">
+        ${e} ${names.length}
+      </button>`
+    ).join('');
+    const replyHtml=replyList.map(r=>{
+      const[uid,uname,rtime,...msgArr]=r.split('|');
+      return `<div style="padding:8px 12px;background:var(--bg);border-radius:10px;margin-top:6px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+          <span style="font-size:12px;font-weight:700;color:var(--brand);">${uname||'팀원'}</span>
+          <span style="font-size:10px;color:var(--text-hint);">${rtime||''}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.5;">${msgArr.join('|')}</div>
+      </div>`;
+    }).join('');
+    return`<div class="lounge-post" id="lpost-${p.id}" style="background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:22px;">${p.emoji||'😊'}</span>
+          <div>
+            <span style="font-size:13px;font-weight:700;color:var(--text);">${p.authorName||'팀원'}</span>
+            <span style="font-size:11px;color:var(--text-hint);margin-left:6px;">${time}</span>
+          </div>
+        </div>
+        ${isMe?`<button onclick="deleteLounge('${p.id}')" class="icon-btn danger" title="삭제">🗑️</button>`:''}
+      </div>
+      <div style="font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;margin-bottom:10px;">${p.content||''}</div>
+      <!-- 반응 -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+        ${reactionHtml}
+        <div style="position:relative;display:inline-block;">
+          <button onclick="toggleEmojiPicker('${p.id}')"
+            style="padding:3px 9px;border-radius:20px;border:1.5px dashed var(--border);background:transparent;font-size:12px;cursor:pointer;color:var(--text-hint);font-family:inherit;">
+            + 반응
+          </button>
+          <div id="emoji-picker-${p.id}" style="display:none;position:absolute;bottom:32px;left:0;background:white;border-radius:12px;border:1px solid var(--border);padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.12);z-index:100;display:none;">
+            ${['👍','❤️','😂','🔥','👀','✅','🤔','💡'].map(e=>`<button onclick="toggleReaction('${p.id}','${e}');document.getElementById('emoji-picker-${p.id}').style.display='none'" style="font-size:18px;background:none;border:none;cursor:pointer;padding:4px;">${e}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+      <!-- 댓글 -->
+      ${replyHtml}
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <input class="lounge-reply-input" data-post-id="${p.id}" type="text" placeholder="댓글 달기..."
+          style="flex:1;padding:7px 12px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;outline:none;background:var(--bg);"
+          onkeydown="if(event.key==='Enter')postLoungeReply(this.dataset.postId,this)"/>
+        <button class="lounge-reply-btn" data-post-id="${p.id}"
+          style="padding:7px 14px;border-radius:10px;border:none;background:var(--brand-light);color:var(--brand);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">↩</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleEmojiPicker(postId){
+  const el=document.getElementById('emoji-picker-'+postId);
+  if(!el)return;
+  el.style.display=el.style.display==='none'||!el.style.display?'flex':'none';
+}
+
+async function postLounge(){
+  const input=document.getElementById('lounge-input');
+  const content=input?.value.trim();
+  if(!content){toast('내용을 입력해주세요');return;}
+  const id=await fsAdd('lounge',{
+    content,userId:currentUser.id,authorName:currentUser.name,
+    emoji:currentUser.emoji||'😊',createdAt:new Date().toISOString(),
+    replies:'_none_',reactions:'_none_'
+  });
+  if(id){
+    input.value='';input.style.height='auto';
+    toast('등록됐어요 ✉️');
+    loadLounge();
+    // 다른 팀원 뱃지용 lastLounge 타임스탬프 저장
+    localStorage.setItem('addi_lastread_lounge_'+currentUser.id, new Date().toISOString());
+  }else toast('등록 실패');
+}
+
+async function postLoungeReply(postId, inputEl){
+  const content=inputEl.value.trim();
+  if(!content)return;
+  const posts=await fsQuery('lounge');
+  const post=posts.find(p=>p.id===postId);
+  if(!post)return;
+  const rtime=new Date().toLocaleString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const newReply=currentUser.id+'|'+currentUser.name+'|'+rtime+'|'+content;
+  const raw=post.replies||'_none_';
+  const updated=raw==='_none_'?newReply:(raw+'|||'+newReply);
+  const ok=await fsUpdate('lounge',postId,{replies:updated});
+  if(ok){inputEl.value='';toast('댓글 달렸어요 💬');loadLounge();}else toast('실패');
+}
+
+async function toggleReaction(postId,emoji){
+  const posts=await fsQuery('lounge');
+  const post=posts.find(p=>p.id===postId);
+  if(!post)return;
+  const raw=post.reactions||'_none_';
+  const reactionMap={};
+  if(raw!=='_none_')raw.split('||').filter(Boolean).forEach(r=>{const[e,names]=r.split(':');if(e)reactionMap[e]=names?names.split(',').filter(Boolean):[];});
+  if(!reactionMap[emoji])reactionMap[emoji]=[];
+  const idx=reactionMap[emoji].indexOf(currentUser.name);
+  if(idx>=0)reactionMap[emoji].splice(idx,1);else reactionMap[emoji].push(currentUser.name);
+  if(reactionMap[emoji].length===0)delete reactionMap[emoji];
+  const newReactions=Object.entries(reactionMap).map(([e,names])=>e+':'+names.join(',')).join('||')||'_none_';
+  const ok=await fsUpdate('lounge',postId,{reactions:newReactions});
+  if(ok)loadLounge();
+}
+
+async function deleteLounge(postId){
+  if(!confirm('이 글을 삭제할까요?'))return;
+  const ok=await fsDelete('lounge',postId);
+  if(ok){toast('삭제됐어요');loadLounge();}else toast('삭제 실패');
+}
+
+function markLoungeRead(){
+  localStorage.setItem('addi_lastread_lounge_'+currentUser.id, new Date().toISOString());
+  const sb=document.getElementById('lounge-badge-sb');
+  const nb=document.getElementById('lounge-badge-nav');
+  if(sb)sb.style.display='none';
+  if(nb)nb.style.display='none';
+}
+
+async function updateLoungeBadge(){
+  if(!currentUser)return;
+  const posts=await fsQuery('lounge');
+  if(!posts.length)return;
+  const lastRead=localStorage.getItem('addi_lastread_lounge_'+currentUser.id)||'';
+  // 내가 쓴 글 제외, 미확인 글 카운트
+  const unread=posts.filter(p=>p.userId!==currentUser.id&&(p.createdAt||'')>lastRead).length;
+  // 댓글도 체크
+  const unreadReplies=posts.reduce((cnt,p)=>{
+    if(p.userId===currentUser.id&&p.replies&&p.replies!=='_none_'){
+      const repList=p.replies.split('|||').filter(Boolean);
+      const newReps=repList.filter(r=>{const parts=r.split('|');const rtime=parts[2]||'';return parts[0]!==currentUser.id&&rtime>lastRead;});
+      return cnt+newReps.length;
+    }
+    return cnt;
+  },0);
+  const total=unread+unreadReplies;
+  const label=total>9?'9+':String(total);
+  const sb=document.getElementById('lounge-badge-sb');
+  const nb=document.getElementById('lounge-badge-nav');
+  if(total>0){
+    if(sb){sb.textContent=label;sb.style.display='inline-block';}
+    if(nb){nb.textContent=label;nb.style.display='inline-block';}
+  }else{
+    if(sb)sb.style.display='none';
+    if(nb)nb.style.display='none';
+  }
+}
+
+// 라운지 댓글 버튼 이벤트 위임
+document.addEventListener('click',function(e){
+  const btn=e.target.closest('.lounge-reply-btn');
+  if(btn){
+    const postId=btn.dataset.postId;
+    const inp=btn.previousElementSibling;
+    if(inp&&postId)postLoungeReply(postId,inp);
+  }
+});
 
 // ── 게이미피케이션 ──
 async function loadHomeGameStats(){
@@ -3115,7 +3321,13 @@ async function loadHomeChecklist(){
               <div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;">TODAY'S MISSION</div>
               <div style="font-size:14px;font-weight:800;color:white;">${todayDisplay} 등록 필수 제품 🔥</div>
             </div>
-            <div style="background:rgba(255,255,255,0.2);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:800;color:white;">${myMissions.length}건</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <a href="https://docs.google.com/spreadsheets/d/1ZsDdbrkDldtWcD7EdTWaZvGA4Co9H8ZcUeep34deTX8/edit" target="_blank"
+                style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:10px;background:rgba(255,255,255,0.9);font-size:11px;font-weight:800;color:#059669;text-decoration:none;white-space:nowrap;">
+                📊 분류 시트
+              </a>
+              <div style="background:rgba(255,255,255,0.2);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:800;color:white;">${myMissions.length}건</div>
+            </div>
           </div>
           ${myMissions.map(item=>{
             const isMeChecked=item.logs&&item.logs!=='_none_'&&item.logs.split('||').includes(currentUser.name);
@@ -3791,8 +4003,9 @@ let _pollInterval=null;
 function startPolling(){
   if(_pollInterval)clearInterval(_pollInterval);
   _pollInterval=setInterval(async()=>{
-    // 공지 뱃지 갱신
+    // 공지/라운지 뱃지 갱신
     updateNoticeBadge();
+    updateLoungeBadge();
     // 홈 체크리스트 실시간 갱신 (홈 활성시)
     if(document.getElementById('page-home')?.classList.contains('active')){
       loadHomeChecklist();
