@@ -693,16 +693,21 @@ body.is-login .bottom-nav{display:none!important;}
           </div>
         </div>
         <div class="mypage-side-col">
-          <div class="tabs" style="margin-bottom:14px;">
-            <button class="my-side-tab active" data-tab="list" onclick="switchSideTab('list')">📋 근무내역</button>
-            <button class="my-side-tab" data-tab="products" onclick="switchSideTab('products')">📦 제품로그</button>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+            <div class="tabs" style="margin-bottom:0;flex:1;">
+              <button class="my-side-tab active" data-tab="list" onclick="switchSideTab('list')">📋 근무내역</button>
+              <button class="my-side-tab" data-tab="products" onclick="switchSideTab('products')">📦 제품로그</button>
+            </div>
+            <select id="my-month-filter" onchange="renderSidePanel()"
+              style="padding:7px 10px;border-radius:10px;border:1px solid var(--border);font-size:12px;font-weight:600;font-family:inherit;background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap;">
+            </select>
           </div>
           <div id="my-date-indicator" style="display:none;margin-bottom:10px;padding:8px 14px;background:var(--brand-light);border-radius:10px;border:1px solid var(--brand-mid);display:flex;align-items:center;justify-content:space-between;">
             <span id="my-date-indicator-text" style="font-size:13px;font-weight:700;color:var(--brand);"></span>
-            <button onclick="clearDateFilter()" style="background:none;border:none;font-size:13px;color:var(--brand);cursor:pointer;font-weight:700;font-family:inherit;">✕ 전체보기</button>
+            <button onclick="clearDateFilter()" style="background:none;border:none;font-size:13px;color:var(--brand);cursor:pointer;font-weight:700;font-family:inherit;">✕ 날짜 해제</button>
           </div>
-          <div id="my-side-list" class="my-side-panel"></div>
-          <div id="my-side-products" class="my-side-panel" style="display:none;"></div>
+          <div id="my-side-list" class="my-side-panel" style="max-height:520px;overflow-y:auto;"></div>
+          <div id="my-side-products" class="my-side-panel" style="display:none;max-height:520px;overflow-y:auto;"></div>
         </div>
       </div>
     </div>
@@ -1552,6 +1557,20 @@ async function loadMyPage(){
   myCalYear=_by; myCalMonth=_bm-1;
   _mySelectedDate=null;
   document.getElementById('my-emoji-display').textContent=currentUser.emoji||'😊';
+  // 월 필터 셀렉트 초기화
+  const mSel=document.getElementById('my-month-filter');
+  if(mSel&&mSel.options.length===0){
+    const now=new Date();
+    for(let i=0;i<12;i++){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const val=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      const opt=document.createElement('option');
+      opt.value=val;
+      opt.textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월';
+      if(i===0)opt.selected=true;
+      mSel.appendChild(opt);
+    }
+  }
   // 전체 데이터 한 번에 로드
   const[recs,logs]=await Promise.all([
     fsQuery('attendance',[['userId','EQUAL',currentUser.id]]),
@@ -1677,11 +1696,16 @@ function renderSideList(){
   // 날짜 선택 시 → my-side-list, 전체 → my-all-list
   const el=document.getElementById('my-side-list');
   if(!el)return;
+  const _mfSel=document.getElementById('my-month-filter');
+  const _mfVal=_mfSel?.value||'';
   let recs=_myAllRecs.filter(r=>r.status==='completed');
   if(_mySelectedDate){
     recs=recs.filter(r=>r.date===_mySelectedDate);
+  }else if(_mfVal){
+    const {start:mStart,end:mEnd}=getReportPeriod(_mfVal);
+    recs=recs.filter(r=>r.date&&r.date>=mStart&&r.date<=mEnd)
+      .sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||''));
   }else{
-    // 전체: 최근 순, 최대 60건
     recs=recs.sort((a,b)=>(b.checkIn||'').localeCompare(a.checkIn||'')).slice(0,60);
   }
   if(!recs.length){
@@ -1750,9 +1774,15 @@ function renderSideList(){
 function renderSideProducts(){
   const el=document.getElementById('my-side-products');
   if(!el)return;
+  const mfSel2=document.getElementById('my-month-filter');
+  const mfVal2=mfSel2?.value||'';
   let logs=_myAllLogs;
   if(_mySelectedDate){
     logs=logs.filter(function(l){return l.date===_mySelectedDate;});
+  }else if(mfVal2){
+    const {start:lStart,end:lEnd}=getReportPeriod(mfVal2);
+    logs=logs.filter(function(l){return l.date&&l.date>=lStart&&l.date<=lEnd;})
+      .sort(function(a,b){return(b.timestamp||'').localeCompare(a.timestamp||'');});
   }else{
     logs=logs.slice().sort(function(a,b){return(b.timestamp||'').localeCompare(a.timestamp||'');}).slice(0,80);
   }
@@ -2426,6 +2456,23 @@ document.addEventListener('click',function(e){
     const el=document.getElementById('excel-edit-'+cancelBtn.dataset.itemId);
     if(el)el.style.display='none';
     return;
+  }
+});
+
+// cl-type-change-select 이벤트 위임
+document.addEventListener('change',function(e){
+  const sel=e.target.closest('.cl-type-change-select');
+  if(sel){
+    const id=sel.dataset.clId;
+    const newType=sel.value;
+    fsUpdate('checklist',id,{type:newType}).then(ok=>{
+      if(ok){
+        toast('타입 변경 완료 ✅');
+        loadChecklist();
+        loadHomeChecklist();
+        if(document.getElementById('po-panel-checklist')?.style.display==='block')loadPOChecklist();
+      }else toast('변경 실패');
+    });
   }
 });
 
@@ -3258,14 +3305,33 @@ async function loadChecklist(){
   if(!el)return;
   if(!sorted.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>등록된 항목이 없습니다</div>';return;}
   const done=sorted.filter(i=>i.done===true||i.done==='true').length;
+  const pending=sorted.filter(i=>!(i.done===true||i.done==='true'));
+  const doneItems=sorted.filter(i=>i.done===true||i.done==='true');
+  const holdItems=sorted.filter(i=>i.type==='hold'&&!(i.done===true||i.done==='true'));
+  const activeItems=pending.filter(i=>i.type!=='hold');
+
   el.innerHTML=
     `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <span style="font-size:12px;font-weight:700;color:var(--text-muted);">${sorted.length}개 항목 · ${done}개 완료</span>
+      <span style="font-size:12px;font-weight:700;color:var(--text-muted);">${sorted.length}개 항목 · ${done}개 완료 · ${holdItems.length}개 보류</span>
       <span style="font-size:11px;color:var(--text-hint);">☰ 드래그로 순서 변경</span>
     </div>`+
     `<div id="cl-drag-container">`+
-    sorted.map(item=>renderChecklistItem(item,true)).join('')+
-    `</div>`;
+    activeItems.map(item=>renderChecklistItem(item,true)).join('')+
+    `</div>`+
+    (holdItems.length?`
+    <div style="margin-top:14px;border-top:1.5px dashed #FF9800;padding-top:12px;">
+      <div style="font-size:12px;font-weight:700;color:#E65100;margin-bottom:8px;">⏸️ 등록 보류 (${holdItems.length}개)</div>
+      <div>${holdItems.map(item=>renderChecklistItem(item,true)).join('')}</div>
+    </div>`:'')+
+    (doneItems.length?`
+    <div style="margin-top:14px;border-top:1.5px dashed var(--border);padding-top:12px;">
+      <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.innerHTML=this.innerHTML.includes('▶')?this.innerHTML.replace('▶','▼'):this.innerHTML.replace('▼','▶');"
+        style="font-size:12px;font-weight:700;color:var(--text-muted);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;margin-bottom:8px;">
+        ▶ ✅ 완료된 제품 (${doneItems.length}개)
+      </button>
+      <div style="display:none;">${doneItems.map(item=>renderChecklistItem(item,true)).join('')}</div>
+    </div>`:'')+
+    ``;
   initChecklistDrag();
   // 담당자 드롭다운 채우기
   if(_allUsers&&_allUsers.length>0){
@@ -3454,7 +3520,16 @@ function renderChecklistItem(item,isAdmin){
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         ${urgentBadge}
         <span class="cl-name">${item.name}</span>
-        <span class="cl-type-badge ${typeClass}">${typeLabel}</span>
+        ${isAdmin
+          ?`<select class="cl-type-change-select" data-cl-id="${item.id}"
+              style="padding:2px 8px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;background:var(--bg);">
+              <option value="register" ${type==='register'?'selected':''}>✅ 등록</option>
+              <option value="edit" ${type==='edit'?'selected':''}>✏️ 수정</option>
+              <option value="hold" ${type==='hold'?'selected':''}>⏸️ 보류</option>
+              <option value="etc" ${type==='etc'?'selected':''}>📌 기타</option>
+            </select>`
+          :`<span class="cl-type-badge ${typeClass}">${typeLabel}</span>`
+        }
         ${assigneeBadge}
         <button onclick="event.stopPropagation();toggleMyMission('${item.id}')"
           title="${isMyMission?'미션 해제 (홈 상단에서 제거)':'📌 내 미션으로 고정 (홈 상단에 표시)'}"
