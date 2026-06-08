@@ -3061,9 +3061,9 @@ async function loadHomeChecklist(){
   const myMissions=items.filter(i=>{
     const isDone=i.done==='true'||i.done===true;
     if(isDone)return false;
-    // 방법1: 관리자가 담당자로 지정 + pinned
-    const isAdminAssigned=(i.assignee===currentUser.name)&&(i.pinned==='true'||i.pinned===true);
-    // 방법2: 본인이 직접 핀
+    // 방법1: 관리자가 담당자로 지정 (pinned 여부 관계없이)
+    const isAdminAssigned=i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
+    // 방법2: 본인이 직접 📌 핀 버튼으로 고정
     const rawPinnedBy=i.pinnedBy||'_none_';
     const isSelfPinned=rawPinnedBy!=='_none_'&&rawPinnedBy.split('||').includes(currentUser.name);
     return isAdminAssigned||isSelfPinned;
@@ -3113,7 +3113,14 @@ async function loadHomeChecklist(){
     if(ao!==bo)return ao-bo;
     return(a.createdAt||'').localeCompare(b.createdAt||'');
   };
-  const pending=items.filter(i=>!(i.done===true||i.done==='true')&&!(i.pinned==='true'&&i.assignee===currentUser.name)).sort(byOrder);
+  const pending=items.filter(i=>{
+    if(i.done===true||i.done==='true')return false;
+    // 내 담당(assignee) 또는 내가 핀한 항목은 미션 카드에서 표시 → 목록 제외
+    const isMyAssigned=i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
+    const rawPinnedBy=i.pinnedBy||'_none_';
+    const isSelfPinned=rawPinnedBy!=='_none_'&&rawPinnedBy.split('||').includes(currentUser.name);
+    return !(isMyAssigned||isSelfPinned);
+  }).sort(byOrder);
   const allDone=items.filter(i=>i.done===true||i.done==='true');
   const done=allDone
     .sort((a,b)=>(b.checkedAt||b.createdAt||'').localeCompare(a.checkedAt||a.createdAt||''))
@@ -3169,7 +3176,7 @@ function renderChecklistItem(item,isAdmin){
   const urgentBadge=isUrgent?`<span class="urgent-badge">🚨 긴급</span>`:''
   const assigneeBadge=item.assignee&&item.assignee!=='_none_'?`<span style="font-size:10px;font-weight:700;background:var(--brand-light);color:#5B21B6;border-radius:8px;padding:1px 7px;">👤 ${item.assignee}</span>`:'';
   // 내 미션 여부: 담당자가 나이고 pinned, 또는 내가 직접 핀
-  const isMyMission=(item.assignee===currentUser?.name&&(item.pinned==='true'||item.pinned===true))||(item.pinnedBy&&item.pinnedBy.split('||').includes(currentUser?.name));
+  const isMyMission=(item.assignee&&item.assignee!=='_none_'&&item.assignee===currentUser?.name)||(item.pinnedBy&&item.pinnedBy!=='_none_'&&item.pinnedBy.split('||').includes(currentUser?.name));
   const pinBtnStyle=isMyMission
     ?'background:var(--brand);color:white;border:none;'
     :'background:var(--bg);color:var(--text-hint);border:1px solid var(--border);';
