@@ -3061,12 +3061,9 @@ async function loadHomeChecklist(){
   const myMissions=items.filter(i=>{
     const isDone=i.done==='true'||i.done===true;
     if(isDone)return false;
-    // 미션 = pinned:true + assignee가 나, 또는 내가 직접 📌 핀
+    // 미션 = pinned:true + assignee가 나 (관리자가 지정+핀한 것만)
     const isPinned=i.pinned==='true'||i.pinned===true;
-    const isAdminMission=isPinned&&i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
-    const rawPinnedBy=i.pinnedBy||'_none_';
-    const isSelfPinned=rawPinnedBy!=='_none_'&&rawPinnedBy.split('||').includes(currentUser.name);
-    return isAdminMission||isSelfPinned;
+    return isPinned&&i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
   });
 
   // 미션 카드 렌더
@@ -3115,12 +3112,9 @@ async function loadHomeChecklist(){
   };
   const pending=items.filter(i=>{
     if(i.done===true||i.done==='true')return false;
-    // 미션(pinned+담당자)이거나 내가 직접 핀한 항목만 목록 제외
     const isPinned=i.pinned==='true'||i.pinned===true;
-    const isAdminMission=isPinned&&i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
-    const rawPinnedBy=i.pinnedBy||'_none_';
-    const isSelfPinned=rawPinnedBy!=='_none_'&&rawPinnedBy.split('||').includes(currentUser.name);
-    return !(isAdminMission||isSelfPinned);
+    const isMyMissionItem=isPinned&&i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
+    return !isMyMissionItem;
   }).sort(byOrder);
   const allDone=items.filter(i=>i.done===true||i.done==='true');
   const done=allDone
@@ -3178,8 +3172,10 @@ function renderChecklistItem(item,isAdmin){
   const assigneeBadge=item.assignee&&item.assignee!=='_none_'?`<span style="font-size:10px;font-weight:700;background:var(--brand-light);color:#5B21B6;border-radius:8px;padding:1px 7px;">👤 ${item.assignee}</span>`:'';
   // 내 미션 여부: 담당자가 나이고 pinned, 또는 내가 직접 핀
   const _isPinned=item.pinned==='true'||item.pinned===true;
-  const isMyMission=(_isPinned&&item.assignee&&item.assignee!=='_none_'&&item.assignee===currentUser?.name)||(item.pinnedBy&&item.pinnedBy!=='_none_'&&item.pinnedBy.split('||').includes(currentUser?.name));
-  const pinBtnStyle=isMyMission
+  // isMyMission: 내가 담당자이고 pinned된 것 (미션 카드에 뜨는 조건과 동일)
+  const isMyMission=_isPinned&&item.assignee&&item.assignee!=='_none_'&&item.assignee===currentUser?.name;
+  // 📌 버튼 스타일: pinned 상태 기준 (관리자가 핀했는지)
+  const pinBtnStyle=_isPinned
     ?'background:var(--brand);color:white;border:none;'
     :'background:var(--bg);color:var(--text-hint);border:1px solid var(--border);';
   return`<div class="cl-item type-${type}${isDone?' done':''}${isUrgent?' urgent':''}" id="cl-item-${item.id}" ${dragAttrs}>
@@ -3194,7 +3190,7 @@ function renderChecklistItem(item,isAdmin){
         <button onclick="event.stopPropagation();toggleMyMission('${item.id}')"
           title="${isMyMission?'미션 해제 (홈 상단에서 제거)':'📌 내 미션으로 고정 (홈 상단에 표시)'}"
           style="padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;${pinBtnStyle}">
-          ${isMyMission?'📌 내 미션':'📌'}
+          ${_isPinned?(item.assignee&&item.assignee!=='_none_'?'📌 '+item.assignee:'📌 고정'):'📌'}
         </button>
       </div>
       ${item.link&&item.link!=='_none_'?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--brand);word-break:break-all;">${item.link}</a>`:''}
@@ -3324,26 +3320,28 @@ async function toggleChecklistItem(id,iMeCheckedStr){
 }
 
 async function toggleMyMission(id){
-  // pinnedBy 필드에 내 이름 추가/제거 (개인별 미션 고정)
+  // 📌 버튼: pinned true/false 토글
+  // 미션은 pinned=true + assignee인 사람 홈에만 표시
   const items=await fsQuery('checklist');
   const item=items.find(i=>i.id===id);
   if(!item){toast('항목을 찾을 수 없습니다');return;}
 
-  const rawPinnedBy=item.pinnedBy||'_none_';
-  const pinnedByList=rawPinnedBy==='_none_'?[]:rawPinnedBy.split('||').filter(Boolean);
-  const isAlreadyPinned=pinnedByList.includes(currentUser.name);
+  const isNowPinned=item.pinned==='true'||item.pinned===true;
+  const newPinned=!isNowPinned;
 
-  let newPinnedBy;
-  if(isAlreadyPinned){
-    newPinnedBy=pinnedByList.filter(n=>n!==currentUser.name).join('||')||'_none_';
-  }else{
-    pinnedByList.push(currentUser.name);
-    newPinnedBy=pinnedByList.join('||');
+  // 담당자가 지정되어 있어야 미션 고정 가능
+  if(newPinned&&(!item.assignee||item.assignee==='_none_')){
+    toast('담당자를 먼저 지정해주세요 👤');return;
   }
 
-  const ok=await fsUpdate('checklist',id,{pinnedBy:newPinnedBy,pinned:newPinnedBy!=='_none_'?'true':'false'});
+  const ok=await fsUpdate('checklist',id,{pinned:newPinned?'true':'false'});
   if(ok){
-    toast(isAlreadyPinned?'📌 내 미션 해제':'📌 내 오늘 미션으로 고정!');
+    const assigneeName=item.assignee&&item.assignee!=='_none_'?item.assignee:'';
+    if(newPinned){
+      toast('📌 '+assigneeName+' 님 홈에 오늘의 미션으로 고정!');
+    }else{
+      toast('📌 미션 고정 해제');
+    }
     loadHomeChecklist();
     if(document.getElementById('admin-checklist-panel')?.style.display==='block')loadChecklist();
     if(document.getElementById('po-panel-checklist')?.style.display==='block'){loadPOChecklist();loadPOMyChecklist();}
