@@ -633,6 +633,8 @@ body.is-login .bottom-nav{display:none!important;}
             </div>
             <div id="game-badges" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;"></div>
           </div>
+          <!-- 오늘의 미션 -->
+          <div id="home-mission-wrap" style="display:none;"></div>
           <div class="card-sm" style="margin-top:0;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
               <div class="section-label" style="margin-bottom:0;">📋 제품 체크리스트</div>
@@ -767,7 +769,13 @@ body.is-login .bottom-nav{display:none!important;}
             <label class="radio-label" id="cl-label-edit" onclick="clSelectType('edit')" style="flex:unset;padding:8px 14px;"><input type="radio" name="cl-type" value="edit"/>✏️ 수정</label>
           </div>
           <input id="cl-product-name" class="popup-input" type="text" placeholder="제품명" style="margin-bottom:8px;"/>
-          <input id="cl-product-link" class="popup-input" type="url" placeholder="제품 링크 (선택사항)" style="margin-bottom:10px;"/>
+          <input id="cl-product-link" class="popup-input" type="url" placeholder="제품 링크 (선택사항)" style="margin-bottom:8px;"/>
+          <input id="cl-excel-link" class="popup-input" type="url" placeholder="📊 엑셀 시트 링크 (선택사항)" style="margin-bottom:8px;"/>
+          <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:var(--bg);cursor:pointer;margin-bottom:10px;">
+            <input type="checkbox" id="cl-pinned" style="width:15px;height:15px;accent-color:var(--brand);"/>
+            <span style="font-size:13px;font-weight:700;color:var(--brand);">📌 오늘의 할당 제품 상단 고정</span>
+          </label>
+          <input id="cl-assignee-input" class="popup-input" type="text" placeholder="담당자 이름 (상단 고정 시)" style="margin-bottom:10px;font-size:13px;"/>
           <button onclick="addChecklistItem()" style="width:100%;padding:13px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;">항목 추가</button>
         </div>
         <div id="admin-checklist-list"></div>
@@ -2208,6 +2216,7 @@ async function loadAdminReport(){
 
   // _reportLogsCache에 저장 (CSV 다운로드용)
   window._reportLogsCache={month,users,regLogs,editLogs,etcLogs,fl};
+  window._reportRecsCache=recs; // 개인별 근무 기록 캐시
 
   document.getElementById('report-content').innerHTML=`
     <!-- 실적 요약 박스 -->
@@ -2436,25 +2445,90 @@ document.addEventListener('click',function(e){
   }
 });
 
+function getWeekNum(dateStr, periodStart){
+  // periodStart(YYYY-MM-DD) 기준으로 몇 주차인지
+  const d=new Date(dateStr+'T00:00:00');
+  const s=new Date(periodStart+'T00:00:00');
+  const diff=Math.floor((d-s)/(1000*60*60*24));
+  return Math.floor(diff/7)+1;
+}
+
 function exportReportCSV(type){
   const cache=window._reportLogsCache;
   if(!cache){toast('데이터 없음');return;}
   const {month,users,regLogs,editLogs,etcLogs,fl}=cache;
-  let logs=type==='register'?regLogs:type==='edit'?editLogs:type==='etc'?etcLogs:fl;
   const [y,m]=month.split('-');
-  let csv='\uFEFF팀원,날짜,구분,제품명,링크\n';
-  logs.sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(l=>{
-    const u=users.find(u=>u.id===l.userId);
-    const name=u?.name||'알 수 없음';
-    const typeLabel=l.type==='register'?'등록':l.type==='edit'?'수정':'기타';
-    csv+=`"${name}","${l.date||''}","${typeLabel}","${l.productName||''}","${l.link||''}"
+  const {start:periodStart,end:periodEnd}=getReportPeriod(month);
+
+  // 전체 근무 기록도 캐시에서 가져오기
+  const allRecs=window._reportRecsCache||[];
+
+  let csv='﻿';
+
+  // ── 섹션1: 팀원별 주차별 근무시간 ──
+  csv+='[팀원별 주차별 근무시간]\n';
+  csv+='팀원,1주차,2주차,3주차,4주차,5주차,합계\n';
+
+  users.forEach(u=>{
+    const uRecs=allRecs.filter(r=>r.userId===u.id&&r.status==='completed'&&r.date>=periodStart&&r.date<=periodEnd);
+    const weekMap={1:0,2:0,3:0,4:0,5:0};
+    uRecs.forEach(r=>{
+      const wk=Math.min(5,getWeekNum(r.date,periodStart));
+      weekMap[wk]+=calcDurMin(r.checkIn,r.checkOut);
+    });
+    const total=Object.values(weekMap).reduce((a,b)=>a+b,0);
+    const toH=min=>(min/60).toFixed(1)+'h';
+    csv+=`"${u.name}","${toH(weekMap[1])}","${toH(weekMap[2])}","${toH(weekMap[3])}","${toH(weekMap[4])}","${toH(weekMap[5])}","${toH(total)}"
 `;
   });
+  csv+='\n';
+
+  // ── 섹션2: 팀원별 제품 작업 로그 ──
+  csv+='[팀원별 제품 작업 로그]\n';
+  csv+='팀원,주차,날짜,구분,제품명,링크\n';
+
+  const targetLogs=type==='register'?regLogs:type==='edit'?editLogs:type==='etc'?etcLogs:fl;
+  const byUser={};
+  targetLogs.forEach(l=>{
+    const name=users.find(u=>u.id===l.userId)?.name||'알 수 없음';
+    if(!byUser[name])byUser[name]=[];
+    byUser[name].push(l);
+  });
+
+  users.forEach(u=>{
+    const uLogs=(byUser[u.name]||[]).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    uLogs.forEach(l=>{
+      const wk=l.date?getWeekNum(l.date,periodStart):'-';
+      const typeLabel=l.type==='register'?'등록':l.type==='edit'?'수정':'기타';
+      csv+=`"${u.name}","${wk}주차","${l.date||''}","${typeLabel}","${l.productName||''}","${l.link||''}"
+`;
+    });
+    if((byUser[u.name]||[]).length===0){
+      csv+=`"${u.name}","-","-","-","(작업 없음)","-"
+`;
+    }
+  });
+  csv+='\n';
+
+  // ── 섹션3: 개인별 일별 근무 상세 ──
+  csv+='[개인별 일별 근무 상세]\n';
+  csv+='팀원,주차,날짜,출근,퇴근,근무시간,메모\n';
+  users.forEach(u=>{
+    const uRecs=allRecs.filter(r=>r.userId===u.id&&r.status==='completed'&&r.date>=periodStart&&r.date<=periodEnd)
+      .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    uRecs.forEach(r=>{
+      const wk=getWeekNum(r.date,periodStart);
+      const dur=r.checkOut?((new Date(r.checkOut)-new Date(r.checkIn))/3600000).toFixed(1)+'h':'-';
+      csv+=`"${u.name}","${wk}주차","${r.date||''}","${r.checkIn?r.checkIn.slice(11,16):''}","${r.checkOut?r.checkOut.slice(11,16):''}","${dur}","${r.memo||''}"
+`;
+    });
+  });
+
   const typeLabel=type==='register'?'등록':type==='edit'?'수정':type==='etc'?'기타':'전체';
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
-  a.download=`실적_${y}년${parseInt(m)}월_${typeLabel}.csv`;
-  a.click();toast('CSV 다운로드 완료 📥');
+  a.download=`실적_${y}년${parseInt(m)}월_${typeLabel}_개인별.csv`;
+  a.click();toast('CSV 다운로드 완료 📥 (개인별+주차별)');
 }
 
 // ── 팀원 관리 ──
@@ -2900,6 +2974,9 @@ async function addChecklistItem(){
     toast('항목 추가 ✅');
     document.getElementById('cl-product-name').value='';
     document.getElementById('cl-product-link').value='';
+    if(document.getElementById('cl-excel-link'))document.getElementById('cl-excel-link').value='';
+    if(document.getElementById('cl-pinned'))document.getElementById('cl-pinned').checked=false;
+    if(document.getElementById('cl-assignee-input'))document.getElementById('cl-assignee-input').value='';
     loadChecklist();loadHomeChecklist();
   }else{
     const rulesUrl=`https://console.firebase.google.com/project/additer-fef59/firestore/rules`;
@@ -2959,13 +3036,62 @@ function fillAssignSelects(users){
 
 async function loadHomeChecklist(){
   const items=await fsQuery('checklist');
+  const today=getToday();
+  const todayDisplay=new Date(today+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric'});
+
+  // 나에게 할당된 pinned 항목 (오늘의 미션)
+  const myMissions=items.filter(i=>{
+    const isPinned=i.pinned==='true'||i.pinned===true;
+    const isAssigned=i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
+    const isDone=i.done==='true'||i.done===true;
+    return isPinned&&isAssigned&&!isDone;
+  });
+
+  // 미션 카드 렌더
+  const missionWrap=document.getElementById('home-mission-wrap');
+  if(missionWrap){
+    if(myMissions.length>0){
+      const allDone=myMissions.every(i=>i.done==='true'||i.done===true);
+      missionWrap.style.display='block';
+      missionWrap.innerHTML=`
+        <div style="background:linear-gradient(135deg,var(--brand),var(--sky));border-radius:16px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:0.08;">🎯</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;">TODAY'S MISSION</div>
+              <div style="font-size:14px;font-weight:800;color:white;">${todayDisplay} 등록 필수 제품 🔥</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.2);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:800;color:white;">${myMissions.length}건</div>
+          </div>
+          ${myMissions.map(item=>{
+            const isMeChecked=item.logs&&item.logs!=='_none_'&&item.logs.split('||').includes(currentUser.name);
+            const hasExcel=item.excelLink&&item.excelLink!=='_none_';
+            return`<div style="background:rgba(255,255,255,0.15);border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+              <div onclick="toggleChecklistItem('${item.id}','${isMeChecked}')"
+                style="width:24px;height:24px;border-radius:8px;border:2px solid rgba(255,255,255,0.6);background:${isMeChecked?'rgba(255,255,255,0.9)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+                ${isMeChecked?'✓':''}
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:700;color:white;${isMeChecked?'text-decoration:line-through;opacity:0.6;':''}">${item.name}</div>
+                ${item.link&&item.link!=='_none_'?`<a href="${item.link}" target="_blank" style="font-size:11px;color:rgba(255,255,255,0.7);word-break:break-all;">${item.link}</a>`:''}
+              </div>
+              ${hasExcel?`<a href="${item.excelLink}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,0.9);font-size:11px;font-weight:800;color:var(--brand);text-decoration:none;white-space:nowrap;flex-shrink:0;">📊 시트</a>`:''}
+            </div>`;
+          }).join('')}
+          ${myMissions.every(i=>!(i.logs&&i.logs!=='_none_'&&i.logs.split('||').includes(currentUser.name))===false&&true)?'':''}
+        </div>`;
+    }else{
+      missionWrap.style.display='none';
+    }
+  }
+
   const byOrder=(a,b)=>{
     const ao=a.order!=null?Number(a.order):9999;
     const bo=b.order!=null?Number(b.order):9999;
     if(ao!==bo)return ao-bo;
     return(a.createdAt||'').localeCompare(b.createdAt||'');
   };
-  const pending=items.filter(i=>!(i.done===true||i.done==='true')).sort(byOrder);
+  const pending=items.filter(i=>!(i.done===true||i.done==='true')&&!(i.pinned==='true'&&i.assignee===currentUser.name)).sort(byOrder);
   const done=items.filter(i=>i.done===true||i.done==='true')
     .sort((a,b)=>(b.checkedAt||b.createdAt||'').localeCompare(a.checkedAt||a.createdAt||''))
     .slice(0,10); // 최근 10개만
@@ -3034,6 +3160,8 @@ function renderChecklistItem(item,isAdmin){
         style="display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:3px 10px;border-radius:8px;border:1px solid #E2D9F3;background:var(--bg);font-size:11px;font-weight:700;color:#7C3AED;text-decoration:none;">
         ⚙️ 어드민 등록
       </a>
+      ${item.excelLink&&item.excelLink!=='_none_'?`<a href="${item.excelLink}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;padding:3px 9px;border-radius:8px;border:1px solid #10B981;background:#F0FDF8;font-size:11px;font-weight:700;color:#059669;text-decoration:none;">📊 시트 바로가기</a>`:''}
+      ${item.pinned==='true'||item.pinned===true?`<span style="display:inline-flex;margin-top:4px;font-size:10px;font-weight:700;background:var(--brand-light);color:var(--brand);border-radius:8px;padding:2px 8px;">📌 오늘의 미션</span>`:''}
       ${checkedUsers.length?`<div style="font-size:11px;color:var(--text-hint);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
         ${checkedUsers.map(u=>`<span style="display:inline-flex;align-items:center;gap:3px;background:var(--success-light);color:var(--success-text);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;">✓ ${u}</span>`).join('')}
       </div>`:''}
@@ -3424,6 +3552,7 @@ async function loadPOReport(){
   const editLogs=fl.filter(l=>l.type==='edit');
   const etcLogs=fl.filter(l=>l.type==='etc');
   window._reportLogsCache={month,users,regLogs,editLogs,etcLogs,fl};
+  window._reportRecsCache=recs; // 개인별 근무 기록 캐시
 
   const el=document.getElementById('po-report-content');if(!el)return;
   el.innerHTML=`
