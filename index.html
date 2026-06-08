@@ -3059,10 +3059,14 @@ async function loadHomeChecklist(){
 
   // 나에게 할당된 pinned 항목 (오늘의 미션)
   const myMissions=items.filter(i=>{
-    const isPinned=i.pinned==='true'||i.pinned===true;
-    const isAssigned=i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
     const isDone=i.done==='true'||i.done===true;
-    return isPinned&&isAssigned&&!isDone;
+    if(isDone)return false;
+    // 방법1: 관리자가 담당자로 지정 + pinned
+    const isAdminAssigned=(i.assignee===currentUser.name)&&(i.pinned==='true'||i.pinned===true);
+    // 방법2: 본인이 직접 핀
+    const rawPinnedBy=i.pinnedBy||'_none_';
+    const isSelfPinned=rawPinnedBy!=='_none_'&&rawPinnedBy.split('||').includes(currentUser.name);
+    return isAdminAssigned||isSelfPinned;
   });
 
   // 미션 카드 렌더
@@ -3164,6 +3168,11 @@ function renderChecklistItem(item,isAdmin){
   const isUrgent=item.urgent==='true'||item.urgent===true;
   const urgentBadge=isUrgent?`<span class="urgent-badge">🚨 긴급</span>`:''
   const assigneeBadge=item.assignee&&item.assignee!=='_none_'?`<span style="font-size:10px;font-weight:700;background:var(--brand-light);color:#5B21B6;border-radius:8px;padding:1px 7px;">👤 ${item.assignee}</span>`:'';
+  // 내 미션 여부: 담당자가 나이고 pinned, 또는 내가 직접 핀
+  const isMyMission=(item.assignee===currentUser?.name&&(item.pinned==='true'||item.pinned===true))||(item.pinnedBy&&item.pinnedBy.split('||').includes(currentUser?.name));
+  const pinBtnStyle=isMyMission
+    ?'background:var(--brand);color:white;border:none;'
+    :'background:var(--bg);color:var(--text-hint);border:1px solid var(--border);';
   return`<div class="cl-item type-${type}${isDone?' done':''}${isUrgent?' urgent':''}" id="cl-item-${item.id}" ${dragAttrs}>
     ${dragHandle}
     <div class="cl-check" onclick="toggleChecklistItem('${item.id}','${iMeChecked}')" title="${checkTitle}" style="${checkStyle}">${checkIcon}</div>
@@ -3173,6 +3182,11 @@ function renderChecklistItem(item,isAdmin){
         <span class="cl-name">${item.name}</span>
         <span class="cl-type-badge ${typeClass}">${typeLabel}</span>
         ${assigneeBadge}
+        <button onclick="event.stopPropagation();toggleMyMission('${item.id}')"
+          title="${isMyMission?'내 미션 해제':'내 오늘 미션으로 고정'}"
+          style="padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;${pinBtnStyle}">
+          ${isMyMission?'📌 내 미션':'📌'}
+        </button>
       </div>
       ${item.link&&item.link!=='_none_'?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--brand);word-break:break-all;">${item.link}</a>`:''}
       <a href="https://admin.askedtech.com/product/request-add-product" target="_blank"
@@ -3298,6 +3312,33 @@ async function toggleChecklistItem(id,iMeCheckedStr){
   if(document.getElementById('admin-checklist-panel')?.style.display!=='none')loadChecklist();
   if(document.getElementById('page-mypage')?.classList.contains('active')){renderSidePanel();renderMyCalendar();}
   loadHomeGameStats();
+}
+
+async function toggleMyMission(id){
+  // pinnedBy 필드에 내 이름 추가/제거 (개인별 미션 고정)
+  const items=await fsQuery('checklist');
+  const item=items.find(i=>i.id===id);
+  if(!item){toast('항목을 찾을 수 없습니다');return;}
+
+  const rawPinnedBy=item.pinnedBy||'_none_';
+  const pinnedByList=rawPinnedBy==='_none_'?[]:rawPinnedBy.split('||').filter(Boolean);
+  const isAlreadyPinned=pinnedByList.includes(currentUser.name);
+
+  let newPinnedBy;
+  if(isAlreadyPinned){
+    newPinnedBy=pinnedByList.filter(n=>n!==currentUser.name).join('||')||'_none_';
+  }else{
+    pinnedByList.push(currentUser.name);
+    newPinnedBy=pinnedByList.join('||');
+  }
+
+  const ok=await fsUpdate('checklist',id,{pinnedBy:newPinnedBy,pinned:newPinnedBy!=='_none_'?'true':'false'});
+  if(ok){
+    toast(isAlreadyPinned?'📌 내 미션 해제':'📌 내 오늘 미션으로 고정!');
+    loadHomeChecklist();
+    if(document.getElementById('admin-checklist-panel')?.style.display==='block')loadChecklist();
+    if(document.getElementById('po-panel-checklist')?.style.display==='block'){loadPOChecklist();loadPOMyChecklist();}
+  }else toast('저장 실패');
 }
 
 async function assignChecklistItem(id,assignee){
