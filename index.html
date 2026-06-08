@@ -3352,11 +3352,12 @@ async function toggleMyMission(id){
 
 async function assignChecklistItem(id,assignee){
   if(!assignee)return;
-  const ok=await fsUpdate('checklist',id,{assignee});
+  // 담당자 변경 시 pinned/pinnedBy 초기화 (이전 미션 고정 해제)
+  const ok=await fsUpdate('checklist',id,{assignee,pinned:'false',pinnedBy:'_none_'});
   if(ok){
-    toast('담당자: '+assignee+' 지정 ✅');
-    // 홈/PO 체크리스트도 갱신
+    toast('담당자 변경 ✅ (미션 고정은 📌 버튼으로 다시 설정)');
     loadHomeChecklist();
+    if(document.getElementById('admin-checklist-panel')?.style.display==='block')loadChecklist();
     if(document.getElementById('po-panel-checklist')?.style.display==='block')loadPOChecklist();
   }else toast('지정 실패');
 }
