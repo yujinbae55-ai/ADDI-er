@@ -3521,13 +3521,12 @@ function renderChecklistItem(item,isAdmin){
         ${urgentBadge}
         <span class="cl-name">${item.name}</span>
         ${isAdmin
-          ?`<select class="cl-type-change-select" data-cl-id="${item.id}"
-              style="padding:2px 8px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;background:var(--bg);">
-              <option value="register" ${type==='register'?'selected':''}>✅ 등록</option>
-              <option value="edit" ${type==='edit'?'selected':''}>✏️ 수정</option>
-              <option value="hold" ${type==='hold'?'selected':''}>⏸️ 보류</option>
-              <option value="etc" ${type==='etc'?'selected':''}>📌 기타</option>
-            </select>`
+          ?'<select class="cl-type-change-select" data-cl-id="'+item.id+'" style="padding:2px 8px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;background:var(--bg);">'
+           +'<option value="register"'+(type==='register'?' selected':'')+'>✅ 등록</option>'
+           +'<option value="edit"'+(type==='edit'?' selected':'')+'>✏️ 수정</option>'
+           +'<option value="hold"'+(type==='hold'?' selected':'')+'>⏸️ 보류</option>'
+           +'<option value="etc"'+(type==='etc'?' selected':'')+'>📌 기타</option>'
+           +'</select>'
           :`<span class="cl-type-badge ${typeClass}">${typeLabel}</span>`
         }
         ${assigneeBadge}
@@ -3542,13 +3541,7 @@ function renderChecklistItem(item,isAdmin){
         style="display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:3px 10px;border-radius:8px;border:1px solid #E2D9F3;background:var(--bg);font-size:11px;font-weight:700;color:#7C3AED;text-decoration:none;">
         ⚙️ 어드민 등록
       </a>
-      ${item.excelLink&&item.excelLink!=='_none_'
-        ?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">
-            <a href="${item.excelLink}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:8px;border:1px solid #10B981;background:#F0FDF8;font-size:11px;font-weight:700;color:#059669;text-decoration:none;">📊 시트 바로가기</a>
-            ${isAdmin?`<button class="excel-edit-btn" data-item-id="${item.id}" style="padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:none;font-size:10px;color:var(--text-hint);cursor:pointer;font-family:inherit;">✏️</button><div id="excel-edit-${item.id}" style="display:none;width:100%;margin-top:6px;"><div style="display:flex;gap:6px;"><input class="excel-link-input" data-item-id="${item.id}" type="url" placeholder="https://docs.google.com/..." value="${item.excelLink||''}" style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid #10B981;font-size:12px;font-family:inherit;outline:none;"/><button class="excel-save-btn" data-item-id="${item.id}" style="padding:6px 12px;border-radius:8px;border:none;background:#10B981;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button><button class="excel-cancel-btn" data-item-id="${item.id}" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:none;font-size:12px;cursor:pointer;font-family:inherit;">취소</button></div></div>`:''}
-          </div>`
-        :isAdmin?`<button class="excel-edit-btn" data-item-id="${item.id}" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;padding:3px 9px;border-radius:8px;border:1.5px dashed #10B981;background:none;font-size:11px;font-weight:600;color:#10B981;cursor:pointer;font-family:inherit;">📊 엑셀 시트 링크 추가</button><div id="excel-edit-${item.id}" style="display:none;margin-top:6px;"><div style="display:flex;gap:6px;"><input class="excel-link-input" data-item-id="${item.id}" type="url" placeholder="https://docs.google.com/..." value="" style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid #10B981;font-size:12px;font-family:inherit;outline:none;"/><button class="excel-save-btn" data-item-id="${item.id}" style="padding:6px 12px;border-radius:8px;border:none;background:#10B981;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button><button class="excel-cancel-btn" data-item-id="${item.id}" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:none;font-size:12px;cursor:pointer;font-family:inherit;">취소</button></div></div>`:''
-      }
+
       ${item.pinned==='true'||item.pinned===true?`<span style="display:inline-flex;margin-top:4px;font-size:10px;font-weight:700;background:var(--brand-light);color:var(--brand);border-radius:8px;padding:2px 8px;">📌 오늘의 미션</span>`:''}
       ${checkedUsers.length?`<div style="font-size:11px;color:var(--text-hint);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
         ${checkedUsers.map(u=>`<span style="display:inline-flex;align-items:center;gap:3px;background:var(--success-light);color:var(--success-text);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;">✓ ${u}</span>`).join('')}
