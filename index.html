@@ -775,7 +775,9 @@ body.is-login .bottom-nav{display:none!important;}
             <input type="checkbox" id="cl-pinned" style="width:15px;height:15px;accent-color:var(--brand);"/>
             <span style="font-size:13px;font-weight:700;color:var(--brand);">📌 오늘의 할당 제품 상단 고정</span>
           </label>
-          <input id="cl-assignee-input" class="popup-input" type="text" placeholder="담당자 이름 (상단 고정 시)" style="margin-bottom:10px;font-size:13px;"/>
+          <select id="cl-assignee-input" class="popup-input" style="margin-bottom:10px;font-size:13px;padding:10px 14px;cursor:pointer;">
+            <option value="">담당자 선택 (상단 고정 시)</option>
+          </select>
           <button onclick="addChecklistItem()" style="width:100%;padding:13px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;">항목 추가</button>
         </div>
         <div id="admin-checklist-list"></div>
@@ -1906,7 +1908,7 @@ function switchAdminTab(tab){
   if(tab==='monthly'){populateMonthSelect();loadMonthlyData();}
   if(tab==='report'){populateReportSelect();loadAdminReport();}
   if(tab==='members')loadAdminMembers();
-  if(tab==='checklist')loadChecklist();
+  if(tab==='checklist'){loadChecklist();loadChecklistAssigneeSelect();}
 }
 
 // ── 팀 달력 ──
@@ -2959,6 +2961,22 @@ async function saveChecklistOrder(){
   loadHomeChecklist();
 }
 
+async function loadChecklistAssigneeSelect(){
+  const sel=document.getElementById('cl-assignee-input');
+  if(!sel)return;
+  // 이미 옵션이 있으면 스킵
+  if(sel.options.length>1)return;
+  const users=_allUsers&&_allUsers.length>0?_allUsers:await fsQuery('users');
+  _allUsers=users;
+  // PO 포함 전체 팀원 (관리자 포함) — 본인도 담당 가능
+  users.filter(u=>!isPO(u)||isAdm(u)).forEach(u=>{
+    const opt=document.createElement('option');
+    opt.value=u.name;
+    opt.textContent=(u.emoji||'👤')+' '+u.name+(isAdm(u)?' (관리자)':isPO(u)?' (PO)':'');
+    sel.appendChild(opt);
+  });
+}
+
 async function addChecklistItem(){
   const name=document.getElementById('cl-product-name').value.trim();
   const link=document.getElementById('cl-product-link').value.trim();
@@ -3092,13 +3110,14 @@ async function loadHomeChecklist(){
     return(a.createdAt||'').localeCompare(b.createdAt||'');
   };
   const pending=items.filter(i=>!(i.done===true||i.done==='true')&&!(i.pinned==='true'&&i.assignee===currentUser.name)).sort(byOrder);
-  const done=items.filter(i=>i.done===true||i.done==='true')
+  const allDone=items.filter(i=>i.done===true||i.done==='true');
+  const done=allDone
     .sort((a,b)=>(b.checkedAt||b.createdAt||'').localeCompare(a.checkedAt||a.createdAt||''))
-    .slice(0,10); // 최근 10개만
+    .slice(0,10); // 최근 10개만 표시
   const el=document.getElementById('home-checklist');
   if(!el)return;
   const countEl=document.getElementById('cl-count-label');
-  if(countEl)countEl.textContent=`${done.length}/${items.length} 완료`;
+  if(countEl)countEl.textContent=`${allDone.length}/${items.length} 완료`;
   if(!pending.length&&!done.length){
     el.innerHTML='<div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:24px;">📦</div>항목이 없습니다</div>';
     return;
