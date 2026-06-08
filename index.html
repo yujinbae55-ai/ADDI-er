@@ -432,6 +432,8 @@ body.is-login .bottom-nav{display:none!important;}
 .cl-type-register{background:#F0FDF8;color:#059669;}
 .cl-type-edit{background:var(--brand-light);color:var(--brand-dark);}
 .cl-type-etc{background:#F4F4F6;color:var(--text-muted);}
+.cl-type-hold{background:#FFF3E0;color:#E65100;border-left:3px solid #FF9800!important;}
+.cl-item.type-hold{border-left:3px solid #FF9800!important;opacity:0.8;}
 .cl-log-expand{font-size:11px;color:var(--text-hint);cursor:pointer;background:none;border:none;padding:3px 6px;border-radius:6px;font-family:inherit;}
 .cl-log-expand:hover{background:var(--bg);color:var(--text-muted);}
 
@@ -644,6 +646,14 @@ body.is-login .bottom-nav{display:none!important;}
             <div id="home-checklist" style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:0;">
               <div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:24px;">📦</div>항목이 없습니다</div>
             </div>
+            <!-- 보류 항목 -->
+            <div id="home-checklist-hold-wrap" style="display:none;margin-top:10px;border-top:1px dashed var(--border);padding-top:10px;">
+              <button onclick="toggleHoldChecklist()" id="hold-toggle-btn"
+                style="width:100%;background:none;border:none;font-size:11px;font-weight:700;color:#E65100;cursor:pointer;font-family:inherit;text-align:left;padding:2px 0;display:flex;align-items:center;gap:4px;">
+                ▶ ⏸️ 등록 보류 제품 <span class="hold-count"></span>
+              </button>
+              <div id="home-checklist-hold" style="display:none;max-height:200px;overflow-y:auto;margin-top:8px;"></div>
+            </div>
             <!-- 최근 완료 항목 (접기/펼치기) -->
             <div id="home-checklist-done-wrap" style="display:none;margin-top:10px;border-top:1px dashed var(--border);padding-top:10px;">
               <button onclick="toggleDoneChecklist()" id="done-toggle-btn"
@@ -767,6 +777,7 @@ body.is-login .bottom-nav{display:none!important;}
           <div style="display:flex;gap:8px;margin-bottom:10px;">
             <label class="radio-label selected" id="cl-label-register" onclick="clSelectType('register')" style="flex:unset;padding:8px 14px;"><input type="radio" name="cl-type" value="register" checked/>✅ 등록</label>
             <label class="radio-label" id="cl-label-edit" onclick="clSelectType('edit')" style="flex:unset;padding:8px 14px;"><input type="radio" name="cl-type" value="edit"/>✏️ 수정</label>
+            <label class="radio-label" id="cl-label-hold" onclick="clSelectType('hold')" style="flex:unset;padding:8px 14px;"><input type="radio" name="cl-type" value="hold"/>⏸️ 보류</label>
           </div>
           <input id="cl-product-name" class="popup-input" type="text" placeholder="제품명" style="margin-bottom:8px;"/>
           <input id="cl-product-link" class="popup-input" type="url" placeholder="제품 링크 (선택사항)" style="margin-bottom:8px;"/>
@@ -2364,17 +2375,27 @@ document.addEventListener('click', function(e){
   }
 });
 
-// excel-edit-btn 이벤트 위임
+// excel-edit-btn/save/cancel 이벤트 위임
 document.addEventListener('click',function(e){
-  const btn=e.target.closest('.excel-edit-btn');
-  if(btn){
+  // 열기
+  const editBtn=e.target.closest('.excel-edit-btn');
+  if(editBtn){
     e.stopPropagation();
-    const id=btn.dataset.itemId;
+    const id=editBtn.dataset.itemId;
     const el=document.getElementById('excel-edit-'+id);
-    if(el){
-      el.style.display=el.style.display==='none'?'block':'none';
-      if(el.style.display==='block')el.querySelector('.excel-link-input')?.focus();
-    }
+    if(el){el.style.display=el.style.display==='none'?'block':'none';if(el.style.display==='block')el.querySelector('.excel-link-input')?.focus();}
+    return;
+  }
+  // 저장
+  const saveBtn=e.target.closest('.excel-save-btn');
+  if(saveBtn){e.stopPropagation();saveExcelLink(saveBtn.dataset.itemId);return;}
+  // 취소
+  const cancelBtn=e.target.closest('.excel-cancel-btn');
+  if(cancelBtn){
+    e.stopPropagation();
+    const el=document.getElementById('excel-edit-'+cancelBtn.dataset.itemId);
+    if(el)el.style.display='none';
+    return;
   }
 });
 
@@ -2896,7 +2917,7 @@ async function loadHomeGameStats(){
 
 // ── 공유 체크리스트 ──
 function clSelectType(t){
-  ['register','edit'].forEach(v=>{
+  ['register','edit','hold'].forEach(v=>{
     const lbl=document.getElementById(`cl-label-${v}`);
     if(lbl)lbl.classList.toggle('selected',t===v);
     const inp=document.querySelector(`input[name="cl-type"][value="${v}"]`);
@@ -3126,10 +3147,12 @@ async function loadHomeChecklist(){
   };
   const pending=items.filter(i=>{
     if(i.done===true||i.done==='true')return false;
+    if(i.type==='hold')return false; // 보류는 별도 섹션
     const isPinned=i.pinned==='true'||i.pinned===true;
     const isMyMissionItem=isPinned&&i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
     return !isMyMissionItem;
   }).sort(byOrder);
+  const holdItems=items.filter(i=>i.type==='hold'&&!(i.done===true||i.done==='true')).sort(byOrder);
   const allDone=items.filter(i=>i.done===true||i.done==='true');
   const done=allDone
     .sort((a,b)=>(b.checkedAt||b.createdAt||'').localeCompare(a.checkedAt||a.createdAt||''))
@@ -3145,6 +3168,16 @@ async function loadHomeChecklist(){
   el.innerHTML=pending.length
     ? pending.map(item=>renderChecklistItem(item,false)).join('')
     : '<div style="padding:12px;text-align:center;font-size:12px;color:var(--text-muted);">🎉 모든 항목 완료!</div>';
+  // 보류 섹션
+  const holdWrap=document.getElementById('home-checklist-hold-wrap');
+  const holdEl=document.getElementById('home-checklist-hold');
+  if(holdWrap&&holdItems.length>0){
+    holdWrap.style.display='block';
+    const holdCountEl=holdWrap.querySelector('.hold-count');
+    if(holdCountEl)holdCountEl.textContent='('+holdItems.length+'개)';
+    if(holdEl)holdEl.innerHTML=holdItems.map(item=>renderChecklistItem(item,false)).join('');
+  }else if(holdWrap){holdWrap.style.display='none';}
+
   // 완료 섹션
   const doneWrap=document.getElementById('home-checklist-done-wrap');
   const doneEl=document.getElementById('home-checklist-done');
@@ -3156,6 +3189,16 @@ async function loadHomeChecklist(){
   }else if(doneWrap){
     doneWrap.style.display='none';
   }
+}
+
+function toggleHoldChecklist(){
+  const el=document.getElementById('home-checklist-hold');
+  const btn=document.getElementById('hold-toggle-btn');
+  if(!el)return;
+  const isOpen=el.style.display!=='none';
+  el.style.display=isOpen?'none':'block';
+  const count=btn.querySelector('.hold-count')?.textContent||'';
+  if(btn)btn.innerHTML=(isOpen?'▶':'▼')+' ⏸️ 등록 보류 제품 <span class="hold-count">'+count+'</span>';
 }
 
 function toggleDoneChecklist(){
@@ -3170,8 +3213,8 @@ function toggleDoneChecklist(){
 function renderChecklistItem(item,isAdmin){
   const isDone=item.done===true||item.done==='true';
   const type=item.type||'register';
-  const typeLabel=type==='register'?'등록':type==='edit'?'수정':'기타';
-  const typeClass=type==='register'?'cl-type-register':type==='edit'?'cl-type-edit':'cl-type-etc';
+  const typeLabel=type==='register'?'등록':type==='edit'?'수정':type==='hold'?'보류':'기타';
+  const typeClass=type==='register'?'cl-type-register':type==='edit'?'cl-type-edit':type==='hold'?'cl-type-hold':'cl-type-etc';
   const rawLogs=item.logs||'_none_';
   const checkedUsers=rawLogs==='_none_'?[]:rawLogs.split('||').filter(l=>l&&l!=='_none_');
   const iMeChecked=currentUser&&checkedUsers.includes(currentUser.name);
@@ -3215,18 +3258,10 @@ function renderChecklistItem(item,isAdmin){
       ${item.excelLink&&item.excelLink!=='_none_'
         ?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">
             <a href="${item.excelLink}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:8px;border:1px solid #10B981;background:#F0FDF8;font-size:11px;font-weight:700;color:#059669;text-decoration:none;">📊 시트 바로가기</a>
-            ${isAdmin?`<button class="excel-edit-btn" data-item-id="${item.id}" style="padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:none;font-size:10px;color:var(--text-hint);cursor:pointer;font-family:inherit;">✏️</button>`:''}
+            ${isAdmin?`<button class="excel-edit-btn" data-item-id="${item.id}" style="padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:none;font-size:10px;color:var(--text-hint);cursor:pointer;font-family:inherit;">✏️</button><div id="excel-edit-${item.id}" style="display:none;width:100%;margin-top:6px;"><div style="display:flex;gap:6px;"><input class="excel-link-input" data-item-id="${item.id}" type="url" placeholder="https://docs.google.com/..." value="${item.excelLink||''}" style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid #10B981;font-size:12px;font-family:inherit;outline:none;"/><button class="excel-save-btn" data-item-id="${item.id}" style="padding:6px 12px;border-radius:8px;border:none;background:#10B981;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button><button class="excel-cancel-btn" data-item-id="${item.id}" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:none;font-size:12px;cursor:pointer;font-family:inherit;">취소</button></div></div>`:''}
           </div>`
-        :isAdmin?`<button class="excel-edit-btn" data-item-id="${item.id}" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;padding:3px 9px;border-radius:8px;border:1.5px dashed #10B981;background:none;font-size:11px;font-weight:600;color:#10B981;cursor:pointer;font-family:inherit;">📊 엑셀 시트 링크 추가</button>`:''
+        :isAdmin?`<button class="excel-edit-btn" data-item-id="${item.id}" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;padding:3px 9px;border-radius:8px;border:1.5px dashed #10B981;background:none;font-size:11px;font-weight:600;color:#10B981;cursor:pointer;font-family:inherit;">📊 엑셀 시트 링크 추가</button><div id="excel-edit-${item.id}" style="display:none;margin-top:6px;"><div style="display:flex;gap:6px;"><input class="excel-link-input" data-item-id="${item.id}" type="url" placeholder="https://docs.google.com/..." value="" style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid #10B981;font-size:12px;font-family:inherit;outline:none;"/><button class="excel-save-btn" data-item-id="${item.id}" style="padding:6px 12px;border-radius:8px;border:none;background:#10B981;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button><button class="excel-cancel-btn" data-item-id="${item.id}" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:none;font-size:12px;cursor:pointer;font-family:inherit;">취소</button></div></div>`:''
       }
-      <div id="excel-edit-${item.id}" style="display:none;margin-top:6px;">
-        <div style="display:flex;gap:6px;">
-          <input class="excel-link-input" data-item-id="${item.id}" type="url" placeholder="https://docs.google.com/..." value="${item.excelLink&&item.excelLink!=='_none_'?item.excelLink:''}"
-            style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid #10B981;font-size:12px;font-family:inherit;outline:none;"/>
-          <button onclick="saveExcelLink('${item.id}')" style="padding:6px 12px;border-radius:8px;border:none;background:#10B981;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
-          <button onclick="document.getElementById('excel-edit-${item.id}').style.display='none'" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:none;font-size:12px;cursor:pointer;font-family:inherit;">취소</button>
-        </div>
-      </div>
       ${item.pinned==='true'||item.pinned===true?`<span style="display:inline-flex;margin-top:4px;font-size:10px;font-weight:700;background:var(--brand-light);color:var(--brand);border-radius:8px;padding:2px 8px;">📌 오늘의 미션</span>`:''}
       ${checkedUsers.length?`<div style="font-size:11px;color:var(--text-hint);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
         ${checkedUsers.map(u=>`<span style="display:inline-flex;align-items:center;gap:3px;background:var(--success-light);color:var(--success-text);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;">✓ ${u}</span>`).join('')}
