@@ -698,7 +698,7 @@ body.is-login .bottom-nav{display:none!important;}
               <button class="my-side-tab active" data-tab="list" onclick="switchSideTab('list')">📋 근무내역</button>
               <button class="my-side-tab" data-tab="products" onclick="switchSideTab('products')">📦 제품로그</button>
             </div>
-            <select id="my-month-filter" onchange="renderSidePanel()"
+            <select id="my-month-filter" onchange="onMonthFilterChange()"
               style="padding:7px 10px;border-radius:10px;border:1px solid var(--border);font-size:12px;font-weight:600;font-family:inherit;background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap;">
             </select>
           </div>
@@ -1657,6 +1657,21 @@ async function saveTargetH(){
     renderGoalCard();
     loadHomeGameStats();
   }else toast('저장 실패');
+}
+
+function onMonthFilterChange(){
+  const sel=document.getElementById('my-month-filter');
+  if(!sel||!sel.value)return;
+  const[y,m]=sel.value.split('-').map(Number);
+  // 달력도 해당 월로 이동
+  myCalYear=y; myCalMonth=m-1;
+  // 날짜 선택 해제
+  _mySelectedDate=null;
+  document.getElementById('my-date-indicator').style.display='none';
+  // 달력 + 사이드패널 갱신
+  renderMyCalendar();
+  renderGoalCard();
+  renderSidePanel();
 }
 
 function switchSideTab(tab){
@@ -3546,6 +3561,7 @@ function renderChecklistItem(item,isAdmin){
       ${checkedUsers.length?`<div style="font-size:11px;color:var(--text-hint);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
         ${checkedUsers.map(u=>`<span style="display:inline-flex;align-items:center;gap:3px;background:var(--success-light);color:var(--success-text);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;">✓ ${u}</span>`).join('')}
       </div>`:''}
+      ${item.type==='hold'&&item.holdReason&&item.holdReason!=='_none_'?`<div style="font-size:11px;color:#E65100;margin-top:4px;background:#FFF3E0;border-radius:8px;padding:4px 10px;">💬 ${item.holdReason}</div>`:''}
       ${item.checkedAt&&item.checkedAt!=='_none_'?`<div style="font-size:10px;color:var(--text-hint);margin-top:2px;">마지막 완료: ${new Date(item.checkedAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`:''}
     </div>
     ${isAdmin?`
@@ -3554,6 +3570,7 @@ function renderChecklistItem(item,isAdmin){
           style="padding:4px 8px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-weight:600;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer;max-width:90px;">
           <option value="">담당자</option>
         </select>
+        <button onclick="openEditChecklistModal('${item.id}')" class="icon-btn" title="수정" style="color:var(--brand);">✏️</button>
         <button class="icon-btn danger" onclick="deleteChecklistItem('${item.id}')" title="삭제">🗑️</button>
       </div>
     `:''}
@@ -3711,6 +3728,68 @@ async function saveExcelLink(id){
     loadChecklist();
     loadHomeChecklist();
   }else toast('저장 실패');
+}
+
+async function openEditChecklistModal(id){
+  const items=await fsQuery('checklist');
+  const item=items.find(i=>i.id===id);
+  if(!item){toast('항목을 찾을 수 없습니다');return;}
+
+  const typeOpts=['register','edit','hold','etc'].map(v=>
+    `<option value="${v}"${item.type===v?' selected':''}>${v==='register'?'✅ 등록':v==='edit'?'✏️ 수정':v==='hold'?'⏸️ 보류':'📌 기타'}</option>`
+  ).join('');
+
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">✏️ 항목 수정</div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>제품명</label>
+      <input id="ecl-name" class="popup-input" type="text" value="${item.name||''}" style="margin-top:6px;"/>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>제품 링크</label>
+      <input id="ecl-link" class="popup-input" type="url" value="${item.link&&item.link!=='_none_'?item.link:''}" placeholder="https://..." style="margin-top:6px;"/>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>구분</label>
+      <select id="ecl-type" class="popup-input" style="margin-top:6px;padding:12px 14px;cursor:pointer;">
+        ${typeOpts}
+      </select>
+    </div>
+    <div id="ecl-hold-wrap" style="${item.type==='hold'?'':'display:none;'}margin-bottom:12px;">
+      <label>보류 사유 <span style="font-size:11px;color:var(--text-muted);">(선택)</span></label>
+      <textarea id="ecl-hold-reason" class="popup-input" placeholder="보류 사유를 입력하세요 (예: 정보 부족, 담당자 확인 필요 등)"
+        style="margin-top:6px;min-height:70px;resize:vertical;line-height:1.5;">${item.holdReason||''}</textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button onclick="closeModal()" style="flex:1;padding:13px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">취소</button>
+      <button onclick="saveEditChecklist('${id}')" style="flex:2;padding:13px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
+    </div>`;
+
+  // 구분 변경 시 보류 사유 영역 토글
+  document.getElementById('ecl-type').addEventListener('change',function(){
+    document.getElementById('ecl-hold-wrap').style.display=this.value==='hold'?'block':'none';
+  });
+
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('ecl-name')?.focus(),100);
+}
+
+async function saveEditChecklist(id){
+  const name=document.getElementById('ecl-name')?.value.trim();
+  const link=document.getElementById('ecl-link')?.value.trim()||'_none_';
+  const type=document.getElementById('ecl-type')?.value||'register';
+  const holdReason=document.getElementById('ecl-hold-reason')?.value.trim()||'_none_';
+  if(!name){toast('제품명을 입력해주세요');return;}
+  const payload={name,link:link||'_none_',type};
+  if(type==='hold')payload.holdReason=holdReason;
+  const ok=await fsUpdate('checklist',id,payload);
+  if(ok){
+    toast('수정 완료 ✅');
+    closeModal();
+    loadChecklist();
+    loadHomeChecklist();
+    if(document.getElementById('po-panel-checklist')?.style.display==='block')loadPOChecklist();
+  }else toast('수정 실패');
 }
 
 async function assignChecklistItem(id,assignee){
