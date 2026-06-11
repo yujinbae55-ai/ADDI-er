@@ -4464,133 +4464,7 @@ function stopPolling(){if(_pollInterval){clearInterval(_pollInterval);_pollInter
   _getToken().then(()=>ensureAdminSeed()).catch(()=>{});
 })();
 
-</script>
-</body>
-</htmlconst _td=getToday();
-  // 미션 후보: pinned=true 이고 assignee가 현재 유저 이름과 일치
-  const myMissionsAll=items.filter(i=>{
-    if(i.done==='true'||i.done===true)return false;
-    const p=String(i.pinned||'');
-    if(p!=='true')return false;
-    const a=String(i.assignee||'').trim();
-    if(!a||a==='_none_')return false;
-    if(a!==String(currentUser.name||'').trim())return false;
-    const md=i.missionStart&&i.missionStart!=='_none_'?i.missionStart:null;
-    return !md||(md<=_td);
-  }).sort((a,b)=>{
-    const ad=a.missionStart&&a.missionStart!=='_none_'?a.missionStart:'0000';
-    const bd=b.missionStart&&b.missionStart!=='_none_'?b.missionStart:'0000';
-    return ad.localeCompare(bd);
-  });
-  const const myMissions=myMissionsAll.slice(0,2);
-
-  // 미션 카드 렌더
-  const missionWrap=document.getElementById('home-mission-wrap');
-  if(missionWrap){
-    if(myMissions.length>0){
-      const allDone=myMissions.every(i=>i.done==='true'||i.done===true);
-      missionWrap.style.display='block';
-      missionWrap.innerHTML=`
-        <div style="background:linear-gradient(135deg,var(--brand),var(--sky));border-radius:16px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;">
-          <div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:0.08;">🎯</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div>
-              <div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;">TODAY'S MISSION</div>
-              <div style="font-size:14px;font-weight:800;color:white;">${todayDisplay} 등록 필수 제품 🔥</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.75);margin-top:3px;">
-              ${myMissionsAll.length>2?`⏰ 미처리 ${myMissionsAll.length-2}건 이월 포함`:''}
-              ${myMissionsAll.length===0?'오늘 배정된 미션이 없어요':''}
-            </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <a href="https://docs.google.com/spreadsheets/d/1ZsDdbrkDldtWcD7EdTWaZvGA4Co9H8ZcUeep34deTX8/edit" target="_blank"
-                style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:10px;background:rgba(255,255,255,0.9);font-size:11px;font-weight:800;color:#059669;text-decoration:none;white-space:nowrap;">
-                📊 분류 시트
-              </a>
-              <div style="background:rgba(255,255,255,0.2);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:800;color:white;">${myMissions.length}건</div>
-            </div>
-          </div>
-          ${myMissions.map(item=>{
-            const isMeChecked=item.logs&&item.logs!=='_none_'&&item.logs.split('||').includes(currentUser.name);
-            const hasExcel=item.excelLink&&item.excelLink!=='_none_';
-            return`<div style="background:rgba(255,255,255,0.15);border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
-              <div onclick="toggleChecklistItem('${item.id}','${isMeChecked}')"
-                style="width:24px;height:24px;border-radius:8px;border:2px solid rgba(255,255,255,0.6);background:${isMeChecked?'rgba(255,255,255,0.9)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
-                ${isMeChecked?'✓':''}
-              </div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:13px;font-weight:700;color:white;${isMeChecked?'text-decoration:line-through;opacity:0.6;':''}">${item.name}</div>
-                ${item.missionStart&&item.missionStart!=='_none_'&&item.missionStart<getToday()
-                  ?`<div style="font-size:10px;color:rgba(255,165,0,0.9);margin-top:2px;">⏰ ${item.missionStart.slice(5).replace('-','/')} 미처리 이월</div>`
-                  :item.missionStart&&item.missionStart!=='_none_'
-                    ?`<div style="font-size:10px;color:rgba(255,255,255,0.6);margin-top:2px;">📅 ${item.missionStart.slice(5).replace('-','/')} 배정</div>`
-                    :''}
-                ${item.link&&item.link!=='_none_'?`<a href="${item.link}" target="_blank" style="font-size:11px;color:rgba(255,255,255,0.7);word-break:break-all;">${item.link}</a>`:''}
-              </div>
-              ${hasExcel?`<a href="${item.excelLink}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,0.9);font-size:11px;font-weight:800;color:var(--brand);text-decoration:none;white-space:nowrap;flex-shrink:0;">📊 시트</a>`:''}
-            </div>`;
-          }).join('')}
-          ${myMissions.every(i=>!(i.logs&&i.logs!=='_none_'&&i.logs.split('||').includes(currentUser.name))===false&&true)?'':''}
-        </div>`;
-    }else{
-      missionWrap.style.display='none';
-    }
-  }
-
-  const byOrder=(a,b)=>{
-    const ao=a.order!=null?Number(a.order):9999;
-    const bo=b.order!=null?Number(b.order):9999;
-    if(ao!==bo)return ao-bo;
-    return(a.createdAt||'').localeCompare(b.createdAt||'');
-  };
-  const pending=items.filter(i=>{
-    if(i.done===true||i.done==='true')return false;
-    if(i.type==='hold')return false;
-    const isPinned=i.pinned==='true'||i.pinned===true;
-    if(!isPinned)return true; // 핀 없으면 항상 목록
-    if(!i.assignee||i.assignee==='_none_'||i.assignee!==currentUser.name)return true;
-    // 내 활성 미션 중 상위 2개는 미션카드로 → 목록에서 제외
-    const isInMission=myMissionsAll.some(m=>m.id===i.id);
-    return !isInMission;
-  }).sort(byOrder);
-  const holdItems=items.filter(i=>i.type==='hold'&&!(i.done===true||i.done==='true')).sort(byOrder);
-  const allDone=items.filter(i=>i.done===true||i.done==='true');
-  const done=allDone
-    .sort((a,b)=>(b.checkedAt||b.createdAt||'').localeCompare(a.checkedAt||a.createdAt||''))
-    .slice(0,10); // 최근 10개만 표시
-  const el=document.getElementById('home-checklist');
-  if(!el)return;
-  const countEl=document.getElementById('cl-count-label');
-  if(countEl)countEl.textContent=`${allDone.length}/${items.length} 완료`;
-  if(!pending.length&&!done.length){
-    el.innerHTML='<div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:24px;">📦</div>항목이 없습니다</div>';
-    return;
-  }
-  el.innerHTML=pending.length
-    ? pending.map(item=>renderChecklistItem(item,false)).join('')
-    : '<div style="padding:12px;text-align:center;font-size:12px;color:var(--text-muted);">🎉 모든 항목 완료!</div>';
-  // 보류 섹션
-  const holdWrap=document.getElementById('home-checklist-hold-wrap');
-  const holdEl=document.getElementById('home-checklist-hold');
-  if(holdWrap&&holdItems.length>0){
-    holdWrap.style.display='block';
-    const holdCountEl=holdWrap.querySelector('.hold-count');
-    if(holdCountEl)holdCountEl.textContent='('+holdItems.length+'개)';
-    if(holdEl)holdEl.innerHTML=holdItems.map(item=>renderChecklistItem(item,false)).join('');
-  }else if(holdWrap){holdWrap.style.display='none';}
-
-  // 완료 섹션
-  const doneWrap=document.getElementById('home-checklist-done-wrap');
-  const doneEl=document.getElementById('home-checklist-done');
-  const doneCountEl=document.getElementById('done-count-label');
-  if(doneWrap&&done.length>0){
-    doneWrap.style.display='block';
-    if(doneCountEl)doneCountEl.textContent='('+done.length+'개)';
-    if(doneEl)doneEl.innerHTML=done.map(item=>renderChecklistItem(item,false)).join('');
-  }else if(doneWrap){
-    doneWrap.style.display='none';
-  }
-}
+c
 
 function toggleHoldChecklist(){
   const el=document.getElementById('home-checklist-hold');
@@ -5035,7 +4909,6 @@ function showBaseMonthNotice(elId){
 }
 
 // PO 팀달력 (관리자 팀달력 공유, 별도 nav state)
-let _poTeamCalYear=new Date().getFullYear(), _poTeamCalMonth=new Date().getMonth();
 async function loadPOTeamCal(){
   if(!_allUsers||_allUsers.length===0)_allUsers=await fsQuery('users');
   _poTeamCalYear=new Date().getFullYear();_poTeamCalMonth=new Date().getMonth();
@@ -5317,7 +5190,6 @@ async function loadPOChecklist(){
 }
 
 // ── 실시간 폴링 (30초) ──
-let _pollInterval=null;
 function startPolling(){
   if(_pollInterval)clearInterval(_pollInterval);
   _pollInterval=setInterval(async()=>{
@@ -5358,6 +5230,7 @@ function stopPolling(){if(_pollInterval){clearInterval(_pollInterval);_pollInter
   document.body.classList.add('is-login');
   _getToken().then(()=>ensureAdminSeed()).catch(()=>{});
 })();
+
 </script>
 </body>
 </html>
