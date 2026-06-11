@@ -3787,13 +3787,24 @@ async function openEditChecklistModal(id){
     </div>
     <div id="ecl-hold-wrap" style="${item.type==='hold'?'':'display:none;'}margin-bottom:12px;">
       <label>보류 사유 <span style="font-size:11px;color:var(--text-muted);">(선택)</span></label>
-      <textarea id="ecl-hold-reason" class="popup-input" placeholder="보류 사유를 입력하세요 (예: 정보 부족, 담당자 확인 필요 등)"
+      <textarea id="ecl-hold-reason" class="popup-input" placeholder="보류 사유를 입력하세요"
         style="margin-top:6px;min-height:70px;resize:vertical;line-height:1.5;">${item.holdReason||''}</textarea>
     </div>
-    <div style="margin-bottom:12px;">
-      <label style="font-size:12px;color:var(--text-muted);font-weight:600;">📅 미션 배정 날짜</label>
-      <input type="date" id="ecl-mission-start" class="popup-input" value="${item.missionStart&&item.missionStart!=='_none_'?item.missionStart:''}" style="font-size:13px;padding:10px 14px;margin-top:4px;cursor:pointer;"/>
-      <div style="font-size:11px;color:var(--text-hint);margin-top:4px;">해당 날짜부터 담당자 홈에 노출 · 미처리 시 자동 이월</div>
+    <div style="background:var(--brand-light);border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid var(--brand-mid);">
+      <div style="font-size:12px;font-weight:800;color:var(--brand);margin-bottom:10px;">📌 미션 설정</div>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+        <input type="checkbox" id="ecl-pinned" ${item.pinned==='true'||item.pinned===true?'checked':''} style="width:15px;height:15px;accent-color:var(--brand);"/>
+        <span style="font-size:13px;font-weight:700;color:var(--brand);">담당자 홈 상단 미션으로 고정</span>
+      </label>
+      <div id="ecl-mission-wrap" style="${item.pinned==='true'||item.pinned===true?'':'display:none;'}">
+        <label style="font-size:12px;color:var(--text-muted);font-weight:600;">담당자</label>
+        <select id="ecl-assignee" class="popup-input" style="font-size:13px;padding:10px 14px;margin-top:4px;margin-bottom:8px;cursor:pointer;">
+          <option value="">담당자 선택</option>
+        </select>
+        <label style="font-size:12px;color:var(--text-muted);font-weight:600;">📅 미션 배정 날짜</label>
+        <input type="date" id="ecl-mission-start" class="popup-input" value="${item.missionStart&&item.missionStart!=='_none_'?item.missionStart:''}" style="font-size:13px;padding:10px 14px;margin-top:4px;cursor:pointer;"/>
+        <div style="font-size:11px;color:var(--text-hint);margin-top:4px;">해당 날짜부터 담당자 홈에 노출 · 미처리 시 자동 이월</div>
+      </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:6px;">
       <button onclick="closeModal()" style="flex:1;padding:13px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">취소</button>
@@ -3803,6 +3814,21 @@ async function openEditChecklistModal(id){
   // 구분 변경 시 보류 사유 영역 토글
   document.getElementById('ecl-type').addEventListener('change',function(){
     document.getElementById('ecl-hold-wrap').style.display=this.value==='hold'?'block':'none';
+  });
+  // 미션 체크박스 토글
+  document.getElementById('ecl-pinned').addEventListener('change',function(){
+    document.getElementById('ecl-mission-wrap').style.display=this.checked?'block':'none';
+  });
+  // 담당자 드롭다운 채우기
+  const eclSel=document.getElementById('ecl-assignee');
+  const eclUsers=_allUsers&&_allUsers.length>0?_allUsers:await fsQuery('users');
+  _allUsers=eclUsers;
+  eclUsers.filter(u=>!isPO(u)||isAdm(u)).forEach(u=>{
+    const opt=document.createElement('option');
+    opt.value=u.name;
+    opt.textContent=(u.emoji||'👤')+' '+u.name;
+    if(u.name===item.assignee)opt.selected=true;
+    eclSel.appendChild(opt);
   });
 
   document.getElementById('modal').classList.add('open');
@@ -3816,7 +3842,9 @@ async function saveEditChecklist(id){
   const holdReason=document.getElementById('ecl-hold-reason')?.value.trim()||'_none_';
   if(!name){toast('제품명을 입력해주세요');return;}
   const missionStart=document.getElementById('ecl-mission-start')?.value||'_none_';
-  const payload={name,link:link||'_none_',type,missionStart};
+  const pinned=document.getElementById('ecl-pinned')?.checked?'true':'false';
+  const assignee=document.getElementById('ecl-assignee')?.value||'_none_';
+  const payload={name,link:link||'_none_',type,missionStart,pinned,assignee};
   if(type==='hold')payload.holdReason=holdReason;
   const ok=await fsUpdate('checklist',id,payload);
   if(ok){
