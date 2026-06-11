@@ -2315,60 +2315,70 @@ async function loadAdminReport(){
   window._reportRecsCache=recs; // 개인별 근무 기록 캐시
 
   document.getElementById('report-content').innerHTML=`
-    <!-- 실적 요약 박스 -->
-    <div style="background:linear-gradient(135deg,#0F172A,#1A1A4E);border-radius:var(--radius-sm);padding:22px;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">📊 업무 주요 실적 사항</div>
-      <div style="font-size:14px;color:rgba(255,255,255,0.88);line-height:2;">
-        <div style="margin-bottom:8px;">• 지난 ${mKo}월 한 달 동안 에디터 팀(${users.map(u=>u.name).join(', ')})은 총 <b style="color:#C9A0FF;">${totH}시간</b> 근무하였습니다. ${hDiff!==null?`(전월比 <b style="color:${hDiff>=0?'#10B981':'#EF4444'}">${hDiff>=0?'+':''}${hDiff}%</b>)`:''}
-        </div>
-        <div style="margin-bottom:4px;">• [제품 정보 수정 및 기타] 총 <b style="color:#C9A0FF;">${total}건</b>의 제품 등록 & 수정 & 기타 업무 수행 ${diff(total,pTotal)}
-        </div>
-        <div style="margin-left:20px;margin-bottom:4px;font-size:13px;color:rgba(255,255,255,0.7);">
-          ✅ 새롭게 등록된 제품: <b style="color:white;">${reg}개</b> ${diff(reg,pReg)}<br/>
-          ✏️ 수정된 제품: <b style="color:white;">${edit}개</b> ${diff(edit,pEdit)}<br/>
-          📌 기타 업무: <b style="color:white;">${etc}건</b>
-        </div>
-        ${pTotal>0?`<div style="margin-top:8px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:10px;font-size:13px;">
-          📈 전월(${pmKo}월) 대비: 등록 ${pReg}→${reg}개, 수정 ${pEdit}→${edit}개, 기타 ${pEtc}→${etc}건
-        </div>`:''}
+    <!-- 실시간 현황 헤더 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:8px;height:8px;background:#10B981;border-radius:50%;display:inline-block;animation:pulse 2s infinite;"></span>
+        <span style="font-size:12px;color:var(--text-muted);font-weight:600;">${mKo}월 실적 · 실시간 반영</span>
+        <span style="font-size:11px;color:var(--text-hint);">${start} ~ ${end}</span>
+      </div>
+      <button onclick="exportReportCSV('all')" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 CSV</button>
+    </div>
+
+    <!-- 핵심 지표 4개 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:var(--brand);">${totH}h</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">총 근무시간</div>
+        <div style="font-size:11px;margin-top:2px;">${diff(tot,ptot)||'—'}</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:#10B981;">${reg}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">제품 등록</div>
+        <div style="font-size:11px;margin-top:2px;">${diff(reg,pReg)||'—'}</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:#F59E0B;">${edit}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">제품 수정</div>
+        <div style="font-size:11px;margin-top:2px;">${diff(edit,pEdit)||'—'}</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:var(--sky-dark);">${total}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">총 작업</div>
+        <div style="font-size:11px;margin-top:2px;">${diff(total,pTotal)||'—'}</div>
       </div>
     </div>
 
-    <!-- 통계 카드 (클릭 시 토글) -->
-    <div style="margin-bottom:6px;font-size:11px;color:var(--text-hint);text-align:right;">💡 카드 클릭 시 상세 목록 펼침</div>
-    <div class="grid-2" style="margin-bottom:16px;">
-      <div class="stat-card"><div class="stat-val">${totH}<span style="font-size:16px;font-weight:600;">h</span></div><div class="stat-label">총 근무시간</div><div class="stat-diff">${diff(tot,ptot)}</div></div>
-      <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">총 작업 건수</div>
-        <div style="margin-top:10px;"><button onclick="exportReportCSV('all')" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--brand-light);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--brand);">📥 전체 CSV</button></div>
-      </div>
-      ${renderLogToggle('register',regLogs,'제품 등록 ✅','✅','var(--success-light)','var(--success-text)')}
-      ${renderLogToggle('edit',editLogs,'제품 수정 ✏️','✏️','var(--warn-light)','var(--warn-text)')}
-      ${etc>0?renderLogToggle('etc',etcLogs,'기타 업무 📌','📌','var(--sky-light)','var(--sky-dark)'):''}
-    </div>
-
-        <!-- 주차별 트렌드 차트 -->
+    <!-- 주차별 트렌드 -->
     <div class="card-sm" style="margin-bottom:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div class="section-label" style="margin-bottom:0;">📈 주차별 근무시간 트렌드</div>
-      </div>
-      <canvas id="trend-chart" height="200"></canvas>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;">📈 주차별 근무시간 트렌드</div>
+      <canvas id="trend-chart" height="180"></canvas>
     </div>
-    <!-- AI 요약 -->
-    <div class="card-sm" style="margin-bottom:16px;border:1.5px solid var(--brand-mid);background:linear-gradient(135deg,#FDFBFF,#F3EEFF);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+
+    <!-- AI 분석 (메인) -->
+    <div style="background:linear-gradient(135deg,#0F0F2E,#1a1040);border-radius:14px;padding:20px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:18px;">✨</span>
-          <span style="font-size:13px;font-weight:800;color:var(--brand);">AI 실적 요약</span>
+          <span style="font-size:16px;">✨</span>
+          <span style="font-size:13px;font-weight:800;color:white;">AI 실적 분석 리포트</span>
           <span style="font-size:10px;background:var(--brand);color:white;padding:2px 8px;border-radius:20px;font-weight:700;">Claude AI</span>
         </div>
         <button onclick="generateAISummary()" id="ai-summary-btn"
-          style="padding:7px 16px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
-          AI 요약 생성
+          style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;backdrop-filter:blur(4px);">
+          ▶ 분석 실행
         </button>
       </div>
-      <div id="ai-summary-content" style="font-size:14px;color:var(--text);line-height:1.8;min-height:60px;">
-        <div style="color:var(--text-hint);font-size:13px;">▲ 버튼을 누르면 AI가 이번 달 실적을 분석하고 요약해드립니다</div>
+      <div id="ai-summary-content" style="line-height:1.8;min-height:50px;">
+        <div style="color:rgba(255,255,255,0.45);font-size:12px;">▲ 버튼을 누르면 실시간 데이터 기반으로 AI가 분석합니다<br/>제품 등록 현황 · 에듀테크 트렌드 · 팀 전략 제안 포함</div>
       </div>
+    </div>
+
+    <!-- 상세 로그 토글 -->
+    <div style="margin-bottom:6px;font-size:11px;color:var(--text-hint);text-align:right;">💡 카드 클릭 시 상세 목록 펼침</div>
+    <div class="grid-2" style="margin-bottom:16px;">
+      ${renderLogToggle('register',regLogs,'제품 등록 ✅','✅','var(--success-light)','var(--success-text)')}
+      ${renderLogToggle('edit',editLogs,'제품 수정 ✏️','✏️','var(--warn-light)','var(--warn-text)')}
+      ${etc>0?renderLogToggle('etc',etcLogs,'기타 업무 📌','📌','var(--sky-light)','var(--sky-dark)'):''}
     </div>
 <!-- 팀원별 기여 -->
     <div class="card-sm">
@@ -2461,23 +2471,36 @@ async function generateAISummary(){
 
   const btn=document.getElementById('ai-summary-btn');
   const el=document.getElementById('ai-summary-content');
-  if(btn){btn.disabled=true;btn.textContent='분석 중...';}
-  if(el)el.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--brand);"><div class="spinner" style="width:16px;height:16px;border:2px solid var(--brand-mid);border-top-color:var(--brand);border-radius:50%;animation:spin 0.8s linear infinite;"></div> AI가 데이터를 분석하고 있어요...</div>';
+  if(btn){btn.disabled=true;btn.innerHTML='<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span>분석 중...</span>';}
+  if(el)el.innerHTML='<div style="display:flex;align-items:center;gap:10px;color:var(--brand);padding:12px;"><div style="width:18px;height:18px;border:2px solid var(--brand-mid);border-top-color:var(--brand);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div><span style="font-size:13px;">AI가 '+data.mKo+'월 실적과 제품 등록 현황을 분석하고 있어요...</span></div>';
+
+  // 등록된 제품 목록 가져오기 (실시간)
+  const clItems=await fsQuery('checklist');
+  const registeredProducts=clItems.filter(i=>i.done==='true'||i.done===true).map(i=>i.name).slice(0,20);
+  const pendingProducts=clItems.filter(i=>!(i.done==='true'||i.done===true)&&i.type!=='hold').map(i=>i.name).slice(0,10);
 
   const memberSummary=data.memberStats.map(ms=>
     '- '+ms.name+': 출근 '+ms.days+'일, 근무 '+ms.hours+'h, 등록 '+ms.reg+'건, 수정 '+ms.edit+'건'
   ).join('\n');
 
-  const prompt='당신은 LearningSpark 에디터 팀의 월간 실적을 분석하는 AI입니다.\n'
-    +'아래 '+data.mKo+'월 실적 데이터를 바탕으로 간결하고 따뜻한 팀 리포트를 한국어로 작성해주세요.\n\n'
-    +'['+data.mKo+'월 실적 데이터]\n'
-    +'실적 기간: '+data.start+' ~ '+data.end+'\n'
-    +'팀 총 근무시간: '+data.totH+'h\n'
-    +'제품 등록: '+data.reg+'건 / 수정: '+data.edit+'건 / 기타: '+data.etc+'건\n'
-    +'총 작업: '+data.total+'건\n\n'
-    +'[팀원별 현황]\n'
+  const prompt='당신은 LearningSpark 에듀테크 에디터 팀의 월간 실적 분석 AI입니다.\n\n'
+    +'## '+data.mKo+'월 팀 실적 데이터\n'
+    +'- 실적 기간: '+data.start+' ~ '+data.end+'\n'
+    +'- 팀 총 근무시간: '+data.totH+'h (목표 대비 '+Math.round(parseFloat(data.totH)/24*100)+'%)\n'
+    +'- 총 작업: '+data.total+'건 (등록 '+data.reg+'건 / 수정 '+data.edit+'건 / 기타 '+data.etc+'건)\n'
+    +(data.pTotal>0?'- 전월 대비: 총 작업 '+data.pTotal+'→'+data.total+'건\n':'')
+    +'\n## 팀원별 현황\n'
     +memberSummary+'\n\n'
-    +'형식: 1) 팀 전체 한줄 요약(이모지포함) 2) 활발한 팀원 칭찬 3) 다음달 응원. 200자 이내 한국어.';
+    +'## 이번 달 등록 완료된 에듀테크 제품 ('+registeredProducts.length+'건)\n'
+    +(registeredProducts.length>0?registeredProducts.map(p=>'- '+p).join('\n'):'없음')+'\n\n'
+    +'## 현재 등록 대기 중인 제품 ('+pendingProducts.length+'건)\n'
+    +(pendingProducts.length>0?pendingProducts.map(p=>'- '+p).join('\n'):'없음')+'\n\n'
+    +'위 데이터를 바탕으로 다음 4가지를 분석해주세요:\n\n'
+    +'**1. 이번 달 팀 한 줄 요약** (이모지 포함, 50자 이내)\n'
+    +'**2. 팀원별 하이라이트** (가장 활발한 팀원 구체적 칭찬)\n'
+    +'**3. 등록 제품 트렌드 분석** (어떤 유형/분야의 제품이 많았는지, 에듀테크 시장 흐름과 연결)\n'
+    +'**4. 다음 달 전략 제안** (대기 중인 제품과 팀 현황 기반으로 우선순위 또는 방향 제안)\n\n'
+    +'전체 400자 내외, 한국어, 실무적이고 따뜻한 톤으로 작성해주세요.';
 
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -2492,8 +2515,19 @@ async function generateAISummary(){
     const json=await res.json();
     const text=json.content?.[0]?.text||'요약 생성에 실패했습니다.';
     if(el){
-      el.innerHTML='<div style="white-space:pre-wrap;line-height:1.8;font-size:14px;">'+text+'</div>'
-        +'<div style="margin-top:10px;font-size:11px;color:var(--text-hint);">✨ Claude AI가 생성한 요약입니다</div>';
+      // **bold** 마크다운 처리
+      const bold_re=new RegExp('\\*\\*(.+?)\\*\\*','g');
+      const hash_re=new RegExp('^#{1,3}\\s(.+)$','gm');
+      const formatted=text
+        .replace(bold_re,'<b style="color:#C9A0FF;">$1</b>')
+        .replace(hash_re,'<div style="font-size:12px;font-weight:800;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 4px;">$1</div>')
+        .split('\n').join('<br/>');
+      el.innerHTML='<div style="color:rgba(255,255,255,0.88);line-height:1.9;font-size:13px;">'+formatted+'</div>'
+        +'<div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+        +'<span style="font-size:10px;background:var(--brand);color:white;padding:2px 8px;border-radius:20px;font-weight:700;">Claude AI</span>'
+        +'<span style="font-size:11px;color:rgba(255,255,255,0.4);">실시간 데이터 기반 · '+new Date().toLocaleString("ko-KR",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})+'</span>'
+        +'<button onclick="generateAISummary()" style="margin-left:auto;padding:4px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);font-size:11px;cursor:pointer;font-family:inherit;color:rgba(255,255,255,0.7);">🔄 재생성</button>'
+        +'</div>';
     }
   }catch(e){
     if(el)el.innerHTML='<div style="color:#EF4444;font-size:13px;">AI 요약 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</div>';
@@ -3475,7 +3509,7 @@ async function loadChecklist(){
   el.innerHTML=
     `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <span style="font-size:12px;font-weight:700;color:var(--text-muted);">${sorted.length}개 항목 · ${done}개 완료 · ${holdItems.length}개 보류</span>
-      <span style="font-size:11px;color:var(--text-hint);">☰ 드래그로 순서 변경</span>
+      <div style="display:flex;gap:8px;align-items:center;"><span style="font-size:11px;color:var(--text-hint);">☰ 드래그</span><button onclick="showMissionDebug()" style="padding:3px 10px;border-radius:8px;border:1px solid var(--brand-mid);background:var(--brand-light);font-size:11px;font-weight:700;color:var(--brand);cursor:pointer;font-family:inherit;">🔍 미션 진단</button></div>
     </div>`+
     `<div id="cl-drag-container">`+
     activeItems.map(item=>renderChecklistItem(item,true)).join('')+
@@ -3841,6 +3875,31 @@ async function toggleChecklistItem(id,iMeCheckedStr){
   if(document.getElementById('admin-checklist-panel')?.style.display!=='none')loadChecklist();
   if(document.getElementById('page-mypage')?.classList.contains('active')){renderSidePanel();renderMyCalendar();}
   loadHomeGameStats();
+}
+
+async function showMissionDebug(){
+  const items=await fsQuery('checklist');
+  const pinned=items.filter(i=>i.pinned==='true'||i.pinned===true);
+  const today=getToday();
+  let html='<div style="font-family:monospace;font-size:12px;line-height:2;">';
+  html+='<b>오늘: '+today+'</b><br/>';
+  html+='<b>핀된 항목 ('+pinned.length+'개):</b><br/>';
+  pinned.forEach(i=>{
+    const active=(i.missionStart&&i.missionStart!=='_none_')?i.missionStart<=today:'날짜없음→항상';
+    html+='📌 '+i.name+'<br/>';
+    html+='&nbsp;&nbsp;pinned=<b>'+JSON.stringify(i.pinned)+'</b> assignee=<b>'+i.assignee+'</b> missionStart=<b>'+i.missionStart+'</b><br/>';
+    html+='&nbsp;&nbsp;→ 활성여부: '+active+'<br/>';
+  });
+  if(pinned.length===0)html+='<span style="color:red;">핀된 항목이 없습니다!</span><br/>';
+  html+='</div>';
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">🔍 미션 진단</div>
+    <div style="background:#f8f7fa;border-radius:10px;padding:14px;margin-bottom:16px;">${html}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">
+      ✏️ 버튼으로 항목을 열어 <b>미션으로 고정 체크 + 담당자 선택 + 날짜</b> 입력 후 저장하세요
+    </div>
+    <button onclick="closeModal()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--brand);color:white;font-weight:700;cursor:pointer;font-family:inherit;">확인</button>`;
+  document.getElementById('modal').classList.add('open');
 }
 
 async function toggleMyMission(id){
@@ -6837,8 +6896,13 @@ async function generateAISummary(){
 
   const btn=document.getElementById('ai-summary-btn');
   const el=document.getElementById('ai-summary-content');
-  if(btn){btn.disabled=true;btn.textContent='분석 중...';}
-  if(el)el.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--brand);"><div class="spinner" style="width:16px;height:16px;border:2px solid var(--brand-mid);border-top-color:var(--brand);border-radius:50%;animation:spin 0.8s linear infinite;"></div> AI가 데이터를 분석하고 있어요...</div>';
+  if(btn){btn.disabled=true;btn.innerHTML='<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span>분석 중...</span>';}
+  if(el)el.innerHTML='<div style="display:flex;align-items:center;gap:10px;color:var(--brand);padding:12px;"><div style="width:18px;height:18px;border:2px solid var(--brand-mid);border-top-color:var(--brand);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div><span style="font-size:13px;">AI가 '+data.mKo+'월 실적과 제품 등록 현황을 분석하고 있어요...</span></div>';
+
+  // 등록된 제품 목록 가져오기 (실시간)
+  const clItems=await fsQuery('checklist');
+  const registeredProducts=clItems.filter(i=>i.done==='true'||i.done===true).map(i=>i.name).slice(0,20);
+  const pendingProducts=clItems.filter(i=>!(i.done==='true'||i.done===true)&&i.type!=='hold').map(i=>i.name).slice(0,10);
 
   const memberSummary=data.memberStats.map(ms=>
     '- '+ms.name+': 출근 '+ms.days+'일, 근무 '+ms.hours+'h, 등록 '+ms.reg+'건, 수정 '+ms.edit+'건'
@@ -6876,8 +6940,19 @@ ${memberSummary}
     const json=await res.json();
     const text=json.content?.[0]?.text||'요약 생성에 실패했습니다.';
     if(el){
-      el.innerHTML='<div style="white-space:pre-wrap;line-height:1.8;font-size:14px;">'+text+'</div>'
-        +'<div style="margin-top:10px;font-size:11px;color:var(--text-hint);">✨ Claude AI가 생성한 요약입니다</div>';
+      // **bold** 마크다운 처리
+      const bold_re=new RegExp('\\*\\*(.+?)\\*\\*','g');
+      const hash_re=new RegExp('^#{1,3}\\s(.+)$','gm');
+      const formatted=text
+        .replace(bold_re,'<b style="color:#C9A0FF;">$1</b>')
+        .replace(hash_re,'<div style="font-size:12px;font-weight:800;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 4px;">$1</div>')
+        .split('\n').join('<br/>');
+      el.innerHTML='<div style="color:rgba(255,255,255,0.88);line-height:1.9;font-size:13px;">'+formatted+'</div>'
+        +'<div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+        +'<span style="font-size:10px;background:var(--brand);color:white;padding:2px 8px;border-radius:20px;font-weight:700;">Claude AI</span>'
+        +'<span style="font-size:11px;color:rgba(255,255,255,0.4);">실시간 데이터 기반 · '+new Date().toLocaleString("ko-KR",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})+'</span>'
+        +'<button onclick="generateAISummary()" style="margin-left:auto;padding:4px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);font-size:11px;cursor:pointer;font-family:inherit;color:rgba(255,255,255,0.7);">🔄 재생성</button>'
+        +'</div>';
     }
   }catch(e){
     if(el)el.innerHTML='<div style="color:#EF4444;font-size:13px;">AI 요약 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</div>';
@@ -7859,7 +7934,7 @@ async function loadChecklist(){
   el.innerHTML=
     `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <span style="font-size:12px;font-weight:700;color:var(--text-muted);">${sorted.length}개 항목 · ${done}개 완료 · ${holdItems.length}개 보류</span>
-      <span style="font-size:11px;color:var(--text-hint);">☰ 드래그로 순서 변경</span>
+      <div style="display:flex;gap:8px;align-items:center;"><span style="font-size:11px;color:var(--text-hint);">☰ 드래그</span><button onclick="showMissionDebug()" style="padding:3px 10px;border-radius:8px;border:1px solid var(--brand-mid);background:var(--brand-light);font-size:11px;font-weight:700;color:var(--brand);cursor:pointer;font-family:inherit;">🔍 미션 진단</button></div>
     </div>`+
     `<div id="cl-drag-container">`+
     activeItems.map(item=>renderChecklistItem(item,true)).join('')+
@@ -8225,6 +8300,31 @@ async function toggleChecklistItem(id,iMeCheckedStr){
   if(document.getElementById('admin-checklist-panel')?.style.display!=='none')loadChecklist();
   if(document.getElementById('page-mypage')?.classList.contains('active')){renderSidePanel();renderMyCalendar();}
   loadHomeGameStats();
+}
+
+async function showMissionDebug(){
+  const items=await fsQuery('checklist');
+  const pinned=items.filter(i=>i.pinned==='true'||i.pinned===true);
+  const today=getToday();
+  let html='<div style="font-family:monospace;font-size:12px;line-height:2;">';
+  html+='<b>오늘: '+today+'</b><br/>';
+  html+='<b>핀된 항목 ('+pinned.length+'개):</b><br/>';
+  pinned.forEach(i=>{
+    const active=(i.missionStart&&i.missionStart!=='_none_')?i.missionStart<=today:'날짜없음→항상';
+    html+='📌 '+i.name+'<br/>';
+    html+='&nbsp;&nbsp;pinned=<b>'+JSON.stringify(i.pinned)+'</b> assignee=<b>'+i.assignee+'</b> missionStart=<b>'+i.missionStart+'</b><br/>';
+    html+='&nbsp;&nbsp;→ 활성여부: '+active+'<br/>';
+  });
+  if(pinned.length===0)html+='<span style="color:red;">핀된 항목이 없습니다!</span><br/>';
+  html+='</div>';
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">🔍 미션 진단</div>
+    <div style="background:#f8f7fa;border-radius:10px;padding:14px;margin-bottom:16px;">${html}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">
+      ✏️ 버튼으로 항목을 열어 <b>미션으로 고정 체크 + 담당자 선택 + 날짜</b> 입력 후 저장하세요
+    </div>
+    <button onclick="closeModal()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--brand);color:white;font-weight:700;cursor:pointer;font-family:inherit;">확인</button>`;
+  document.getElementById('modal').classList.add('open');
 }
 
 async function toggleMyMission(id){
