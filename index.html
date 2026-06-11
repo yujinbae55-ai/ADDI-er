@@ -3389,13 +3389,8 @@ async function loadHomeChecklist(){
   const myMissionsAll=items.filter(i=>{
     if(i.done==='true'||i.done===true)return false;
     if(!(i.pinned==='true'||i.pinned===true))return false;
-    // userId 또는 이름으로 비교 (둘 다 허용)
-    const assignee=(i.assignee||'').trim();
-    const assigneeId=(i.assigneeId||'').trim();
-    const myName=(currentUser?.name||'').trim();
-    const myId=(currentUser?.id||'').trim();
-    const isAssigned=(assigneeId&&assigneeId===myId)||(assignee&&assignee!=='_none_'&&assignee===myName);
-    if(!isAssigned)return false;
+    if(!i.assignee||i.assignee==='_none_')return false;
+    if(i.assignee.trim()!==currentUser.name.trim())return false;
     const md=i.missionStart&&i.missionStart!=='_none_'?i.missionStart:null;
     return !md||(md<=_td);
   }).sort((a,b)=>{
@@ -3843,17 +3838,16 @@ async function saveEditChecklist(id){
   const type=document.getElementById('ecl-type')?.value||'register';
   const holdReason=document.getElementById('ecl-hold-reason')?.value.trim()||'_none_';
   if(!name){toast('제품명을 입력해주세요');return;}
-  const missionStart=document.getElementById('ecl-mission-start')?.value||'_none_';
-  const pinned=document.getElementById('ecl-pinned')?.checked?'true':'false';
-  const assignee=document.getElementById('ecl-assignee')?.value||'_none_';
-  // assigneeId도 함께 저장 (이름 변경에도 대응)
-  const assigneeUser=(_allUsers||[]).find(u=>u.name===assignee);
-  const assigneeId=assigneeUser?assigneeUser.id:'_none_';
-  const payload={name,link:link||'_none_',type,missionStart,pinned,assignee,assigneeId};
+  const isPinnedChecked=document.getElementById('ecl-pinned')?.checked;
+  const pinned=isPinnedChecked?'true':'false';
+  // 미션 고정 체크됐을 때만 담당자/날짜 저장, 아니면 초기화
+  const assignee=isPinnedChecked?(document.getElementById('ecl-assignee')?.value||'_none_'):'_none_';
+  const missionStart=isPinnedChecked?(document.getElementById('ecl-mission-start')?.value||'_none_'):'_none_';
+  const payload={name,link:link||'_none_',type,pinned,assignee,missionStart};
   if(type==='hold')payload.holdReason=holdReason;
   const ok=await fsUpdate('checklist',id,payload);
   if(ok){
-    toast('수정 완료 ✅');
+    toast('수정 완료 ✅'+(isPinnedChecked&&assignee!=='_none_'?' · '+assignee+' 미션 고정':''));
     closeModal();
     loadChecklist();
     loadHomeChecklist();
