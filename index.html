@@ -3389,9 +3389,13 @@ async function loadHomeChecklist(){
   const myMissionsAll=items.filter(i=>{
     if(i.done==='true'||i.done===true)return false;
     if(!(i.pinned==='true'||i.pinned===true))return false;
+    // userId 또는 이름으로 비교 (둘 다 허용)
     const assignee=(i.assignee||'').trim();
+    const assigneeId=(i.assigneeId||'').trim();
     const myName=(currentUser?.name||'').trim();
-    if(!assignee||assignee==='_none_'||assignee!==myName)return false;
+    const myId=(currentUser?.id||'').trim();
+    const isAssigned=(assigneeId&&assigneeId===myId)||(assignee&&assignee!=='_none_'&&assignee===myName);
+    if(!isAssigned)return false;
     const md=i.missionStart&&i.missionStart!=='_none_'?i.missionStart:null;
     return !md||(md<=_td);
   }).sort((a,b)=>{
@@ -3592,7 +3596,12 @@ function renderChecklistItem(item,isAdmin){
       ${item.checkedAt&&item.checkedAt!=='_none_'?`<div style="font-size:10px;color:var(--text-hint);margin-top:2px;">마지막 완료: ${new Date(item.checkedAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`:''}
     </div>
     ${isAdmin?`
-      <div style="display:flex;align-items:center;gap:4px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${item.assignee&&item.assignee!=='_none_'?`<span style="font-size:11px;font-weight:700;background:var(--brand-light);color:var(--brand-dark);border-radius:8px;padding:3px 10px;white-space:nowrap;">👤 ${item.assignee}</span>`:''}
+        <button onclick="toggleMyMission('${item.id}')" title="${_isPinned?'미션 고정 해제':'미션으로 고정'}"
+          style="padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;border:none;${_isPinned?'background:var(--brand);color:white;':'background:var(--bg);color:var(--text-hint);border:1px solid var(--border);'}">
+          ${_isPinned?'📌 '+( item.assignee&&item.assignee!=='_none_'?item.assignee:'고정'):'📌'}
+        </button>
         <button onclick="openEditChecklistModal('${item.id}')" class="icon-btn" title="수정" style="color:var(--brand);">✏️</button>
         <button class="icon-btn danger" onclick="deleteChecklistItem('${item.id}')" title="삭제">🗑️</button>
       </div>
@@ -3837,7 +3846,10 @@ async function saveEditChecklist(id){
   const missionStart=document.getElementById('ecl-mission-start')?.value||'_none_';
   const pinned=document.getElementById('ecl-pinned')?.checked?'true':'false';
   const assignee=document.getElementById('ecl-assignee')?.value||'_none_';
-  const payload={name,link:link||'_none_',type,missionStart,pinned,assignee};
+  // assigneeId도 함께 저장 (이름 변경에도 대응)
+  const assigneeUser=(_allUsers||[]).find(u=>u.name===assignee);
+  const assigneeId=assigneeUser?assigneeUser.id:'_none_';
+  const payload={name,link:link||'_none_',type,missionStart,pinned,assignee,assigneeId};
   if(type==='hold')payload.holdReason=holdReason;
   const ok=await fsUpdate('checklist',id,payload);
   if(ok){
