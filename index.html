@@ -3358,12 +3358,6 @@ async function loadChecklist(){
     </div>`:'')+
     ``;
   initChecklistDrag();
-  // 담당자 드롭다운 채우기
-  if(_allUsers&&_allUsers.length>0){
-    fillAssignSelects(_allUsers);
-  }else{
-    fsQuery('users').then(users=>{_allUsers=users;fillAssignSelects(users);});
-  }
 }
 
 function fillAssignSelects(users){
@@ -3391,10 +3385,7 @@ async function loadHomeChecklist(){
 
   // 나에게 할당된 pinned 항목 (오늘의 미션)
   const _td=getToday();
-  // 디버그용 로그 (확인 후 제거 가능)
-  const _pinnedItems=items.filter(i=>i.pinned==='true'||i.pinned===true);
-  console.log('[Mission] pinned:',_pinnedItems.length,'currentUser:',currentUser?.name,
-    'candidates:', _pinnedItems.map(i=>i.name+'('+i.assignee+'/'+i.missionStart+')'));
+
   const myMissionsAll=items.filter(i=>{
     if(i.done==='true'||i.done===true)return false;
     if(!(i.pinned==='true'||i.pinned===true))return false;
@@ -3408,7 +3399,6 @@ async function loadHomeChecklist(){
     const bd=b.missionStart&&b.missionStart!=='_none_'?b.missionStart:'0000';
     return ad.localeCompare(bd);
   });
-  console.log('[Mission] myMissionsAll:',myMissionsAll.length);
   const myMissions=myMissionsAll.slice(0,2);
 
   // 미션 카드 렌더
@@ -3603,10 +3593,6 @@ function renderChecklistItem(item,isAdmin){
     </div>
     ${isAdmin?`
       <div style="display:flex;align-items:center;gap:4px;">
-        <select class="assign-select" data-cl-id="${item.id}" onchange="assignChecklistItem('${item.id}',this.value)"
-          style="padding:4px 8px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-weight:600;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer;max-width:90px;">
-          <option value="">담당자</option>
-        </select>
         <button onclick="openEditChecklistModal('${item.id}')" class="icon-btn" title="수정" style="color:var(--brand);">✏️</button>
         <button class="icon-btn danger" onclick="deleteChecklistItem('${item.id}')" title="삭제">🗑️</button>
       </div>
