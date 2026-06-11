@@ -287,7 +287,7 @@ body.is-login .bottom-nav{display:none!important;}
 .work-dur{font-size:13px;font-weight:800;color:var(--brand);}
 
 /* Product log */
-.prod-log{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px;}
+.prod-log{background:var(--surface);border-radius:12px;border:1px solid var(--border);margin-bottom:8px;}
 .prod-log-hd{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
 .prod-log-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .prod-log-icon.register{background:var(--success-light);}
@@ -441,7 +441,7 @@ body.is-login .bottom-nav{display:none!important;}
 .mypage-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
 .mypage-cal-col,.mypage-side-col{display:flex;flex-direction:column;gap:0;}
 .mypage-side-col{gap:0;}
-.my-side-panel{display:flex;flex-direction:column;gap:10px;}
+.my-side-panel{display:flex;flex-direction:column;gap:10px;min-width:0;}
 /* 마이페이지 달력 전폭 */
 .my-side-tab{flex:1;padding:10px 8px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;background:transparent;color:var(--brand);transition:all 0.15s;}
 .my-side-tab.active{background:var(--brand);color:white;box-shadow:0 2px 8px rgba(139,63,255,0.3);}
@@ -451,7 +451,7 @@ body.is-login .bottom-nav{display:none!important;}
 .day-detail-t{font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:3px;}
 .day-detail-v{font-size:22px;font-weight:800;line-height:1;}
 /* side record item */
-.side-rec{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);overflow:hidden;transition:all 0.15s;}
+.side-rec{background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);transition:all 0.15s;}
 .side-rec:hover{border-color:var(--brand-mid);box-shadow:0 2px 8px rgba(0,0,0,0.05);}
 .side-rec.selected{border-color:var(--brand);box-shadow:0 0 0 2px rgba(139,63,255,0.15);}
 .side-rec-main{display:flex;align-items:center;padding:12px 14px;gap:12px;cursor:pointer;}
@@ -818,6 +818,11 @@ body.is-login .bottom-nav{display:none!important;}
           <select id="cl-assignee-input" class="popup-input" style="margin-bottom:10px;font-size:13px;padding:10px 14px;cursor:pointer;">
             <option value="">담당자 선택 (상단 고정 시)</option>
           </select>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:12px;color:var(--text-muted);font-weight:600;">📅 미션 배정 날짜 <span style="color:var(--text-hint);">(미션 고정 시 필수)</span></label>
+            <input type="date" id="cl-mission-start" class="popup-input" style="font-size:13px;padding:10px 14px;margin-top:4px;cursor:pointer;"/>
+            <div style="font-size:11px;color:var(--text-hint);margin-top:4px;">해당 날짜부터 담당자 홈에 노출 · 미처리 시 자동 이월</div>
+          </div>
           <button onclick="addChecklistItem()" style="width:100%;padding:13px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;">항목 추가</button>
         </div>
         <div id="admin-checklist-list"></div>
@@ -3298,6 +3303,8 @@ async function addChecklistItem(){
     if(document.getElementById('cl-excel-link'))document.getElementById('cl-excel-link').value='';
     if(document.getElementById('cl-pinned'))document.getElementById('cl-pinned').checked=false;
     if(document.getElementById('cl-assignee-input'))document.getElementById('cl-assignee-input').value='';
+    if(document.getElementById('cl-mission-start'))document.getElementById('cl-mission-start').value='';
+
     loadChecklist();loadHomeChecklist();
   }else{
     const rulesUrl=`https://console.firebase.google.com/project/additer-fef59/firestore/rules`;
@@ -3380,13 +3387,19 @@ async function loadHomeChecklist(){
   const todayDisplay=new Date(today+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric'});
 
   // 나에게 할당된 pinned 항목 (오늘의 미션)
-  const myMissions=items.filter(i=>{
-    const isDone=i.done==='true'||i.done===true;
-    if(isDone)return false;
-    // 미션 = pinned:true + assignee가 나 (관리자가 지정+핀한 것만)
-    const isPinned=i.pinned==='true'||i.pinned===true;
-    return isPinned&&i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
+  const _td=getToday();
+  const myMissionsAll=items.filter(i=>{
+    if(i.done==='true'||i.done===true)return false;
+    if(!(i.pinned==='true'||i.pinned===true))return false;
+    if(!i.assignee||i.assignee==='_none_'||i.assignee!==currentUser.name)return false;
+    const md=i.missionStart&&i.missionStart!=='_none_'?i.missionStart:null;
+    return !md||(md<=_td);
+  }).sort((a,b)=>{
+    const ad=a.missionStart&&a.missionStart!=='_none_'?a.missionStart:'0000';
+    const bd=b.missionStart&&b.missionStart!=='_none_'?b.missionStart:'0000';
+    return ad.localeCompare(bd);
   });
+  const myMissions=myMissionsAll.slice(0,2);
 
   // 미션 카드 렌더
   const missionWrap=document.getElementById('home-mission-wrap');
@@ -3401,6 +3414,10 @@ async function loadHomeChecklist(){
             <div>
               <div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;">TODAY'S MISSION</div>
               <div style="font-size:14px;font-weight:800;color:white;">${todayDisplay} 등록 필수 제품 🔥</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.75);margin-top:3px;">
+              ${myMissionsAll.length>2?`⏰ 미처리 ${myMissionsAll.length-2}건 이월 포함`:''}
+              ${myMissionsAll.length===0?'오늘 배정된 미션이 없어요':''}
+            </div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
               <a href="https://docs.google.com/spreadsheets/d/1ZsDdbrkDldtWcD7EdTWaZvGA4Co9H8ZcUeep34deTX8/edit" target="_blank"
@@ -3420,6 +3437,11 @@ async function loadHomeChecklist(){
               </div>
               <div style="flex:1;min-width:0;">
                 <div style="font-size:13px;font-weight:700;color:white;${isMeChecked?'text-decoration:line-through;opacity:0.6;':''}">${item.name}</div>
+                ${item.missionStart&&item.missionStart!=='_none_'&&item.missionStart<getToday()
+                  ?`<div style="font-size:10px;color:rgba(255,165,0,0.9);margin-top:2px;">⏰ ${item.missionStart.slice(5).replace('-','/')} 미처리 이월</div>`
+                  :item.missionStart&&item.missionStart!=='_none_'
+                    ?`<div style="font-size:10px;color:rgba(255,255,255,0.6);margin-top:2px;">📅 ${item.missionStart.slice(5).replace('-','/')} 배정</div>`
+                    :''}
                 ${item.link&&item.link!=='_none_'?`<a href="${item.link}" target="_blank" style="font-size:11px;color:rgba(255,255,255,0.7);word-break:break-all;">${item.link}</a>`:''}
               </div>
               ${hasExcel?`<a href="${item.excelLink}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,0.9);font-size:11px;font-weight:800;color:var(--brand);text-decoration:none;white-space:nowrap;flex-shrink:0;">📊 시트</a>`:''}
@@ -3440,10 +3462,13 @@ async function loadHomeChecklist(){
   };
   const pending=items.filter(i=>{
     if(i.done===true||i.done==='true')return false;
-    if(i.type==='hold')return false; // 보류는 별도 섹션
+    if(i.type==='hold')return false;
     const isPinned=i.pinned==='true'||i.pinned===true;
-    const isMyMissionItem=isPinned&&i.assignee&&i.assignee!=='_none_'&&i.assignee===currentUser.name;
-    return !isMyMissionItem;
+    if(!isPinned)return true; // 핀 없으면 항상 목록
+    if(!i.assignee||i.assignee==='_none_'||i.assignee!==currentUser.name)return true;
+    // 내 활성 미션 중 상위 2개는 미션카드로 → 목록에서 제외
+    const isInMission=myMissionsAll.some(m=>m.id===i.id);
+    return !isInMission;
   }).sort(byOrder);
   const holdItems=items.filter(i=>i.type==='hold'&&!(i.done===true||i.done==='true')).sort(byOrder);
   const allDone=items.filter(i=>i.done===true||i.done==='true');
@@ -3557,7 +3582,9 @@ function renderChecklistItem(item,isAdmin){
         ⚙️ 어드민 등록
       </a>
 
-      ${item.pinned==='true'||item.pinned===true?`<span style="display:inline-flex;margin-top:4px;font-size:10px;font-weight:700;background:var(--brand-light);color:var(--brand);border-radius:8px;padding:2px 8px;">📌 오늘의 미션</span>`:''}
+      ${item.pinned==='true'||item.pinned===true
+        ?`<span style="display:inline-flex;margin-top:4px;font-size:10px;font-weight:700;background:var(--brand-light);color:var(--brand);border-radius:8px;padding:2px 8px;">📌 미션${item.missionStart&&item.missionStart!=='_none_'?' · '+item.missionStart.slice(5).replace('-','/'):''}</span>`
+        :''}
       ${checkedUsers.length?`<div style="font-size:11px;color:var(--text-hint);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
         ${checkedUsers.map(u=>`<span style="display:inline-flex;align-items:center;gap:3px;background:var(--success-light);color:var(--success-text);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;">✓ ${u}</span>`).join('')}
       </div>`:''}
@@ -3760,6 +3787,11 @@ async function openEditChecklistModal(id){
       <textarea id="ecl-hold-reason" class="popup-input" placeholder="보류 사유를 입력하세요 (예: 정보 부족, 담당자 확인 필요 등)"
         style="margin-top:6px;min-height:70px;resize:vertical;line-height:1.5;">${item.holdReason||''}</textarea>
     </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--text-muted);font-weight:600;">📅 미션 배정 날짜</label>
+      <input type="date" id="ecl-mission-start" class="popup-input" value="${item.missionStart&&item.missionStart!=='_none_'?item.missionStart:''}" style="font-size:13px;padding:10px 14px;margin-top:4px;cursor:pointer;"/>
+      <div style="font-size:11px;color:var(--text-hint);margin-top:4px;">해당 날짜부터 담당자 홈에 노출 · 미처리 시 자동 이월</div>
+    </div>
     <div style="display:flex;gap:10px;margin-top:6px;">
       <button onclick="closeModal()" style="flex:1;padding:13px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">취소</button>
       <button onclick="saveEditChecklist('${id}')" style="flex:2;padding:13px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
@@ -3780,7 +3812,8 @@ async function saveEditChecklist(id){
   const type=document.getElementById('ecl-type')?.value||'register';
   const holdReason=document.getElementById('ecl-hold-reason')?.value.trim()||'_none_';
   if(!name){toast('제품명을 입력해주세요');return;}
-  const payload={name,link:link||'_none_',type};
+  const missionStart=document.getElementById('ecl-mission-start')?.value||'_none_';
+  const payload={name,link:link||'_none_',type,missionStart};
   if(type==='hold')payload.holdReason=holdReason;
   const ok=await fsUpdate('checklist',id,payload);
   if(ok){
