@@ -3391,10 +3391,16 @@ async function loadHomeChecklist(){
 
   // 나에게 할당된 pinned 항목 (오늘의 미션)
   const _td=getToday();
+  // 디버그용 로그 (확인 후 제거 가능)
+  const _pinnedItems=items.filter(i=>i.pinned==='true'||i.pinned===true);
+  console.log('[Mission] pinned:',_pinnedItems.length,'currentUser:',currentUser?.name,
+    'candidates:', _pinnedItems.map(i=>i.name+'('+i.assignee+'/'+i.missionStart+')'));
   const myMissionsAll=items.filter(i=>{
     if(i.done==='true'||i.done===true)return false;
     if(!(i.pinned==='true'||i.pinned===true))return false;
-    if(!i.assignee||i.assignee==='_none_'||i.assignee!==currentUser.name)return false;
+    const assignee=(i.assignee||'').trim();
+    const myName=(currentUser?.name||'').trim();
+    if(!assignee||assignee==='_none_'||assignee!==myName)return false;
     const md=i.missionStart&&i.missionStart!=='_none_'?i.missionStart:null;
     return !md||(md<=_td);
   }).sort((a,b)=>{
@@ -3402,6 +3408,7 @@ async function loadHomeChecklist(){
     const bd=b.missionStart&&b.missionStart!=='_none_'?b.missionStart:'0000';
     return ad.localeCompare(bd);
   });
+  console.log('[Mission] myMissionsAll:',myMissionsAll.length);
   const myMissions=myMissionsAll.slice(0,2);
 
   // 미션 카드 렌더
