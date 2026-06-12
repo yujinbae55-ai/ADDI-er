@@ -722,11 +722,47 @@ body.is-login .bottom-nav{display:none!important;}
       <div id="notice-write-wrap" style="display:none;">
         <div class="card-sm" style="margin-bottom:4px;">
           <div class="section-label" style="margin-bottom:12px;">새 공지 작성</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+            <select id="notice-scope" style="padding:10px 12px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:13px;font-family:'Pretendard',sans-serif;background:#FAFAF9;cursor:pointer;">
+              <option value="team">👥 팀 공지</option>
+              <option value="company">🏢 회사 공지</option>
+            </select>
+            <select id="notice-urgency" style="padding:10px 12px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:13px;font-family:'Pretendard',sans-serif;background:#FAFAF9;cursor:pointer;">
+              <option value="normal">📢 일반</option>
+              <option value="urgent">🚨 긴급</option>
+            </select>
+            <select id="notice-category" style="padding:10px 12px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:13px;font-family:'Pretendard',sans-serif;background:#FAFAF9;cursor:pointer;">
+              <option value="general">📌 일반</option>
+              <option value="register">✅ 제품 등록</option>
+              <option value="edit">✏️ 제품 수정</option>
+              <option value="etc">📦 기타</option>
+            </select>
+          </div>
           <input id="notice-title-input" type="text" placeholder="제목을 입력하세요" style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:15px;font-family:'Pretendard',sans-serif;outline:none;margin-bottom:10px;background:#FAFAF9;"/>
           <textarea id="notice-body-input" placeholder="내용을 입력하세요" rows="4" style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:14px;font-family:'Pretendard',sans-serif;outline:none;resize:vertical;margin-bottom:10px;background:#FAFAF9;"></textarea>
           <input id="notice-link-input" type="url" placeholder="파일/링크 URL (선택사항)" style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #E8E6F0;font-size:14px;font-family:'Pretendard',sans-serif;outline:none;margin-bottom:12px;background:#FAFAF9;"/>
           <button onclick="postNotice()" style="width:100%;padding:13px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;">공지 등록</button>
         </div>
+      </div>
+      <!-- 필터 바 -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+        <select id="nf-scope" onchange="loadNotice()" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;background:var(--bg);cursor:pointer;">
+          <option value="">전체 범위</option>
+          <option value="team">👥 팀 공지</option>
+          <option value="company">🏢 회사 공지</option>
+        </select>
+        <select id="nf-urgency" onchange="loadNotice()" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;background:var(--bg);cursor:pointer;">
+          <option value="">전체 긴급도</option>
+          <option value="urgent">🚨 긴급</option>
+          <option value="normal">📢 일반</option>
+        </select>
+        <select id="nf-category" onchange="loadNotice()" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;background:var(--bg);cursor:pointer;">
+          <option value="">전체 분류</option>
+          <option value="register">✅ 제품 등록</option>
+          <option value="edit">✏️ 제품 수정</option>
+          <option value="general">📌 일반</option>
+          <option value="etc">📦 기타</option>
+        </select>
       </div>
       <div id="notice-list"><div class="empty-state"><div class="empty-icon">📢</div>등록된 공지가 없습니다</div></div>
     </div>
@@ -739,12 +775,36 @@ body.is-login .bottom-nav{display:none!important;}
       </div>
       <!-- 글쓰기 -->
       <div class="card-sm" style="margin-bottom:16px;">
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+          <button class="lounge-cat-btn active" data-cat="question" onclick="selectLoungecat(this)"
+            style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--brand);background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">❓ 질문</button>
+          <button class="lounge-cat-btn" data-cat="share" onclick="selectLoungecat(this)"
+            style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💡 공유</button>
+          <button class="lounge-cat-btn" data-cat="suggest" onclick="selectLoungecat(this)"
+            style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📬 건의</button>
+          <button class="lounge-cat-btn" data-cat="free" onclick="selectLoungecat(this)"
+            style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💬 자유</button>
+        </div>
+        <input type="hidden" id="lounge-category" value="question"/>
         <textarea id="lounge-input" placeholder="논의할 내용, 궁금한 점, 공유하고 싶은 거 뭐든 남겨요 💬"
           style="width:100%;min-height:80px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);font-size:14px;font-family:'Pretendard',sans-serif;resize:vertical;outline:none;background:var(--bg);box-sizing:border-box;line-height:1.6;"
           oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
         <div style="display:flex;justify-content:flex-end;margin-top:8px;">
           <button onclick="postLounge()" style="padding:9px 22px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">남기기 ✉️</button>
         </div>
+      </div>
+      <!-- 카테고리 필터 -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+        <button class="lounge-filter-btn active" data-cat="" onclick="setLoungeFilter(this)"
+          style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--brand);background:var(--brand);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">전체</button>
+        <button class="lounge-filter-btn" data-cat="question" onclick="setLoungeFilter(this)"
+          style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">❓ 질문</button>
+        <button class="lounge-filter-btn" data-cat="share" onclick="setLoungeFilter(this)"
+          style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💡 공유</button>
+        <button class="lounge-filter-btn" data-cat="suggest" onclick="setLoungeFilter(this)"
+          style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📬 건의</button>
+        <button class="lounge-filter-btn" data-cat="free" onclick="setLoungeFilter(this)"
+          style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💬 자유</button>
       </div>
       <!-- 글 목록 -->
       <div id="lounge-list"><div class="empty-state"><div class="empty-icon">💬</div>아직 글이 없어요</div></div>
@@ -2995,15 +3055,36 @@ async function loadNotice(){
     document.getElementById('notice-write-wrap').style.display='block';
   }
   const notices=await fsQuery('notices');
-  const sorted=notices.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  let sorted=notices.sort((a,b)=>{
+    // 긴급 먼저, 그 다음 최신순
+    if((a.urgency==='urgent')!==(b.urgency==='urgent'))return a.urgency==='urgent'?-1:1;
+    return (b.createdAt||'').localeCompare(a.createdAt||'');
+  });
+
+  // 필터 적용
+  const fScope=document.getElementById('nf-scope')?.value||'';
+  const fUrgency=document.getElementById('nf-urgency')?.value||'';
+  const fCategory=document.getElementById('nf-category')?.value||'';
+  if(fScope)sorted=sorted.filter(n=>n.scope===fScope||(fScope==='team'&&!n.scope));
+  if(fUrgency)sorted=sorted.filter(n=>n.urgency===fUrgency||(fUrgency==='normal'&&!n.urgency));
+  if(fCategory)sorted=sorted.filter(n=>n.category===fCategory||(fCategory==='general'&&!n.category));
+
   const list=document.getElementById('notice-list');
-  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📢</div>등록된 공지가 없습니다</div>';return;}
+  if(!sorted.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📢</div>해당하는 공지가 없습니다</div>';return;}
+
+  const scopeLabel=n=>n.scope==='company'?'<span style="font-size:10px;background:#E0F2FE;color:#0369A1;border-radius:6px;padding:1px 7px;font-weight:700;">🏢 회사</span>':'<span style="font-size:10px;background:var(--brand-light);color:var(--brand);border-radius:6px;padding:1px 7px;font-weight:700;">👥 팀</span>';
+  const urgencyLabel=n=>n.urgency==='urgent'?'<span style="font-size:10px;background:#FEE2E2;color:#DC2626;border-radius:6px;padding:1px 7px;font-weight:700;">🚨 긴급</span>':'';
+  const categoryLabel=n=>{const c=n.category||'general';const map={register:'✅ 등록',edit:'✏️ 수정',general:'📌 일반',etc:'📦 기타'};const col={register:'#DCFCE7',edit:'#FEF9C3',general:'#F3F4F6',etc:'#EDE9FE'};const tc={register:'#166534',edit:'#854D0E',general:'#374151',etc:'#5B21B6'};return '<span style="font-size:10px;background:'+col[c]+';color:'+tc[c]+';border-radius:6px;padding:1px 7px;font-weight:700;">'+map[c]+'</span>';};
+
   list.innerHTML=sorted.map(n=>`
-    <div style="background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);padding:20px;margin-bottom:12px;">
+    <div style="background:var(--surface);border-radius:var(--radius-sm);border:1px solid ${n.urgency==='urgent'?'#FCA5A5':'var(--border)'};padding:20px;margin-bottom:12px;${n.urgency==='urgent'?'border-left:4px solid #EF4444;':''}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:var(--brand-light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📢</div>
+          <div style="width:36px;height:36px;border-radius:10px;background:${n.urgency==='urgent'?'#FEE2E2':'var(--brand-light)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${n.urgency==='urgent'?'🚨':'📢'}</div>
           <div>
+            <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+              ${scopeLabel(n)} ${urgencyLabel(n)} ${categoryLabel(n)}
+            </div>
             <div style="font-size:15px;font-weight:700;">${n.title}</div>
             <div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${n.author||'관리자'} · ${n.createdAt?new Date(n.createdAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
           </div>
@@ -3019,8 +3100,11 @@ async function postNotice(){
   const title=document.getElementById('notice-title-input').value.trim();
   const body=document.getElementById('notice-body-input').value.trim();
   const link=document.getElementById('notice-link-input').value.trim();
+  const scope=document.getElementById('notice-scope')?.value||'team';
+  const urgency=document.getElementById('notice-urgency')?.value||'normal';
+  const category=document.getElementById('notice-category')?.value||'general';
   if(!title){toast('제목을 입력해주세요');return;}
-  const id=await fsAdd('notices',{title,body,link:link||'',author:currentUser.name,createdAt:new Date().toISOString()});
+  const id=await fsAdd('notices',{title,body,link:link||'',scope,urgency,category,author:currentUser.name,createdAt:new Date().toISOString()});
   if(id){
     toast('공지가 등록되었습니다 📢');
     document.getElementById('notice-title-input').value='';
@@ -3120,9 +3204,24 @@ async function renderHomeSummaryChips(){
 }
 
 // ── 팀 라운지 ──
+let _loungeFilter='';
+function setLoungeFilter(btn){
+  _loungeFilter=btn.dataset.cat||'';
+  document.querySelectorAll('.lounge-filter-btn').forEach(b=>{
+    const active=b.dataset.cat===btn.dataset.cat;
+    b.style.background=active?'var(--brand)':'var(--bg)';
+    b.style.color=active?'white':'var(--text-muted)';
+    b.style.borderColor=active?'var(--brand)':'var(--border)';
+  });
+  loadLounge();
+}
+
 async function loadLounge(){
   const posts=await fsQuery('lounge');
-  const sorted=posts.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  let sorted=posts.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(_loungeFilter)sorted=sorted.filter(p=>p.category===_loungeFilter||(p.category==='free'&&_loungeFilter==='free')||(!p.category&&_loungeFilter==='free'));
+  const catMap={question:{label:'❓ 질문',bg:'#EFF6FF',tc:'#1D4ED8'},share:{label:'💡 공유',bg:'#F0FDF4',tc:'#166534'},suggest:{label:'📬 건의',bg:'#FEF9C3',tc:'#854D0E'},free:{label:'💬 자유',bg:'var(--bg)',tc:'var(--text-muted)'}};
+  const catBadge=cat=>{const c=catMap[cat]||catMap.free;return '<span style="font-size:10px;background:'+c.bg+';color:'+c.tc+';border-radius:6px;padding:2px 8px;font-weight:700;margin-right:4px;">'+c.label+'</span>';};
   const el=document.getElementById('lounge-list');if(!el)return;
   if(!sorted.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div>아직 글이 없어요. 첫 번째로 남겨보세요!</div>';return;}
   el.innerHTML=sorted.map(p=>{
@@ -3154,11 +3253,17 @@ async function loadLounge(){
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:22px;">${p.emoji||'😊'}</span>
           <div>
-            <span style="font-size:13px;font-weight:700;color:var(--text);">${p.authorName||'팀원'}</span>
-            <span style="font-size:11px;color:var(--text-hint);margin-left:6px;">${time}</span>
+            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+              ${catBadge(p.category||'free')}
+              <span style="font-size:13px;font-weight:700;color:var(--text);">${p.authorName||'팀원'}</span>
+              <span style="font-size:11px;color:var(--text-hint);margin-left:4px;">${time}</span>
+            </div>
           </div>
         </div>
-        ${isMe?`<button onclick="deleteLounge('${p.id}')" class="icon-btn danger" title="삭제">🗑️</button>`:''}
+        <div style="display:flex;gap:4px;">
+          ${isMe?`<button onclick="openLoungeEdit('${p.id}')" class="icon-btn" title="수정" style="color:var(--brand);">✏️</button>`:''}
+          ${isMe?`<button onclick="deleteLounge('${p.id}')" class="icon-btn danger" title="삭제">🗑️</button>`:''}
+        </div>
       </div>
       <div style="font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;margin-bottom:10px;">${p.content||''}</div>
       <!-- 반응 -->
@@ -3193,12 +3298,21 @@ function toggleEmojiPicker(postId){
   el.style.display=el.style.display==='none'||!el.style.display?'flex':'none';
 }
 
+function selectLoungecat(btn){
+  document.querySelectorAll('.lounge-cat-btn').forEach(b=>{
+    b.style.background='var(--bg)';b.style.color='var(--text-muted)';b.style.borderColor='var(--border)';
+  });
+  btn.style.background='var(--brand)';btn.style.color='white';btn.style.borderColor='var(--brand)';
+  document.getElementById('lounge-category').value=btn.dataset.cat;
+}
+
 async function postLounge(){
   const input=document.getElementById('lounge-input');
   const content=input?.value.trim();
+  const category=document.getElementById('lounge-category')?.value||'free';
   if(!content){toast('내용을 입력해주세요');return;}
   const id=await fsAdd('lounge',{
-    content,userId:currentUser.id,authorName:currentUser.name,
+    content,userId:currentUser.id,authorName:currentUser.name,category,
     emoji:currentUser.emoji||'😊',createdAt:new Date().toISOString(),
     replies:'_none_',reactions:'_none_'
   });
@@ -3209,6 +3323,32 @@ async function postLounge(){
     // 다른 팀원 뱃지용 lastLounge 타임스탬프 저장
     localStorage.setItem('addi_lastread_lounge_'+currentUser.id, new Date().toISOString());
   }else toast('등록 실패');
+}
+
+async function openLoungeEdit(postId){
+  const posts=await fsQuery('lounge');
+  const p=posts.find(x=>x.id===postId);
+  if(!p){toast('글을 찾을 수 없습니다');return;}
+  const catMap={question:'❓ 질문',share:'💡 공유',suggest:'📬 건의',free:'💬 자유'};
+  const catOpts=Object.entries(catMap).map(([v,l])=>`<option value="${v}"${p.category===v?' selected':''}>${l}</option>`).join('');
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">✏️ 글 수정</div>
+    <select id="edit-lounge-cat" class="popup-input" style="margin-bottom:10px;padding:10px 14px;font-size:13px;cursor:pointer;">${catOpts}</select>
+    <textarea id="edit-lounge-content" class="popup-input" rows="5" style="min-height:100px;resize:vertical;line-height:1.6;font-size:14px;">${p.content||''}</textarea>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">취소</button>
+      <button onclick="saveLoungeEdit('${postId}')" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
+    </div>`;
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('edit-lounge-content')?.focus(),100);
+}
+
+async function saveLoungeEdit(postId){
+  const content=document.getElementById('edit-lounge-content')?.value.trim();
+  const category=document.getElementById('edit-lounge-cat')?.value||'free';
+  if(!content){toast('내용을 입력해주세요');return;}
+  const ok=await fsUpdate('lounge',postId,{content,category});
+  if(ok){toast('수정됐어요 ✅');closeModal();loadLounge();}else toast('수정 실패');
 }
 
 async function postLoungeReply(postId, inputEl){
