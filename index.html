@@ -3077,7 +3077,7 @@ async function loadNotice(){
   const categoryLabel=n=>{const c=n.category||'general';const map={register:'✅ 등록',edit:'✏️ 수정',general:'📌 일반',etc:'📦 기타'};const col={register:'#DCFCE7',edit:'#FEF9C3',general:'#F3F4F6',etc:'#EDE9FE'};const tc={register:'#166534',edit:'#854D0E',general:'#374151',etc:'#5B21B6'};return '<span style="font-size:10px;background:'+col[c]+';color:'+tc[c]+';border-radius:6px;padding:1px 7px;font-weight:700;">'+map[c]+'</span>';};
 
   list.innerHTML=sorted.map(n=>`
-    <div style="background:var(--surface);border-radius:var(--radius-sm);border:1px solid ${n.urgency==='urgent'?'#FCA5A5':'var(--border)'};padding:20px;margin-bottom:12px;${n.urgency==='urgent'?'border-left:4px solid #EF4444;':''}">
+    <div style="background:${n.status==='done'?'#F8F8F8':'var(--surface)'};border-radius:var(--radius-sm);border:1px solid ${n.status==='done'?'#E0E0E0':n.urgency==='urgent'?'#FCA5A5':'var(--border)'};padding:20px;margin-bottom:12px;${n.urgency==='urgent'&&n.status!=='done'?'border-left:4px solid #EF4444;':''}opacity:${n.status==='done'?'0.65':'1'};">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="width:36px;height:36px;border-radius:10px;background:${n.urgency==='urgent'?'#FEE2E2':'var(--brand-light)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${n.urgency==='urgent'?'🚨':'📢'}</div>
@@ -3085,11 +3085,17 @@ async function loadNotice(){
             <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
               ${scopeLabel(n)} ${urgencyLabel(n)} ${categoryLabel(n)}
             </div>
-            <div style="font-size:15px;font-weight:700;">${n.title}</div>
+            <div style="font-size:15px;font-weight:700;${n.status==='done'?'text-decoration:line-through;opacity:0.5;':''}">${n.title}</div>
             <div style="font-size:11px;color:var(--text-hint);margin-top:2px;">${n.author||'관리자'} · ${n.createdAt?new Date(n.createdAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
           </div>
         </div>
-        ${isAdm(currentUser)?`<button class="icon-btn danger" onclick="deleteNotice('${n.id}')" title="삭제">🗑️</button>`:''}
+        ${isAdm(currentUser)?`<div style="display:flex;gap:4px;align-items:center;">
+          <button onclick="toggleNoticeStatus('${n.id}','${n.status||''}')"
+            style="padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${n.status==='done'?'var(--border)':'#10B981'};background:${n.status==='done'?'var(--bg)':'#F0FDF4'};color:${n.status==='done'?'var(--text-muted)':'#059669'};">
+            ${n.status==='done'?'↩ 재활성':'✅ 완료'}
+          </button>
+          <button class="icon-btn danger" onclick="deleteNotice('${n.id}')" title="삭제">🗑️</button>
+        </div>`:''}
       </div>
       <div style="font-size:14px;color:var(--text-muted);line-height:1.7;white-space:pre-wrap;padding-left:46px;">${n.body||''}</div>
       ${n.link?`<div style="margin-top:10px;padding-left:46px;"><a href="${n.link}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--brand);text-decoration:none;background:var(--brand-light);padding:7px 14px;border-radius:20px;border:1px solid var(--brand-mid);">🔗 링크/파일 열기</a></div>`:''}
@@ -3115,6 +3121,15 @@ async function postNotice(){
     hideNoticeBadge();
     loadNotice();
   }else toast('등록 실패');
+}
+
+async function toggleNoticeStatus(id, currentStatus){
+  const newStatus=currentStatus==='done'?'active':'done';
+  const ok=await fsUpdate('notices',id,{status:newStatus});
+  if(ok){
+    toast(newStatus==='done'?'✅ 완료 처리됐습니다':'↩ 재활성화됐습니다');
+    loadNotice();
+  }else toast('변경 실패');
 }
 
 async function deleteNotice(id){
@@ -4274,11 +4289,13 @@ async function openEditChecklistModal(id){
         <input type="checkbox" id="ecl-pinned" ${item.pinned==='true'||item.pinned===true?'checked':''} style="width:15px;height:15px;accent-color:var(--brand);"/>
         <span style="font-size:13px;font-weight:700;color:var(--brand);">담당자 홈 상단 미션으로 고정</span>
       </label>
-      <div id="ecl-mission-wrap" style="${item.pinned==='true'||item.pinned===true?'':'display:none;'}">
-        <label style="font-size:12px;color:var(--text-muted);font-weight:600;">담당자</label>
-        <select id="ecl-assignee" class="popup-input" style="font-size:13px;padding:10px 14px;margin-top:4px;margin-bottom:8px;cursor:pointer;">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;color:var(--text-muted);font-weight:600;">담당자 <span style="color:var(--text-hint);">(선택)</span></label>
+        <select id="ecl-assignee" class="popup-input" style="font-size:13px;padding:10px 14px;margin-top:4px;cursor:pointer;">
           <option value="">담당자 선택</option>
         </select>
+      </div>
+      <div id="ecl-mission-wrap" style="${item.pinned==='true'||item.pinned===true?'':'display:none;'}">
         <label style="font-size:12px;color:var(--text-muted);font-weight:600;">📅 미션 배정 날짜</label>
         <input type="date" id="ecl-mission-start" class="popup-input" value="${item.missionStart&&item.missionStart!=='_none_'?item.missionStart:''}" style="font-size:13px;padding:10px 14px;margin-top:4px;cursor:pointer;"/>
         <div style="font-size:11px;color:var(--text-hint);margin-top:4px;">해당 날짜부터 담당자 홈에 노출 · 미처리 시 자동 이월</div>
@@ -5133,11 +5150,13 @@ async function openEditChecklistModal(id){
         <input type="checkbox" id="ecl-pinned" ${item.pinned==='true'||item.pinned===true?'checked':''} style="width:15px;height:15px;accent-color:var(--brand);"/>
         <span style="font-size:13px;font-weight:700;color:var(--brand);">담당자 홈 상단 미션으로 고정</span>
       </label>
-      <div id="ecl-mission-wrap" style="${item.pinned==='true'||item.pinned===true?'':'display:none;'}">
-        <label style="font-size:12px;color:var(--text-muted);font-weight:600;">담당자</label>
-        <select id="ecl-assignee" class="popup-input" style="font-size:13px;padding:10px 14px;margin-top:4px;margin-bottom:8px;cursor:pointer;">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;color:var(--text-muted);font-weight:600;">담당자 <span style="color:var(--text-hint);">(선택)</span></label>
+        <select id="ecl-assignee" class="popup-input" style="font-size:13px;padding:10px 14px;margin-top:4px;cursor:pointer;">
           <option value="">담당자 선택</option>
         </select>
+      </div>
+      <div id="ecl-mission-wrap" style="${item.pinned==='true'||item.pinned===true?'':'display:none;'}">
         <label style="font-size:12px;color:var(--text-muted);font-weight:600;">📅 미션 배정 날짜</label>
         <input type="date" id="ecl-mission-start" class="popup-input" value="${item.missionStart&&item.missionStart!=='_none_'?item.missionStart:''}" style="font-size:13px;padding:10px 14px;margin-top:4px;cursor:pointer;"/>
         <div style="font-size:11px;color:var(--text-hint);margin-top:4px;">해당 날짜부터 담당자 홈에 노출 · 미처리 시 자동 이월</div>
