@@ -529,6 +529,7 @@ body.is-login .bottom-nav{display:none!important;}
       <button class="sidebar-item active" id="sb-home" onclick="switchPage('home')"><span class="si-icon">🏠</span>홈</button>
       <button class="sidebar-item" id="sb-mypage" onclick="switchPage('mypage')"><span class="si-icon">👤</span>마이페이지</button>
       <button class="sidebar-item" id="sb-notice" onclick="switchPage('notice')"><span class="si-icon">📢</span>공지사항<span id="notice-badge-sb" style="display:none;margin-left:auto;background:#EF4444;color:white;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;min-width:18px;text-align:center;"></span></button>
+      <button class="sidebar-item" id="sb-minutes" onclick="switchPage('minutes')"><span class="si-icon">📝</span>회의록</button>
       <button class="sidebar-item" id="sb-lounge" onclick="switchPage('lounge')" style="position:relative;display:none;"><span class="si-icon">💬</span>팀 라운지<span id="lounge-badge-sb" style="display:none;margin-left:auto;background:#EF4444;color:white;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;min-width:18px;text-align:center;"></span></button>
       <button class="sidebar-item" id="sb-admin" onclick="switchPage('admin')" style="display:none;"><span class="si-icon">📊</span>관리자</button>
       <button class="sidebar-item" id="sb-po" onclick="switchPage('po')" style="display:none;"><span class="si-icon">🎯</span>PO 대시보드</button>
@@ -765,6 +766,18 @@ body.is-login .bottom-nav{display:none!important;}
         </select>
       </div>
       <div id="notice-list"><div class="empty-state"><div class="empty-icon">📢</div>등록된 공지가 없습니다</div></div>
+    </div>
+
+    <!-- 회의록 -->
+    <div class="page" id="page-minutes">
+      <div class="page-header">
+        <div class="page-title">📝 회의록</div>
+        <div class="page-sub">팀 공지·내부 업무·논의·Action Plan 기록</div>
+      </div>
+      <div id="minutes-write-wrap" style="display:none;margin-bottom:16px;">
+        <button onclick="openMinutesEditor()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📝 새 회의록 작성</button>
+      </div>
+      <div id="minutes-list"><div class="empty-state"><div class="empty-icon">📝</div>등록된 회의록이 없습니다</div></div>
     </div>
 
     <!-- 팀 라운지 -->
@@ -1022,6 +1035,7 @@ body.is-login .bottom-nav{display:none!important;}
   <button class="nav-btn active" id="nav-home" onclick="switchPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></button>
   <button class="nav-btn" id="nav-mypage" onclick="switchPage('mypage')"><span class="nav-icon">👤</span><span class="nav-label">마이페이지</span></button>
   <button class="nav-btn" id="nav-notice" onclick="switchPage('notice')" style="position:relative;"><span class="nav-icon">📢</span><span class="nav-label">공지</span><span id="notice-badge-nav" style="display:none;position:absolute;top:4px;right:12px;background:#EF4444;color:white;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:800;min-width:16px;text-align:center;"></span></button>
+  <button class="nav-btn" id="nav-minutes" onclick="switchPage('minutes')"><span class="nav-icon">📝</span><span class="nav-label">회의록</span></button>
   <button class="nav-btn" id="nav-lounge" onclick="switchPage('lounge')" style="position:relative;display:none;"><span class="nav-icon">💬</span><span class="nav-label">라운지</span><span id="lounge-badge-nav" style="display:none;position:absolute;top:4px;right:8px;background:#EF4444;color:white;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:800;min-width:16px;text-align:center;"></span></button>
   <button class="nav-btn" id="nav-admin" onclick="switchPage('admin')" style="display:none;"><span class="nav-icon">📊</span><span class="nav-label">관리자</span></button>
   <button class="nav-btn" id="nav-po" onclick="switchPage('po')" style="display:none;"><span class="nav-icon">🎯</span><span class="nav-label">PO</span></button>
@@ -1262,8 +1276,8 @@ function logout(){
   document.getElementById('nav-po').style.display='none';
   document.getElementById('sb-po').style.display='none';
   // PO 전용으로 숨겼던 탭들 다시 표시 (다음 로그인 유저를 위해)
-  ['nav-home','nav-mypage','nav-notice','nav-po','nav-admin','nav-lounge',
-   'sb-home','sb-mypage','sb-notice','sb-po','sb-admin','sb-lounge'].forEach(id=>{
+  ['nav-home','nav-mypage','nav-notice','nav-po','nav-admin','nav-lounge','nav-minutes',
+   'sb-home','sb-mypage','sb-notice','sb-po','sb-admin','sb-lounge','sb-minutes'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.style.display='';
   });
 }
@@ -3271,6 +3285,7 @@ function switchPage(page){
   if(fab)fab.style.display=page==='home'&&!isPO(currentUser)?'flex':'none';
   if(page==='mypage')loadMyPage();
   if(page==='lounge'){loadLounge();markLoungeRead();return;}
+  if(page==='minutes'){loadMinutesList();return;}
   if(page==='notice'){
     // 공지 읽음 처리
     fsQuery('notices').then(notices=>{
@@ -3430,6 +3445,319 @@ async function postLounge(){
     // 다른 팀원 뱃지용 lastLounge 타임스탬프 저장
     localStorage.setItem('addi_lastread_lounge_'+currentUser.id, new Date().toISOString());
   }else toast('등록 실패');
+}
+
+// ══════════════════════════════════════
+// ── 회의록 (Minutes) ──
+// 4개 고정 섹션: ⚡팀즈 공지사항 / 🦊에디터팀 내부 공지사항 / 💌개별 논의 사항 / ✨Action Plan
+// 작성/수정/삭제는 관리자만, 팀원·PO는 읽기 전용.
+// 각 섹션은 항목을 여러 개 쌓는 리스트형이며, 배열은 JSON 문자열로 직렬화해 저장한다
+// (Firestore 헬퍼 _fsEnc가 string/number/boolean만 지원하기 때문).
+// 🦊 내부 공지의 각 항목은 업무명+담당자+마감일을 가지며, '미션으로 고정' 토글을 켜면
+// 회의록 저장 시 체크리스트에도 자동으로 추가된다(pinned+assignee+missionStart 세팅).
+// ══════════════════════════════════════
+
+const MINUTES_TAG_LABEL={weekly:'주별',monthly:'월별'};
+
+// 작성 중인 4개 섹션의 임시 상태 (모달 안에서만 사용)
+let _minutesDraft={teamsNotice:[],internalNotice:[],personalNotes:[],actionPlan:[]};
+let _minutesEditingId=null;
+
+function _minutesParse(jsonStr){
+  if(!jsonStr||jsonStr==='_none_')return[];
+  try{const v=JSON.parse(jsonStr);return Array.isArray(v)?v:[];}catch(e){return[];}
+}
+
+async function loadMinutesList(){
+  if(isAdm(currentUser)){
+    document.getElementById('minutes-write-wrap').style.display='block';
+  }
+  const list=document.getElementById('minutes-list');
+  if(!list)return;
+  const items=await fsQuery('minutes');
+  const sorted=items.sort((a,b)=>(b.meetingDate||b.createdAt||'').localeCompare(a.meetingDate||a.createdAt||''));
+  if(!sorted.length){
+    list.innerHTML='<div class="empty-state"><div class="empty-icon">📝</div>등록된 회의록이 없습니다</div>';
+    return;
+  }
+  list.innerHTML=sorted.map(m=>{
+    const tagLabel=MINUTES_TAG_LABEL[m.tagType]||'';
+    const dateLabel=m.meetingDate?new Date(m.meetingDate+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):'';
+    const teamsNotice=_minutesParse(m.teamsNotice);
+    const internalNotice=_minutesParse(m.internalNotice);
+    const personalNotes=_minutesParse(m.personalNotes);
+    const actionPlan=_minutesParse(m.actionPlan);
+    const sectionCount=teamsNotice.length+internalNotice.length+personalNotes.length+actionPlan.length;
+    return`<div class="card-sm" style="margin-bottom:12px;cursor:pointer;" onclick="openMinutesDetail('${m.id}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+            ${tagLabel?`<span style="font-size:10px;background:var(--brand-light);color:var(--brand);border-radius:6px;padding:2px 8px;font-weight:700;">${tagLabel}</span>`:''}
+            <span style="font-size:11px;color:var(--text-hint);">${dateLabel}</span>
+          </div>
+          <div style="font-size:15px;font-weight:700;">${m.title||'(제목 없음)'}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">⚡${teamsNotice.length} · 🦊${internalNotice.length} · 💌${personalNotes.length} · ✨${actionPlan.length}</div>
+        </div>
+        ${isAdm(currentUser)?`<button class="icon-btn danger" onclick="event.stopPropagation();deleteMinutes('${m.id}')" title="삭제">🗑️</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── 작성 모달 ──
+function openMinutesEditor(){
+  _minutesDraft={teamsNotice:[],internalNotice:[],personalNotes:[],actionPlan:[]};
+  _minutesEditingId=null;
+  renderMinutesEditorModal();
+}
+
+async function openMinutesEditForEdit(id){
+  const items=await fsQuery('minutes');
+  const m=items.find(x=>x.id===id);
+  if(!m){toast('회의록을 찾을 수 없습니다');return;}
+  _minutesDraft={
+    teamsNotice:_minutesParse(m.teamsNotice),
+    internalNotice:_minutesParse(m.internalNotice),
+    personalNotes:_minutesParse(m.personalNotes),
+    actionPlan:_minutesParse(m.actionPlan)
+  };
+  _minutesEditingId=id;
+  renderMinutesEditorModal(m);
+}
+
+function renderMinutesEditorModal(existing){
+  const title=existing?.title||'';
+  const tagType=existing?.tagType||'weekly';
+  const meetingDate=existing?.meetingDate||getToday();
+
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">${_minutesEditingId?'✏️ 회의록 수정':'📝 새 회의록 작성'}</div>
+    <input id="mn-title" class="popup-input" type="text" placeholder="회의록 제목" value="${title}" style="margin-bottom:10px;"/>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <select id="mn-tag" class="popup-input" style="flex:1;padding:10px 14px;cursor:pointer;">
+        <option value="weekly"${tagType==='weekly'?' selected':''}>주별</option>
+        <option value="monthly"${tagType==='monthly'?' selected':''}>월별</option>
+      </select>
+      <input id="mn-date" type="date" class="popup-input" value="${meetingDate}" style="flex:1;padding:10px 14px;cursor:pointer;"/>
+    </div>
+
+    <div id="mn-section-teamsNotice"></div>
+    <div id="mn-section-internalNotice"></div>
+    <div id="mn-section-personalNotes"></div>
+    <div id="mn-section-actionPlan"></div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">취소</button>
+      <button onclick="saveMinutes()" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">${_minutesEditingId?'수정 저장':'회의록 등록'}</button>
+    </div>`;
+
+  renderMinutesSection('teamsNotice','⚡ 팀즈 공지사항');
+  renderMinutesSection('internalNotice','🦊 에디터팀 내부 공지사항');
+  renderMinutesSection('personalNotes','💌 개별 논의 사항');
+  renderMinutesSection('actionPlan','✨ Action Plan');
+
+  document.getElementById('modal').classList.add('open');
+}
+
+// 섹션별 렌더링. internalNotice만 업무/담당자/마감일/미션토글 구조이고 나머지는 단순 텍스트.
+function renderMinutesSection(key,label){
+  const wrap=document.getElementById('mn-section-'+key);
+  if(!wrap)return;
+  const items=_minutesDraft[key];
+  const isInternal=key==='internalNotice';
+
+  let rowsHtml;
+  if(isInternal){
+    rowsHtml=items.map((it,i)=>`
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px;">
+        <input type="text" class="mn-internal-task" data-idx="${i}" placeholder="업무(제품명)" value="${(it.task||'').replace(/"/g,'&quot;')}"
+          style="flex:2;min-width:110px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;"/>
+        <input type="text" class="mn-internal-assignee" data-idx="${i}" placeholder="담당자" value="${(it.assignee||'').replace(/"/g,'&quot;')}"
+          style="flex:1;min-width:70px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;"/>
+        <input type="date" class="mn-internal-due" data-idx="${i}" value="${it.dueDate||''}"
+          style="flex:1;min-width:130px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;"/>
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--brand);font-weight:700;white-space:nowrap;">
+          <input type="checkbox" class="mn-internal-pin" data-idx="${i}" ${it.pinAsMission?'checked':''} style="accent-color:var(--brand);"/>📌 미션
+        </label>
+        <button onclick="removeMinutesItem('${key}',${i})" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:14px;padding:2px 4px;">✕</button>
+      </div>`).join('');
+  }else{
+    rowsHtml=items.map((it,i)=>`
+      <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px;">
+        <textarea class="mn-text-item" data-idx="${i}" rows="2"
+          style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;resize:vertical;line-height:1.5;">${(it.content||'')}</textarea>
+        <button onclick="removeMinutesItem('${key}',${i})" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:14px;padding:6px 4px;">✕</button>
+      </div>`).join('');
+  }
+
+  wrap.innerHTML=`
+    <div style="margin:14px 0 6px;">
+      <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">${label}</div>
+      <div id="mn-rows-${key}">${rowsHtml||'<div style="font-size:12px;color:var(--text-hint);margin-bottom:6px;">등록된 항목이 없습니다</div>'}</div>
+      <button onclick="addMinutesItem('${key}')" type="button"
+        style="padding:6px 12px;border-radius:8px;border:1.5px dashed var(--border);background:none;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:inherit;">+ 항목 추가</button>
+    </div>`;
+}
+
+function _syncMinutesSectionFromDOM(key){
+  const isInternal=key==='internalNotice';
+  if(isInternal){
+    document.querySelectorAll('.mn-internal-task').forEach(el=>{
+      const i=Number(el.dataset.idx);
+      if(_minutesDraft[key][i])_minutesDraft[key][i].task=el.value;
+    });
+    document.querySelectorAll('.mn-internal-assignee').forEach(el=>{
+      const i=Number(el.dataset.idx);
+      if(_minutesDraft[key][i])_minutesDraft[key][i].assignee=el.value;
+    });
+    document.querySelectorAll('.mn-internal-due').forEach(el=>{
+      const i=Number(el.dataset.idx);
+      if(_minutesDraft[key][i])_minutesDraft[key][i].dueDate=el.value;
+    });
+    document.querySelectorAll('.mn-internal-pin').forEach(el=>{
+      const i=Number(el.dataset.idx);
+      if(_minutesDraft[key][i])_minutesDraft[key][i].pinAsMission=el.checked;
+    });
+  }else{
+    document.querySelectorAll('#mn-rows-'+key+' .mn-text-item').forEach(el=>{
+      const i=Number(el.dataset.idx);
+      if(_minutesDraft[key][i])_minutesDraft[key][i].content=el.value;
+    });
+  }
+}
+
+function addMinutesItem(key){
+  _syncMinutesSectionFromDOM(key);
+  if(key==='internalNotice'){
+    _minutesDraft[key].push({task:'',assignee:'',dueDate:'',pinAsMission:false});
+  }else{
+    _minutesDraft[key].push({content:''});
+  }
+  const labelMap={teamsNotice:'⚡ 팀즈 공지사항',internalNotice:'🦊 에디터팀 내부 공지사항',personalNotes:'💌 개별 논의 사항',actionPlan:'✨ Action Plan'};
+  renderMinutesSection(key,labelMap[key]);
+}
+
+function removeMinutesItem(key,idx){
+  _syncMinutesSectionFromDOM(key);
+  _minutesDraft[key].splice(idx,1);
+  const labelMap={teamsNotice:'⚡ 팀즈 공지사항',internalNotice:'🦊 에디터팀 내부 공지사항',personalNotes:'💌 개별 논의 사항',actionPlan:'✨ Action Plan'};
+  renderMinutesSection(key,labelMap[key]);
+}
+
+async function saveMinutes(){
+  ['teamsNotice','internalNotice','personalNotes','actionPlan'].forEach(_syncMinutesSectionFromDOM);
+
+  const title=document.getElementById('mn-title')?.value.trim();
+  const tagType=document.getElementById('mn-tag')?.value||'weekly';
+  const meetingDate=document.getElementById('mn-date')?.value||getToday();
+  if(!title){toast('제목을 입력해주세요');return;}
+
+  // 빈 항목 제거
+  const teamsNotice=_minutesDraft.teamsNotice.filter(it=>(it.content||'').trim());
+  const internalNotice=_minutesDraft.internalNotice.filter(it=>(it.task||'').trim());
+  const personalNotes=_minutesDraft.personalNotes.filter(it=>(it.content||'').trim());
+  const actionPlan=_minutesDraft.actionPlan.filter(it=>(it.content||'').trim());
+
+  const payload={
+    title,tagType,meetingDate,
+    teamsNotice:JSON.stringify(teamsNotice),
+    internalNotice:JSON.stringify(internalNotice),
+    personalNotes:JSON.stringify(personalNotes),
+    actionPlan:JSON.stringify(actionPlan),
+    author:currentUser.name
+  };
+
+  let ok=false;
+  let savedId=_minutesEditingId;
+  if(_minutesEditingId){
+    ok=await fsUpdate('minutes',_minutesEditingId,payload);
+  }else{
+    payload.createdAt=new Date().toISOString();
+    savedId=await fsAdd('minutes',payload);
+    ok=!!savedId;
+  }
+
+  if(!ok){toast('저장 실패');return;}
+
+  // 🦊 내부공지 중 '미션으로 고정' 토글된 항목 → 체크리스트에 자동 등록
+  const pinItems=internalNotice.filter(it=>it.pinAsMission&&it.task);
+  let missionCount=0;
+  for(const it of pinItems){
+    const newId=await fsAdd('checklist',{
+      name:it.task,
+      link:'_none_',
+      type:'edit',
+      done:'false',
+      createdBy:currentUser.name,
+      createdAt:new Date().toISOString(),
+      checkedBy:'_none_',
+      checkedAt:'_none_',
+      logs:'_none_',
+      pinned:'true',
+      assignee:it.assignee||'_none_',
+      missionStart:it.dueDate||'_none_'
+    });
+    if(newId)missionCount++;
+  }
+
+  toast(_minutesEditingId?'회의록 수정 완료 ✅':'회의록 등록 완료 ✅'+(missionCount?` · 미션 ${missionCount}건 체크리스트에 추가됨`:''));
+  closeModal();
+  loadMinutesList();
+  if(missionCount){loadHomeChecklist();if(document.getElementById('admin-checklist-panel'))loadChecklist();}
+}
+
+async function deleteMinutes(id){
+  if(!confirm('이 회의록을 삭제할까요? (연동된 체크리스트 항목은 삭제되지 않습니다)'))return;
+  const ok=await fsDelete('minutes',id);
+  if(ok){toast('삭제됐어요');loadMinutesList();}else toast('삭제 실패');
+}
+
+// ── 상세 보기 (읽기 전용 모달, 관리자는 수정 버튼 노출) ──
+async function openMinutesDetail(id){
+  const items=await fsQuery('minutes');
+  const m=items.find(x=>x.id===id);
+  if(!m){toast('회의록을 찾을 수 없습니다');return;}
+
+  const tagLabel=MINUTES_TAG_LABEL[m.tagType]||'';
+  const dateLabel=m.meetingDate?new Date(m.meetingDate+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):'';
+  const teamsNotice=_minutesParse(m.teamsNotice);
+  const internalNotice=_minutesParse(m.internalNotice);
+  const personalNotes=_minutesParse(m.personalNotes);
+  const actionPlan=_minutesParse(m.actionPlan);
+
+  const textSection=(label,items)=>!items.length?'':`
+    <div style="margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">${label}</div>
+      ${items.map(it=>`<div style="font-size:13px;color:var(--text-muted);line-height:1.7;white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:6px;">${it.content||''}</div>`).join('')}
+    </div>`;
+
+  const internalSection=!internalNotice.length?'':`
+    <div style="margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">🦊 에디터팀 내부 공지사항</div>
+      ${internalNotice.map(it=>`
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg);border-radius:8px;padding:9px 12px;margin-bottom:6px;font-size:12px;">
+          <span style="font-weight:700;flex:1;min-width:100px;">${it.task||''}</span>
+          ${it.assignee?`<span style="color:var(--brand);font-weight:600;">👤 ${it.assignee}</span>`:''}
+          ${it.dueDate?`<span style="color:var(--text-hint);">📅 ${it.dueDate}</span>`:''}
+          ${it.pinAsMission?'<span style="font-size:10px;background:var(--brand-light);color:var(--brand);border-radius:6px;padding:2px 7px;font-weight:700;">📌 미션</span>':''}
+        </div>`).join('')}
+    </div>`;
+
+  document.getElementById('modal-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+      ${tagLabel?`<span style="font-size:10px;background:var(--brand-light);color:var(--brand);border-radius:6px;padding:2px 8px;font-weight:700;">${tagLabel}</span>`:''}
+      <span style="font-size:11px;color:var(--text-hint);">${dateLabel} · ${m.author||'관리자'}</span>
+    </div>
+    <div class="modal-title" style="margin-bottom:14px;">${m.title||'(제목 없음)'}</div>
+    ${textSection('⚡ 팀즈 공지사항',teamsNotice)}
+    ${internalSection}
+    ${textSection('💌 개별 논의 사항',personalNotes)}
+    ${textSection('✨ Action Plan',actionPlan)}
+    <div style="display:flex;gap:10px;margin-top:10px;">
+      <button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">닫기</button>
+      ${isAdm(currentUser)?`<button onclick="openMinutesEditForEdit('${m.id}')" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 수정</button>`:''}
+    </div>`;
+  document.getElementById('modal').classList.add('open');
 }
 
 async function openLoungeEdit(postId){
