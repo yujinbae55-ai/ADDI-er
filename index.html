@@ -2216,7 +2216,14 @@ async function showTeamDayDetail(date){
       const color=MEMBER_COLORS[ui%MEMBER_COLORS.length]||'var(--brand)';
       const bg=MEMBER_BG[ui%MEMBER_BG.length]||'var(--brand-light)';
       const emoji=u?.emoji||DEFAULT_EMOJIS[ui%DEFAULT_EMOJIS.length]||'😊';
-      const dayLogs=logs.filter(l=>l.userId===r.userId);
+      // 해당 출퇴근 레코드(r)에 정확히 연결된 로그만 표시.
+      // attendanceId가 없거나 'checklist'(출퇴근 중이 아닐 때 체크한 옛 데이터)인 경우는
+      // 날짜만 일치하면 보여주는 것으로 폴백한다.
+      const dayLogs=logs.filter(l=>{
+        if(l.userId!==r.userId)return false;
+        if(l.attendanceId&&l.attendanceId!=='checklist')return l.attendanceId===r.id;
+        return true;
+      });
       return`<div style="background:${bg};border-radius:14px;padding:16px;margin-bottom:12px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
           <div style="width:36px;height:36px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:20px;">${emoji}</div>
@@ -2700,7 +2707,7 @@ async function generateAISummary(){
 // ── PO 실적 토글 (전역 독립 함수 — 클로저 의존성 없음) ──
 function renderPOLogToggle(type,logs,users,label,icon,bgColor,textColor){
   if(!logs.length)return '<div class="stat-card" style="opacity:0.5;cursor:default;"><div class="stat-val">0</div><div class="stat-label">'+label+'</div></div>';
-  const id='report-toggle-'+type;
+  const id='po-report-toggle-'+type;
   const byUser={};
   logs.forEach(function(l){
     const u=users.find(function(uu){return uu.id===l.userId;});
@@ -2911,7 +2918,7 @@ document.addEventListener('click',function(e){
 document.addEventListener('click',function(e){
   // 토글 카드 클릭
   const card=e.target.closest('[data-toggle-id]');
-  if(card&&!e.target.closest('.report-csv-btn')&&!e.target.closest('[id^="report-toggle-"]')){
+  if(card&&!e.target.closest('.report-csv-btn')&&!e.target.closest('[id^="report-toggle-"]')&&!e.target.closest('[id^="po-report-toggle-"]')){
     toggleReportSection(card.dataset.toggleId);
     return;
   }
@@ -4729,6 +4736,15 @@ async function toggleChecklistItem(id,iMeCheckedStr){
 
   if(newDone && !alreadyChecked){
     // ── 체크: productLog 생성 + checklist 업데이트 ──
+    // 혹시 과거에 정리되지 않고 남아있는 동일 항목+유저의 고아 로그가 있다면 먼저 정리한다.
+    // (체크리스트 항목 하나당 유저별 최종 productLog는 항상 1개만 남는 것이 정책)
+    const staleLogs=await fsQuery('productLogs',[['checklistId','EQUAL',id],['userId','EQUAL',currentUser.id]]);
+    for(const lg of staleLogs){await fsDelete('productLogs',lg.id);}
+    if(staleLogs.length){
+      const staleIds=new Set(staleLogs.map(lg=>lg.id));
+      _myAllLogs=_myAllLogs.filter(l=>!staleIds.has(l.id));
+    }
+
     // 오늘 출근 기록 찾기
     const todayRecs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',today]]);
     const activeRec=todayRecs.find(r=>r.status==='active')||todayRecs.find(r=>r.status==='completed')||null;
@@ -4769,13 +4785,16 @@ async function toggleChecklistItem(id,iMeCheckedStr){
       toast('업데이트 실패');return;
     }
   } else if(!newDone && alreadyChecked){
-    // ── 체크 해제: 내가 생성한 productLog 삭제 ──
-    const myLogId=logIdMap[currentUser.name];
-    if(myLogId){
-      await fsDelete('productLogs',myLogId);
-      _myAllLogs=_myAllLogs.filter(l=>l.id!==myLogId);
-      delete logIdMap[currentUser.name];
+    // ── 체크 해제: 내가 이 항목에 대해 만든 productLog를 전부 삭제 ──
+    // logIds 매핑 문자열이 어긋나 있어도(과거 데이터 꼬임 등) 항상 정확히 정리되도록
+    // checklistId+userId로 productLogs 컬렉션을 직접 조회해서 지운다.
+    const myLogsForItem=await fsQuery('productLogs',[['checklistId','EQUAL',id],['userId','EQUAL',currentUser.id]]);
+    for(const lg of myLogsForItem){
+      await fsDelete('productLogs',lg.id);
     }
+    const deletedIds=new Set(myLogsForItem.map(lg=>lg.id));
+    _myAllLogs=_myAllLogs.filter(l=>!deletedIds.has(l.id));
+    delete logIdMap[currentUser.name];
     const newUsers=checkedUsers.filter(u=>u!==currentUser.name);
     const newLogIds=Object.entries(logIdMap).map(([u,l])=>`${u}:${l}`).join('||')||'_none_';
     updateData={
@@ -5592,6 +5611,15 @@ async function toggleChecklistItem(id,iMeCheckedStr){
 
   if(newDone && !alreadyChecked){
     // ── 체크: productLog 생성 + checklist 업데이트 ──
+    // 혹시 과거에 정리되지 않고 남아있는 동일 항목+유저의 고아 로그가 있다면 먼저 정리한다.
+    // (체크리스트 항목 하나당 유저별 최종 productLog는 항상 1개만 남는 것이 정책)
+    const staleLogs=await fsQuery('productLogs',[['checklistId','EQUAL',id],['userId','EQUAL',currentUser.id]]);
+    for(const lg of staleLogs){await fsDelete('productLogs',lg.id);}
+    if(staleLogs.length){
+      const staleIds=new Set(staleLogs.map(lg=>lg.id));
+      _myAllLogs=_myAllLogs.filter(l=>!staleIds.has(l.id));
+    }
+
     // 오늘 출근 기록 찾기
     const todayRecs=await fsQuery('attendance',[['userId','EQUAL',currentUser.id],['date','EQUAL',today]]);
     const activeRec=todayRecs.find(r=>r.status==='active')||todayRecs.find(r=>r.status==='completed')||null;
@@ -5632,13 +5660,16 @@ async function toggleChecklistItem(id,iMeCheckedStr){
       toast('업데이트 실패');return;
     }
   } else if(!newDone && alreadyChecked){
-    // ── 체크 해제: 내가 생성한 productLog 삭제 ──
-    const myLogId=logIdMap[currentUser.name];
-    if(myLogId){
-      await fsDelete('productLogs',myLogId);
-      _myAllLogs=_myAllLogs.filter(l=>l.id!==myLogId);
-      delete logIdMap[currentUser.name];
+    // ── 체크 해제: 내가 이 항목에 대해 만든 productLog를 전부 삭제 ──
+    // logIds 매핑 문자열이 어긋나 있어도(과거 데이터 꼬임 등) 항상 정확히 정리되도록
+    // checklistId+userId로 productLogs 컬렉션을 직접 조회해서 지운다.
+    const myLogsForItem=await fsQuery('productLogs',[['checklistId','EQUAL',id],['userId','EQUAL',currentUser.id]]);
+    for(const lg of myLogsForItem){
+      await fsDelete('productLogs',lg.id);
     }
+    const deletedIds=new Set(myLogsForItem.map(lg=>lg.id));
+    _myAllLogs=_myAllLogs.filter(l=>!deletedIds.has(l.id));
+    delete logIdMap[currentUser.name];
     const newUsers=checkedUsers.filter(u=>u!==currentUser.name);
     const newLogIds=Object.entries(logIdMap).map(([u,l])=>`${u}:${l}`).join('||')||'_none_';
     updateData={
