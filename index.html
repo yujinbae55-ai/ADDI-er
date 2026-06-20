@@ -3486,6 +3486,34 @@ function _minutesParse(jsonStr){
   try{const v=JSON.parse(jsonStr);return Array.isArray(v)?v:[];}catch(e){return[];}
 }
 
+// 회의록 저장 시점에 미션 현황을 스냅샷으로 캡처한다.
+// completed: meetingDate 기준 과거 7일(포함) 사이에 완료(checkedAt)된 미션
+// inProgress: 저장하는 지금 이 순간 기준으로 진행중(pinned && !done)인 미션
+// 이렇게 한 번 저장된 스냅샷은 이후 회의록을 다시 열어도 바뀌지 않는다(실시간 반영 X).
+async function buildMinutesMissionsSnapshot(meetingDate){
+  const items=await fsQuery('checklist');
+  const endTs=new Date((meetingDate||getToday())+'T23:59:59').getTime();
+  const startTs=endTs-7*24*60*60*1000;
+
+  const pick=it=>({name:it.name||'',assignee:it.assignee&&it.assignee!=='_none_'?it.assignee:'',missionStart:it.missionStart&&it.missionStart!=='_none_'?it.missionStart:'',checkedAt:it.checkedAt&&it.checkedAt!=='_none_'?it.checkedAt:''});
+
+  const completed=items.filter(it=>{
+    const isDone=it.done==='true'||it.done===true;
+    if(!isDone)return false;
+    if(!it.checkedAt||it.checkedAt==='_none_')return false;
+    const t=new Date(it.checkedAt).getTime();
+    return t>=startTs&&t<=endTs;
+  }).map(pick);
+
+  const inProgress=items.filter(it=>{
+    const isPinned=it.pinned==='true'||it.pinned===true;
+    const isDone=it.done==='true'||it.done===true;
+    return isPinned&&!isDone;
+  }).map(pick);
+
+  return{completed,inProgress};
+}
+
 // ── 초경량 마크다운 렌더러: **굵게**, 줄 앞 '- ' 불릿만 지원 ──
 function _mdEscape(s){
   return String(s||'')
@@ -3621,11 +3649,14 @@ function renderMinutesTextSection(key,label,opts){
   const items=_minutesDraft[key];
 
   const rowsHtml=items.map((it,i)=>`
-    <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px;">
-      <textarea class="mn-text-item" data-section="${key}" data-idx="${i}" rows="2"
-        placeholder="- 불릿은 줄 앞에 '- ', 굵게는 **이렇게** 표시돼요"
-        style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;resize:vertical;line-height:1.5;">${it.content||''}</textarea>
-      <button onclick="removeMinutesItem('${key}',${i})" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:14px;padding:6px 4px;">✕</button>
+    <div style="margin-bottom:6px;">
+      ${it.author?`<div style="display:inline-flex;align-items:center;gap:4px;background:var(--brand-light);color:var(--brand);border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;margin-bottom:4px;">👤 ${it.author}</div>`:''}
+      <div style="display:flex;gap:6px;align-items:flex-start;">
+        <textarea class="mn-text-item" data-section="${key}" data-idx="${i}" rows="2"
+          placeholder="- 불릿은 줄 앞에 '- ', 굵게는 **이렇게** 표시돼요"
+          style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;resize:vertical;line-height:1.5;">${it.content||''}</textarea>
+        <button onclick="removeMinutesItem('${key}',${i})" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:14px;padding:6px 4px;">✕</button>
+      </div>
     </div>`).join('');
 
   const missionsBlockId='mn-missions-'+key;
@@ -3654,11 +3685,11 @@ async function renderMinutesActiveMissions(blockId){
   const items=await fsQuery('checklist');
   const active=items.filter(i=>(i.pinned==='true'||i.pinned===true)&&!(i.done==='true'||i.done===true));
   if(!active.length){
-    el.innerHTML='<div style="font-size:11px;color:var(--text-hint);background:var(--bg);border-radius:8px;padding:8px 10px;">📌 현재 진행중인 미션이 없습니다</div>';
+    el.innerHTML='<div style="font-size:11px;color:var(--text-hint);background:var(--bg);border-radius:8px;padding:8px 10px;">📌 현재 진행중인 미션이 없습니다 (저장 시 스냅샷으로 고정됩니다)</div>';
     return;
   }
   el.innerHTML=`
-    <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">📌 현재 진행중인 미션 (자동 표시 · 읽기 전용)</div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">📌 진행중인 미션 미리보기 · 저장 시점에 스냅샷으로 고정되어 이후 바뀌지 않습니다</div>
     ${active.map(it=>`
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg);border-radius:8px;padding:7px 10px;margin-bottom:4px;font-size:12px;">
         <span style="font-weight:700;flex:1;min-width:90px;">${it.name||''}</span>
@@ -3881,7 +3912,10 @@ function applyMinutesImport(targetKey){
     const titleLine=cache.source==='notice'?(e.title||''):'';
     const bodyLine=cache.source==='notice'?(e.body||''):(e.content||'');
     const combined=titleLine?('**'+titleLine+'**\n'+bodyLine):bodyLine;
-    _minutesDraft[targetKey].push({content:combined});
+    // 라운지(개별 논의 사항)에서 가져온 경우 작성자 이름을 별도 필드로 함께 보관해
+    // 상세 화면에서 "누가 남긴 글인지" 뱃지로 표시할 수 있게 한다.
+    const authorName=cache.source==='lounge'?(e.authorName||''):'';
+    _minutesDraft[targetKey].push({content:combined,author:authorName});
   });
 
   toast(checked.length+'건 가져왔습니다');
@@ -3905,6 +3939,10 @@ async function saveMinutes(){
   const actionPlan=_minutesDraft.actionPlan.filter(it=>(it.content||'').trim());
   const actionSchedule=_minutesDraft.actionSchedule.filter(sc=>(sc.label||'').trim()||sc.date);
 
+  // 미션 현황 스냅샷: 회의록 날짜 기준 과거 7일 완료분 + 저장 시점 진행중 미션을 고정 저장.
+  // 이후 회의록을 다시 열어도 이 스냅샷은 바뀌지 않는다(요청: 실시간 반영 X).
+  const missionsSnapshot=await buildMinutesMissionsSnapshot(meetingDate);
+
   const payload={
     title,tagType,meetingDate,
     teamsNotice:JSON.stringify(teamsNotice),
@@ -3912,6 +3950,7 @@ async function saveMinutes(){
     personalNotes:JSON.stringify(personalNotes),
     actionPlan:JSON.stringify(actionPlan),
     actionSchedule:JSON.stringify(actionSchedule),
+    missionsSnapshot:JSON.stringify(missionsSnapshot),
     author:currentUser.name
   };
 
@@ -3951,14 +3990,21 @@ async function openMinutesDetail(id){
   const actionPlan=_minutesParse(m.actionPlan);
   const actionSchedule=_minutesParse(m.actionSchedule);
 
-  // 🦊 섹션에 곁들일, 저장 시점이 아닌 '지금 기준' 진행중 미션을 함께 보여준다
-  const checklist=await fsQuery('checklist');
-  const activeMissions=checklist.filter(i=>(i.pinned==='true'||i.pinned===true)&&!(i.done==='true'||i.done===true));
+  // 🦊 섹션에 곁들일 미션 현황: 저장 시점에 찍어둔 스냅샷을 그대로 읽는다(실시간 재조회 X).
+  // 옛 회의록(스냅샷 필드가 없는 경우)은 빈 상태로 표시된다.
+  let missionsSnapshot={completed:[],inProgress:[]};
+  if(m.missionsSnapshot&&m.missionsSnapshot!=='_none_'){
+    try{
+      const parsed=JSON.parse(m.missionsSnapshot);
+      missionsSnapshot={completed:parsed.completed||[],inProgress:parsed.inProgress||[]};
+    }catch(e){}
+  }
 
-  const docSection=(emoji,label,colorVar,items)=>{
+  const docSection=(emoji,label,colorVar,items,renderRow)=>{
     const sid='mndoc-'+label.replace(/[^a-zA-Z]/g,'');
+    const rowFn=renderRow||(it=>`<div style="padding:10px 0;border-bottom:1px dashed var(--border);font-size:13.5px;color:var(--text);line-height:1.7;">${renderMiniMarkdown(it.content)}</div>`);
     const body=items.length
-      ?items.map(it=>`<div style="padding:10px 0;border-bottom:1px dashed var(--border);font-size:13.5px;color:var(--text);line-height:1.7;">${renderMiniMarkdown(it.content)}</div>`).join('')
+      ?items.map(rowFn).join('')
       :'<div style="font-size:12px;color:var(--text-hint);padding:10px 0;">내용 없음</div>';
     return`
     <div style="margin-bottom:18px;">
@@ -3972,15 +4018,32 @@ async function openMinutesDetail(id){
     </div>`;
   };
 
-  const internalBodyExtra=activeMissions.length?`
-    <div style="margin-top:6px;padding:10px 12px;background:var(--bg);border-radius:8px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">📌 현재 진행중인 미션 (실시간)</div>
-      ${activeMissions.map(it=>`
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;padding:4px 0;">
-          <span style="font-weight:700;flex:1;min-width:90px;">${it.name||''}</span>
-          ${it.assignee&&it.assignee!=='_none_'?`<span style="color:var(--brand);font-weight:600;">👤 ${it.assignee}</span>`:''}
-          ${it.missionStart&&it.missionStart!=='_none_'?`<span style="color:var(--text-hint);">📅 ${it.missionStart}</span>`:''}
-        </div>`).join('')}
+  // 개별 논의 사항: 작성자가 있으면 이름을 작은 뱃지로 본문 위에 보여준다.
+  const personalNoteRow=it=>`
+    <div style="padding:10px 0;border-bottom:1px dashed var(--border);">
+      ${it.author?`<div style="display:inline-flex;align-items:center;gap:4px;background:var(--brand-light);color:var(--brand);border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;margin-bottom:6px;">👤 ${it.author}</div>`:''}
+      <div style="font-size:13.5px;color:var(--text);line-height:1.7;">${renderMiniMarkdown(it.content)}</div>
+    </div>`;
+
+  const missionRow=it=>`
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;padding:6px 0;border-bottom:1px dashed var(--border);">
+      <span style="font-weight:700;flex:1;min-width:90px;">${it.name||''}</span>
+      ${it.assignee?`<span style="color:var(--brand);font-weight:600;">👤 ${it.assignee}</span>`:''}
+      ${it.missionStart?`<span style="color:var(--text-hint);">📅 배정 ${it.missionStart}</span>`:''}
+      ${it.checkedAt?`<span style="color:#10B981;">✅ ${new Date(it.checkedAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric'})} 완료</span>`:''}
+    </div>`;
+
+  const missionsBlock=(missionsSnapshot.completed.length||missionsSnapshot.inProgress.length)?`
+    <div style="margin-top:6px;margin-bottom:18px;padding:12px 14px;background:var(--bg);border-radius:10px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">📌 미션 현황 스냅샷 · 회의록 저장 시점 기준 (이후 변동 반영 안 됨)</div>
+      ${missionsSnapshot.completed.length?`
+        <div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:4px;">✅ 최근 7일 완료 (${missionsSnapshot.completed.length}건)</div>
+        ${missionsSnapshot.completed.map(missionRow).join('')}
+      `:''}
+      ${missionsSnapshot.inProgress.length?`
+        <div style="font-size:11px;font-weight:700;color:var(--brand);margin:${missionsSnapshot.completed.length?'10px':'0'} 0 4px;">📌 진행중 (${missionsSnapshot.inProgress.length}건)</div>
+        ${missionsSnapshot.inProgress.map(missionRow).join('')}
+      `:''}
     </div>`:'';
 
   const scheduleBlock=actionSchedule.length?`
@@ -4003,8 +4066,8 @@ async function openMinutesDetail(id){
 
     ${docSection('⚡','팀즈 공지사항','#F3EEFF',teamsNotice)}
     ${docSection('🦊','에디터팀 내부 공지사항','#FFF3E0',internalNotice)}
-    ${internalBodyExtra}
-    ${docSection('💌','개별 논의 사항','#E8F5FF',personalNotes)}
+    ${missionsBlock}
+    ${docSection('💌','개별 논의 사항','#E8F5FF',personalNotes,personalNoteRow)}
     ${docSection('✨','Action Plan','#E8FBF0',actionPlan)}
     ${scheduleBlock}
 
