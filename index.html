@@ -1145,25 +1145,64 @@ async function _req(url,opts={},retry=2){
 function _fsVal(v){if(v===null||v===undefined)return{nullValue:null};if(typeof v==='boolean')return{booleanValue:v};if(typeof v==='number')return{integerValue:String(v)};return{stringValue:String(v)};}
 function _fsEnc(obj){const o={};for(const[k,v]of Object.entries(obj)){if(v==null)continue;if(typeof v==='boolean')o[k]={booleanValue:v};else if(typeof v==='number')o[k]={integerValue:String(v)};else o[k]={stringValue:String(v)};}return o;}
 function _fsParse(doc){const o={id:doc.name.split('/').pop()};for(const[k,v]of Object.entries(doc.fields||{}))o[k]=v.booleanValue??v.stringValue??v.integerValue??v.timestampValue??null;return o;}
+// ── 읽기 캐시 (Firestore 읽기 건수 절감) ──
+const _fsCache = {};
+const _FS_CACHE_TTL = {
+  users:     60000,   // 1분 (팀원 정보는 잘 안 바뀜)
+  notices:   120000,  // 2분
+  lounge:    120000,  // 2분
+  checklist: 60000,   // 1분
+  minutes:   180000,  // 3분
+  attendance: 30000,  // 30초 (출퇴근은 변동 잦음)
+  productLogs: 30000, // 30초
+};
+const _FS_DEFAULT_TTL = 45000; // 기본 45초
+
+function _cacheKey(col, filters){ return col + '|' + JSON.stringify(filters); }
+
+function _getCached(col, filters){
+  const key = _cacheKey(col, filters);
+  const entry = _fsCache[key];
+  if(!entry) return null;
+  const ttl = _FS_CACHE_TTL[col] || _FS_DEFAULT_TTL;
+  if(Date.now() - entry.ts > ttl){ delete _fsCache[key]; return null; }
+  return entry.data;
+}
+
+function _setCache(col, filters, data){
+  _fsCache[_cacheKey(col, filters)] = { ts: Date.now(), data };
+}
+
+function _invalidateCache(col){
+  Object.keys(_fsCache).forEach(k=>{ if(k.startsWith(col+'|')) delete _fsCache[k]; });
+}
+
 async function fsQuery(col,filters=[]){
+  // 캐시 히트 시 읽기 건수 0
+  const cached = _getCached(col, filters);
+  if(cached) return cached;
+
   const where=filters.length===0?undefined:filters.length===1?{fieldFilter:{field:{fieldPath:filters[0][0]},op:filters[0][1],value:_fsVal(filters[0][2])}}:{compositeFilter:{op:"AND",filters:filters.map(f=>({fieldFilter:{field:{fieldPath:f[0]},op:f[1],value:_fsVal(f[2])}}))}};
   const body={structuredQuery:{from:[{collectionId:col}],limit:300}};
   if(where)body.structuredQuery.where=where;
   const r=await _req(`${FS_BASE}:runQuery`,{method:'POST',body:JSON.stringify(body)});
   if(!r||!r.ok)return[];
-  return(await r.json()).filter(d=>d.document).map(d=>_fsParse(d.document));
+  const data=(await r.json()).filter(d=>d.document).map(d=>_fsParse(d.document));
+  _setCache(col, filters, data);
+  return data;
 }
-async function fsSet(col,id,data){const r=await _req(`${FS_BASE}/${col}/${id}`,{method:'PATCH',body:JSON.stringify({fields:_fsEnc(data)})});return r?.ok?r.json():null;}
+async function fsSet(col,id,data){const r=await _req(`${FS_BASE}/${col}/${id}`,{method:'PATCH',body:JSON.stringify({fields:_fsEnc(data)})});if(r?.ok)_invalidateCache(col);return r?.ok?r.json():null;}
 async function fsAdd(col,data){
   const r=await _req(`${FS_BASE}/${col}`,{method:'POST',body:JSON.stringify({fields:_fsEnc(data)})});
   if(!r?.ok){
     try{const err=await r.json();console.error('[fsAdd] '+col+' 실패:',JSON.stringify(err));}catch(e){}
     return null;
   }
+  _invalidateCache(col);
   return(await r.json()).name.split('/').pop();
 }
-async function fsUpdate(col,id,data){const mask=Object.keys(data).map(k=>`updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');const r=await _req(`${FS_BASE}/${col}/${id}?${mask}`,{method:'PATCH',body:JSON.stringify({fields:_fsEnc(data)})});return r?.ok??false;}
-async function fsDelete(col,id){const r=await _req(`${FS_BASE}/${col}/${id}`,{method:'DELETE'});return r?.ok??false;}
+async function fsUpdate(col,id,data){const mask=Object.keys(data).map(k=>`updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');const r=await _req(`${FS_BASE}/${col}/${id}?${mask}`,{method:'PATCH',body:JSON.stringify({fields:_fsEnc(data)})});if(r?.ok)_invalidateCache(col);return r?.ok??false;}
+async function fsDelete(col,id){const r=await _req(`${FS_BASE}/${col}/${id}`,{method:'DELETE'});if(r?.ok)_invalidateCache(col);return r?.ok??false;}
 
 let currentUser=null,todayAttendance=null,todayAllRecs=[],isRegisterMode=false;
 let myCalYear=new Date().getFullYear(),myCalMonth=new Date().getMonth();
@@ -6386,26 +6425,29 @@ async function loadPOChecklist(){
     sorted.map(item=>renderChecklistItem(item,false)).join('');
 }
 
-// ── 실시간 폴링 (30초) ──
+// ── 실시간 폴링 (최적화: 3분 간격, 캐시 활용) ──
+// 변경 전: 30초마다 notices+lounge+checklist 전체 읽기 → 하루 수천 건 소비
+// 변경 후: 3분 간격 + TTL 캐시로 실제 읽기 대폭 절감
+let _pollCount=0;
 function startPolling(){
   if(_pollInterval)clearInterval(_pollInterval);
   _pollInterval=setInterval(async()=>{
-    // 공지/라운지 뱃지 갱신
+    _pollCount++;
+    // 뱃지는 캐시(2분 TTL) 덕에 실제 읽기는 최소화됨
     updateNoticeBadge();
     updateLoungeBadge();
-    // 홈 체크리스트 실시간 갱신 (홈 활성시)
+    // 홈 체크리스트: 캐시 만료된 경우에만 실제 읽기 발생
     if(document.getElementById('page-home')?.classList.contains('active')){
       loadHomeChecklist();
     }
-    // 관리자 체크리스트 활성시
+    // 관리자/PO 체크리스트: 해당 패널 열려있을 때만
     if(document.getElementById('admin-checklist-panel')?.style.display==='block'){
       loadChecklist();
     }
-    // PO 체크리스트 활성시
     if(document.getElementById('po-panel-checklist')?.style.display==='block'){
       loadPOChecklist();
     }
-  },30000);
+  }, 180000); // 3분 (30초→3분, 실제 읽기는 캐시로 더 줄어듦)
 }
 function stopPolling(){if(_pollInterval){clearInterval(_pollInterval);_pollInterval=null;}}
 
