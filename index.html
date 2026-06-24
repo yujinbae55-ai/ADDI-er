@@ -1153,6 +1153,7 @@ const _FS_CACHE_TTL = {
   lounge:    120000,  // 2분
   checklist: 60000,   // 1분
   minutes:   180000,  // 3분
+  retroLogs:  60000,  // 1분
   attendance: 30000,  // 30초 (출퇴근은 변동 잦음)
   productLogs: 30000, // 30초
 };
@@ -3692,24 +3693,18 @@ async function loadMinutesMonthlyStats(){
   const block=document.getElementById('mn-monthly-stats-block');
   if(!block)return;
   block.style.display='block';
-  block.innerHTML=`<div style="background:var(--brand-light);border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid var(--brand-mid);">
-    <div style="font-size:13px;font-weight:700;color:var(--brand);margin-bottom:8px;">📊 이번 달 실적 불러오는 중...</div>
-    <div class="spinner-dark" style="margin:8px 0;"></div>
-  </div>`;
+  block.innerHTML=`<div style="background:var(--brand-light);border-radius:14px;padding:14px 16px;margin-bottom:16px;border:1px solid var(--brand-mid);font-size:13px;color:var(--brand);">📊 실적 불러오는 중...</div>`;
 
   try{
     const now=new Date();
     const curMonth=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
     const prevDate=new Date(now.getFullYear(),now.getMonth()-1,1);
     const prevMonth=`${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;
-
     const {start:cStart,end:cEnd}=getReportPeriod(curMonth);
     const {start:pStart,end:pEnd}=getReportPeriod(prevMonth);
 
     const[allUsers,recs,logs]=await Promise.all([fsQuery('users'),fsQuery('attendance'),fsQuery('productLogs')]);
-    const users=allUsers.filter(u=>!isPO(u)||isAdm(u));
 
-    // 이번 달 집계
     const cRecs=recs.filter(r=>r.date>=cStart&&r.date<=cEnd&&r.status==='completed');
     const cLogs=logs.filter(l=>l.date&&l.date>=cStart&&l.date<=cEnd);
     const cHours=(cRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0)/60);
@@ -3717,77 +3712,58 @@ async function loadMinutesMonthlyStats(){
     const cEdit=cLogs.filter(l=>l.type==='edit').length;
     const cTotal=cReg+cEdit+cLogs.filter(l=>l.type==='etc').length;
 
-    // 전달 집계
     const pRecs=recs.filter(r=>r.date>=pStart&&r.date<=pEnd&&r.status==='completed');
     const pLogs=logs.filter(l=>l.date&&l.date>=pStart&&l.date<=pEnd);
     const pHours=(pRecs.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0)/60);
     const pReg=pLogs.filter(l=>l.type==='register').length;
-    const pEdit=pLogs.filter(l=>l.type==='edit').length;
-    const pTotal=pReg+pEdit+pLogs.filter(l=>l.type==='etc').length;
+    const pTotal=pReg+pLogs.filter(l=>l.type==='edit').length+pLogs.filter(l=>l.type==='etc').length;
 
-    // 증감 계산
-    function diff(cur,prev){
-      if(prev===0)return cur>0?'+100%':'-';
+    function diffStr(cur,prev){
+      if(prev===0)return cur>0?'↑ 신규':'-';
       const p=Math.round((cur-prev)/prev*100);
       return(p>=0?'↑ +':'↓ ')+Math.abs(p)+'%';
     }
     function diffColor(cur,prev){return cur>=prev?'#10B981':'#EF4444';}
 
-    // 팀원별 이번 달 현황
-    const memberRows=users.map((u,i)=>{
-      const ur=cRecs.filter(r=>r.userId===u.id);
-      const ul=cLogs.filter(l=>l.userId===u.id);
-      const h=(ur.reduce((s,r)=>s+calcDurMin(r.checkIn,r.checkOut),0)/60).toFixed(1);
-      const pct=Math.min(100,Math.round(parseFloat(h)/MONTHLY_TARGET_H*100));
-      const bar=pct>=100?'#10B981':pct>=70?'var(--brand)':'#F59E0B';
-      const emoji=u.emoji||DEFAULT_EMOJIS[i%DEFAULT_EMOJIS.length];
-      return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <span style="font-size:18px;">${emoji}</span>
-        <div style="flex:1;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-            <span style="font-size:13px;font-weight:700;">${u.name}</span>
-            <span style="font-size:12px;color:var(--text-muted);">등록 <b style="color:var(--brand);">${ul.filter(l=>l.type==='register').length}</b> · 수정 <b style="color:var(--brand);">${ul.filter(l=>l.type==='edit').length}</b> · <b style="color:var(--brand);">${h}h</b></span>
-          </div>
-          <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${bar};"></div></div>
-        </div>
-      </div>`;
-    }).join('');
+    const [,m]=curMonth.split('-');
+    const [,pm]=prevMonth.split('-');
+    const statsText=`[${parseInt(m)}월 실적] 근무 ${cHours.toFixed(1)}h (전달比 ${diffStr(cHours,pHours)}) · 등록 ${cReg}건 (${diffStr(cReg,pReg)}) · 수정 ${cEdit}건 · 총 ${cTotal}건`;
 
-    const [y,m]=curMonth.split('-');
-    const [py,pm]=prevMonth.split('-');
+    // 나중에 saveMinutes에서 읽을 수 있도록 전역에 저장
+    window._mnMonthlyStatsText = statsText;
 
     block.innerHTML=`
-      <div style="background:linear-gradient(135deg,#0F172A,#1A1A4E);border-radius:14px;padding:18px;margin-bottom:16px;border:1px solid rgba(139,63,255,0.3);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.9);">📊 ${parseInt(m)}월 실적 요약 <span style="font-size:11px;color:rgba(255,255,255,0.4);">${cStart} ~ ${cEnd}</span></div>
-          <span style="font-size:10px;color:rgba(255,255,255,0.4);">전달(${parseInt(pm)}월) 대비</span>
+      <div style="background:#0F172A;border-radius:14px;padding:16px 18px;margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.6px;">📊 ${parseInt(m)}월 실적 · 전달(${parseInt(pm)}월) 대비</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
+          <div style="text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:#C9A0FF;">${cHours.toFixed(1)}h</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">근무시간</div>
+            <div style="font-size:11px;font-weight:700;color:${diffColor(cHours,pHours)};margin-top:3px;">${diffStr(cHours,pHours)}</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:#34D399;">${cReg}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">제품 등록</div>
+            <div style="font-size:11px;font-weight:700;color:${diffColor(cReg,pReg)};margin-top:3px;">${diffStr(cReg,pReg)}</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:#93C5FD;">${cEdit}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">제품 수정</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:3px;">-</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:#FCD34D;">${cTotal}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">총 작업</div>
+            <div style="font-size:11px;font-weight:700;color:${diffColor(cTotal,pTotal)};margin-top:3px;">${diffStr(cTotal,pTotal)}</div>
+          </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
-          <div style="background:rgba(255,255,255,0.07);border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:22px;font-weight:800;color:#C9A0FF;">${cHours.toFixed(1)}h</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:3px;">총 근무시간</div>
-            <div style="font-size:11px;font-weight:700;color:${diffColor(cHours,pHours)};margin-top:4px;">${diff(cHours,pHours)}</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.07);border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:22px;font-weight:800;color:#34D399;">${cReg}</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:3px;">제품 등록</div>
-            <div style="font-size:11px;font-weight:700;color:${diffColor(cReg,pReg)};margin-top:4px;">${diff(cReg,pReg)}</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.07);border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:22px;font-weight:800;color:#93C5FD;">${cTotal}</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:3px;">총 작업</div>
-            <div style="font-size:11px;font-weight:700;color:${diffColor(cTotal,pTotal)};margin-top:4px;">${diff(cTotal,pTotal)}</div>
-          </div>
-        </div>
-        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:8px;">팀원별 현황</div>
-        ${memberRows}
-        <div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.05);border-radius:10px;">
-          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;">📝 회의록 Action Plan에 붙여넣기용 요약</div>
-          <div id="mn-stats-copytext" style="font-size:12px;color:rgba(255,255,255,0.8);line-height:1.8;white-space:pre-wrap;">${parseInt(m)}월 실적: 근무 ${cHours.toFixed(1)}h (전달比 ${diff(cHours,pHours)}), 등록 ${cReg}건 (${diff(cReg,pReg)}), 수정 ${cEdit}건, 총 작업 ${cTotal}건</div>
-          <button onclick="copyMinutesStats()" style="margin-top:8px;padding:5px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">📋 복사하기</button>
+        <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;">
+          <div id="mn-stats-copytext" style="font-size:12px;color:rgba(255,255,255,0.75);flex:1;line-height:1.6;">${statsText}</div>
+          <button onclick="copyMinutesStats()" style="flex-shrink:0;padding:5px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">📋 복사</button>
         </div>
       </div>`;
   }catch(e){
+    window._mnMonthlyStatsText = null;
     block.innerHTML=`<div style="background:var(--danger-light);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;color:var(--danger);">실적 데이터 로드 실패. 잠시 후 다시 시도해주세요.</div>`;
   }
 }
@@ -4117,6 +4093,7 @@ async function saveMinutes(){
     actionPlan:JSON.stringify(actionPlan),
     actionSchedule:JSON.stringify(actionSchedule),
     missionsSnapshot:JSON.stringify(missionsSnapshot),
+    monthlyStats: tagType==='monthly'&&window._mnMonthlyStatsText ? window._mnMonthlyStatsText : '_none_',
     author:currentUser.name
   };
 
@@ -4230,20 +4207,187 @@ async function openMinutesDetail(id){
       ${tagLabel?`<span style="font-size:10px;background:var(--brand-light);color:var(--brand);border-radius:6px;padding:2px 8px;font-weight:700;">${tagLabel}</span>`:''}
       <span style="font-size:11px;color:var(--text-hint);">${dateLabel} · ${m.author||'관리자'}</span>
     </div>
-    <div class="modal-title" style="margin-bottom:16px;">${m.title||'(제목 없음)'}</div>
+    <div class="modal-title" style="margin-bottom:12px;">${m.title||'(제목 없음)'}</div>
 
-    ${docSection('⚡','팀즈 공지사항','#F3EEFF',teamsNotice)}
-    ${docSection('🦊','에디터팀 내부 공지사항','#FFF3E0',internalNotice)}
-    ${missionsBlock}
-    ${docSection('💌','개별 논의 사항','#E8F5FF',personalNotes,personalNoteRow)}
-    ${docSection('✨','Action Plan','#E8FBF0',actionPlan)}
-    ${scheduleBlock}
+    ${m.tagType==='monthly'?`
+    <div style="display:flex;background:var(--brand-light);border-radius:10px;padding:3px;gap:3px;margin-bottom:16px;">
+      <button id="mn-detail-tab-main" onclick="switchMinutesDetailTab('main','${m.id}')"
+        style="flex:1;padding:8px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:var(--brand);color:white;">📋 회의록</button>
+      <button id="mn-detail-tab-retro" onclick="switchMinutesDetailTab('retro','${m.id}')"
+        style="flex:1;padding:8px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:transparent;color:var(--brand);">🌙 월별 회고</button>
+    </div>`:''}
+
+    <div id="mn-detail-main">
+      ${m.tagType==='monthly'&&m.monthlyStats&&m.monthlyStats!=='_none_'?`
+      <div style="background:#0F172A;border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">📊</span>
+        <div style="font-size:12px;color:rgba(255,255,255,0.75);flex:1;line-height:1.6;">${m.monthlyStats}</div>
+      </div>`:''}
+      ${docSection('⚡','팀즈 공지사항','#F3EEFF',teamsNotice)}
+      ${docSection('🦊','에디터팀 내부 공지사항','#FFF3E0',internalNotice)}
+      ${missionsBlock}
+      ${docSection('💌','개별 논의 사항','#E8F5FF',personalNotes,personalNoteRow)}
+      ${docSection('✨','Action Plan','#E8FBF0',actionPlan)}
+      ${scheduleBlock}
+    </div>
+
+    <div id="mn-detail-retro" style="display:none;">
+      <div id="mn-retro-content"><div style="text-align:center;padding:24px;color:var(--text-hint);">불러오는 중...</div></div>
+    </div>
 
     <div style="display:flex;gap:10px;margin-top:18px;">
       <button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">닫기</button>
-      ${isAdm(currentUser)?`<button onclick="openMinutesEditForEdit('${m.id}')" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 수정</button>`:''}
+      <div id="mn-detail-btn-area" style="flex:1;display:flex;gap:8px;">
+        ${isAdm(currentUser)?`<button onclick="openMinutesEditForEdit('${m.id}')" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 수정</button>`:''}
+      </div>
     </div>`;
   document.getElementById('modal').classList.add('open','modal-wide');
+
+  // 월별이면 회고탭 데이터 미리 로드
+  window._currentMinutesIsAdm = isAdm(currentUser);
+  if(m.tagType==='monthly') loadRetroTab(m.id);
+}
+
+// ── 상세보기 탭 전환 ──
+function switchMinutesDetailTab(tab, minutesId){
+  const mainEl=document.getElementById('mn-detail-main');
+  const retroEl=document.getElementById('mn-detail-retro');
+  const mainBtn=document.getElementById('mn-detail-tab-main');
+  const retroBtn=document.getElementById('mn-detail-tab-retro');
+  const btnArea=document.getElementById('mn-detail-btn-area');
+
+  const isMain=tab==='main';
+  mainEl.style.display=isMain?'block':'none';
+  retroEl.style.display=isMain?'none':'block';
+  mainBtn.style.background=isMain?'var(--brand)':'transparent';
+  mainBtn.style.color=isMain?'white':'var(--brand)';
+  retroBtn.style.background=isMain?'transparent':'var(--brand)';
+  retroBtn.style.color=isMain?'var(--brand)':'white';
+
+  // 회고탭 버튼 영역 교체
+  if(!isMain){
+    btnArea.innerHTML=`<button onclick="openRetroEditor('${minutesId}')"
+      style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 내 회고 작성/수정</button>`;
+  } else {
+    const isAdmUser = window._currentMinutesIsAdm;
+    btnArea.innerHTML=isAdmUser?`<button onclick="openMinutesEditForEdit('${minutesId}')" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 수정</button>`:'';
+  }
+}
+
+// ── 회고 탭 렌더 ──
+async function loadRetroTab(minutesId){
+  const el=document.getElementById('mn-retro-content');
+  if(!el)return;
+  const retros=await fsQuery('retroLogs',[['minutesId','EQUAL',minutesId]]);
+  const allUsers=_allUsers&&_allUsers.length>0?_allUsers:await fsQuery('users');
+
+  if(!retros.length){
+    el.innerHTML=`
+      <div style="text-align:center;padding:32px 20px;border:1.5px dashed #DDD8ED;border-radius:14px;background:var(--surface);margin-bottom:14px;">
+        <div style="font-size:32px;margin-bottom:10px;">🌙</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">아직 작성된 회고가 없어요</div>
+        <div style="font-size:12px;color:var(--text-hint);">이번 달을 돌아보며 회고를 남겨보세요</div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML=retros.map(r=>{
+    const u=allUsers.find(u=>u.id===r.userId);
+    const emoji=u?.emoji||'😊';
+    const isMine=r.userId===currentUser.id;
+    return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px;${isMine?'border-color:var(--brand-mid);':''}" >
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:22px;">${emoji}</span>
+        <div>
+          <div style="font-size:14px;font-weight:800;">${r.userName||u?.name||'팀원'}</div>
+          <div style="font-size:11px;color:var(--text-hint);">${r.updatedAt?new Date(r.updatedAt).toLocaleDateString('ko-KR',{month:'long',day:'numeric'}):''}${isMine?' · 내 회고':''}</div>
+        </div>
+        ${isMine?`<span style="margin-left:auto;font-size:10px;background:var(--brand-light);color:var(--brand);padding:2px 8px;border-radius:8px;font-weight:700;">✏️ 내 회고</span>`:''}
+      </div>
+      ${r.feel?`<div style="margin-bottom:12px;"><div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;">💬 이달을 돌아보며</div><div style="font-size:13.5px;line-height:1.8;color:var(--text);">${renderMiniMarkdown(r.feel)}</div></div>`:''}
+      ${r.plan?`<div style="margin-bottom:12px;"><div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;">🚀 다음 달 계획</div><div style="font-size:13.5px;line-height:1.8;color:var(--text);">${renderMiniMarkdown(r.plan)}</div></div>`:''}
+      ${r.wish?`<div><div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;">🌟 하고 싶은 것</div><div style="font-size:13.5px;line-height:1.8;color:var(--text);">${renderMiniMarkdown(r.wish)}</div></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── 회고 작성/수정 에디터 ──
+async function openRetroEditor(minutesId){
+  // 기존 내 회고 있으면 불러오기
+  const retros=await fsQuery('retroLogs',[['minutesId','EQUAL',minutesId]]);
+  const mine=retros.find(r=>r.userId===currentUser.id);
+
+  document.getElementById('modal-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <span style="font-size:22px;">🌙</span>
+      <div>
+        <div style="font-size:17px;font-weight:800;">월별 회고</div>
+        <div style="font-size:12px;color:var(--text-muted);">${currentUser.name} · 자유롭게 남겨보세요</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:6px;">💬 이달을 돌아보며</label>
+      <textarea id="retro-feel" class="popup-input" rows="4" placeholder="이번 달 근무하며 느낀 것, 좋았던 점, 어려웠던 점..."
+        style="resize:vertical;line-height:1.7;font-size:14px;">${mine?.feel||''}</textarea>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:6px;">🚀 다음 달 계획</label>
+      <textarea id="retro-plan" class="popup-input" rows="3" placeholder="다음 달에 이루고 싶은 것, 개선하고 싶은 것..."
+        style="resize:vertical;line-height:1.7;font-size:14px;">${mine?.plan||''}</textarea>
+    </div>
+    <div style="margin-bottom:18px;">
+      <label style="font-size:12px;font-weight:700;color:var(--text-muted);display:block;margin-bottom:6px;">🌟 하고 싶은 것 <span style="font-weight:400;color:var(--text-hint);">(선택)</span></label>
+      <textarea id="retro-wish" class="popup-input" rows="2" placeholder="자유롭게! 팀에 바라는 것, 도전해보고 싶은 것 등..."
+        style="resize:vertical;line-height:1.7;font-size:14px;">${mine?.wish||''}</textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="openMinutesDetail('${minutesId}')" style="flex:1;padding:13px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">← 뒤로</button>
+      <button onclick="saveRetro('${minutesId}','${mine?.id||''}')" style="flex:2;padding:13px;border-radius:10px;border:none;background:var(--brand);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">${mine?'회고 수정':'회고 등록'} ✨</button>
+    </div>`;
+
+  document.getElementById('modal').classList.add('open','modal-wide');
+  setTimeout(()=>document.getElementById('retro-feel')?.focus(),100);
+}
+
+async function saveRetro(minutesId, existingId){
+  const feel=document.getElementById('retro-feel')?.value.trim();
+  const plan=document.getElementById('retro-plan')?.value.trim();
+  const wish=document.getElementById('retro-wish')?.value.trim();
+  if(!feel&&!plan){toast('내용을 하나 이상 입력해주세요');return;}
+
+  const btn=document.querySelector('#modal-content button:last-child');
+  if(btn){btn.disabled=true;btn.textContent='저장 중...';}
+
+  const payload={
+    minutesId,
+    userId:currentUser.id,
+    userName:currentUser.name,
+    feel:feel||'_none_',
+    plan:plan||'_none_',
+    wish:wish||'_none_',
+    updatedAt:new Date().toISOString()
+  };
+
+  let ok=false;
+  if(existingId){
+    ok=await fsUpdate('retroLogs',existingId,payload);
+  }else{
+    payload.createdAt=new Date().toISOString();
+    const newId=await fsAdd('retroLogs',payload);
+    ok=!!newId;
+  }
+
+  if(ok){
+    toast(existingId?'회고 수정 완료 ✨':'회고 등록 완료 ✨');
+    // 회고탭으로 돌아가기
+    await openMinutesDetail(minutesId);
+    switchMinutesDetailTab('retro', minutesId);
+  }else{
+    toast('저장 실패');
+    if(btn){btn.disabled=false;btn.textContent=existingId?'회고 수정':'회고 등록';}
+  }
 }
 
 async function openLoungeEdit(postId){
