@@ -4887,17 +4887,14 @@ function buildMissionCardHTML(myMissions,myMissionsAll,todayDisplay,today){
     :(myMissionsAll.length===0?'<div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:3px;">오늘 배정된 미션이 없어요</div>':'');
 
   return '<div style="background:linear-gradient(135deg,var(--brand),var(--sky));border-radius:16px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;">'
-    +'<div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:0.08;">🎯</div>'
+    +'<div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:0.08;pointer-events:none;user-select:none;">🎯</div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
       +'<div>'
         +'<div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;">TODAY\u0027S MISSION</div>'
         +'<div style="font-size:14px;font-weight:800;color:white;">'+todayDisplay+' 등록 필수 제품 🔥</div>'
         +statusLine
       +'</div>'
-      +'<div style="display:flex;align-items:center;gap:8px;">'
-        +'<a href="https://docs.google.com/spreadsheets/d/1ZsDdbrkDldtWcD7EdTWaZvGA4Co9H8ZcUeep34deTX8/edit" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:10px;background:rgba(255,255,255,0.9);font-size:11px;font-weight:800;color:#059669;text-decoration:none;white-space:nowrap;">📊 분류 시트</a>'
-        +'<div style="background:rgba(255,255,255,0.2);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:800;color:white;">'+myMissions.length+'건</div>'
-      +'</div>'
+      +'<div style="background:rgba(255,255,255,0.2);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:800;color:white;">'+myMissions.length+'건</div>'
     +'</div>'
     +rows
     +'</div>';
@@ -5358,6 +5355,7 @@ async function saveExcelLink(id){
   const inp=el?.querySelector('.excel-link-input');
   if(!inp)return;
   const link=inp.value.trim()||'_none_';
+  _invalidateCache('checklist');
   const ok=await fsUpdate('checklist',id,{excelLink:link});
   if(ok){
     toast('📊 엑셀 시트 링크 저장 완료!');
@@ -6238,6 +6236,7 @@ async function saveExcelLink(id){
   const inp=el?.querySelector('.excel-link-input');
   if(!inp)return;
   const link=inp.value.trim()||'_none_';
+  _invalidateCache('checklist');
   const ok=await fsUpdate('checklist',id,{excelLink:link});
   if(ok){
     toast('📊 엑셀 시트 링크 저장 완료!');
