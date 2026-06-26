@@ -5387,6 +5387,10 @@ async function openEditChecklistModal(id){
       <input id="ecl-link" class="popup-input" type="url" value="${item.link&&item.link!=='_none_'?item.link:''}" placeholder="https://..." style="margin-top:6px;"/>
     </div>
     <div class="field" style="margin-bottom:12px;">
+      <label style="display:flex;align-items:center;gap:5px;">📊 구글 시트 링크 <span style="font-size:11px;color:var(--text-hint);font-weight:400;">(선택 · 미션카드 바로가기)</span></label>
+      <input id="ecl-excel-link" class="popup-input" type="url" value="${item.excelLink&&item.excelLink!=='_none_'?item.excelLink:''}" placeholder="https://docs.google.com/spreadsheets/..." style="margin-top:6px;"/>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
       <label>구분</label>
       <select id="ecl-type" class="popup-input" style="margin-top:6px;padding:12px 14px;cursor:pointer;">
         ${typeOpts}
@@ -5447,6 +5451,7 @@ async function openEditChecklistModal(id){
 async function saveEditChecklist(id){
   const name=document.getElementById('ecl-name')?.value.trim();
   const link=document.getElementById('ecl-link')?.value.trim()||'_none_';
+  const excelLink=document.getElementById('ecl-excel-link')?.value.trim()||'_none_';
   const type=document.getElementById('ecl-type')?.value||'register';
   const holdReason=document.getElementById('ecl-hold-reason')?.value.trim()||'_none_';
   if(!name){toast('제품명을 입력해주세요');return;}
@@ -5455,7 +5460,7 @@ async function saveEditChecklist(id){
   // 미션 고정 체크됐을 때만 담당자/날짜 저장, 아니면 초기화
   const assignee=isPinnedChecked?(document.getElementById('ecl-assignee')?.value||'_none_'):'_none_';
   const missionStart=isPinnedChecked?(document.getElementById('ecl-mission-start')?.value||'_none_'):'_none_';
-  const payload={name,link:link||'_none_',type,pinned,assignee,missionStart};
+  const payload={name,link:link||'_none_',excelLink,type,pinned,assignee,missionStart};
   if(type==='hold')payload.holdReason=holdReason;
   const ok=await fsUpdate('checklist',id,payload);
   if(ok){
@@ -6262,6 +6267,10 @@ async function openEditChecklistModal(id){
       <input id="ecl-link" class="popup-input" type="url" value="${item.link&&item.link!=='_none_'?item.link:''}" placeholder="https://..." style="margin-top:6px;"/>
     </div>
     <div class="field" style="margin-bottom:12px;">
+      <label style="display:flex;align-items:center;gap:5px;">📊 구글 시트 링크 <span style="font-size:11px;color:var(--text-hint);font-weight:400;">(선택 · 미션카드 바로가기)</span></label>
+      <input id="ecl-excel-link" class="popup-input" type="url" value="${item.excelLink&&item.excelLink!=='_none_'?item.excelLink:''}" placeholder="https://docs.google.com/spreadsheets/..." style="margin-top:6px;"/>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
       <label>구분</label>
       <select id="ecl-type" class="popup-input" style="margin-top:6px;padding:12px 14px;cursor:pointer;">
         ${typeOpts}
@@ -6322,6 +6331,7 @@ async function openEditChecklistModal(id){
 async function saveEditChecklist(id){
   const name=document.getElementById('ecl-name')?.value.trim();
   const link=document.getElementById('ecl-link')?.value.trim()||'_none_';
+  const excelLink=document.getElementById('ecl-excel-link')?.value.trim()||'_none_';
   const type=document.getElementById('ecl-type')?.value||'register';
   const holdReason=document.getElementById('ecl-hold-reason')?.value.trim()||'_none_';
   if(!name){toast('제품명을 입력해주세요');return;}
@@ -6330,7 +6340,7 @@ async function saveEditChecklist(id){
   // 미션 고정 체크됐을 때만 담당자/날짜 저장, 아니면 초기화
   const assignee=isPinnedChecked?(document.getElementById('ecl-assignee')?.value||'_none_'):'_none_';
   const missionStart=isPinnedChecked?(document.getElementById('ecl-mission-start')?.value||'_none_'):'_none_';
-  const payload={name,link:link||'_none_',type,pinned,assignee,missionStart};
+  const payload={name,link:link||'_none_',excelLink,type,pinned,assignee,missionStart};
   if(type==='hold')payload.holdReason=holdReason;
   const ok=await fsUpdate('checklist',id,payload);
   if(ok){
