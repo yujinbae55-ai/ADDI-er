@@ -1739,19 +1739,22 @@ async function loadMyPage(){
   myCalYear=_by; myCalMonth=_bm-1;
   _mySelectedDate=null;
   document.getElementById('my-emoji-display').textContent=currentUser.emoji||'😊';
-  // 월 필터 셀렉트 초기화
+  // 월 필터 셀렉트 초기화 (매번 현재 기준월로 재설정)
   const mSel=document.getElementById('my-month-filter');
-  if(mSel&&mSel.options.length===0){
-    const now=new Date();
-    for(let i=0;i<12;i++){
-      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-      const val=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-      const opt=document.createElement('option');
-      opt.value=val;
-      opt.textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월';
-      if(i===0)opt.selected=true;
-      mSel.appendChild(opt);
+  if(mSel){
+    if(mSel.options.length===0){
+      const now=new Date();
+      for(let i=0;i<12;i++){
+        const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+        const val=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+        const opt=document.createElement('option');
+        opt.value=val;
+        opt.textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월';
+        mSel.appendChild(opt);
+      }
     }
+    // 항상 기준월로 선택값 맞춤
+    mSel.value=_basePfx;
   }
   // 전체 데이터 한 번에 로드
   const[recs,logs]=await Promise.all([
@@ -2924,6 +2927,7 @@ async function saveLogMemoFromData(logId){
   const ta=document.querySelector('.log-memo-input[data-log-id="'+logId+'"]');
   if(!ta)return;
   const memo=ta.value.trim();
+  _invalidateCache('productLogs');
   const ok=await fsUpdate('productLogs',logId,{memo});
   if(ok){
     toast('메모 저장 완료 📝');
@@ -2931,6 +2935,19 @@ async function saveLogMemoFromData(logId){
     if(idx>=0)_myAllLogs[idx].memo=memo;
     renderSideProducts();
   }else toast('저장 실패');
+}
+
+function openLogMemo(logId){
+  const editDiv=document.getElementById('log-memo-edit-'+logId);
+  if(!editDiv)return;
+  editDiv.style.display='block';
+  const ta=editDiv.querySelector('.log-memo-input');
+  if(ta)ta.focus();
+}
+
+function closeLogMemo(logId){
+  const editDiv=document.getElementById('log-memo-edit-'+logId);
+  if(editDiv)editDiv.style.display='none';
 }
 
 // link-save-btn 클릭 위임
